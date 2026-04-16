@@ -1,0 +1,3450 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<meta name="theme-color" content="#b8450b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Atölye">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22At%C3%B6lye%20Takip%22%2C%22short_name%22%3A%22At%C3%B6lye%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f5f3ee%22%2C%22theme_color%22%3A%22%23b8450b%22%2C%22orientation%22%3A%22any%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Bcharset%3Dutf-8%2C%253Csvg%2520xmlns%253D%2522http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2522%2520viewBox%253D%25220%25200%2520192%2520192%2522%253E%253Crect%2520width%253D%2522192%2522%2520height%253D%2522192%2522%2520rx%253D%252232%2522%2520fill%253D%2522%2523b8450b%2522%252F%253E%253Ctext%2520x%253D%252296%2522%2520y%253D%2522120%2522%2520font-family%253D%2522sans-serif%2522%2520font-size%253D%252280%2522%2520font-weight%253D%2522700%2522%2520fill%253D%2522%2523fff%2522%2520text-anchor%253D%2522middle%2522%253EA%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%22%7D%2C%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Bcharset%3Dutf-8%2C%253Csvg%2520xmlns%253D%2522http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2522%2520viewBox%253D%25220%25200%2520512%2520512%2522%253E%253Crect%2520width%253D%2522512%2522%2520height%253D%2522512%2522%2520rx%253D%252288%2522%2520fill%253D%2522%2523b8450b%2522%252F%253E%253Ctext%2520x%253D%2522256%2522%2520y%253D%2522320%2522%2520font-family%253D%2522sans-serif%2522%2520font-size%253D%2522220%2522%2520font-weight%253D%2522700%2522%2520fill%253D%2522%2523fff%2522%2520text-anchor%253D%2522middle%2522%253EA%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%22%7D%5D%7D">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23b8450b'/%3E%3Ctext x='50' y='68' font-family='sans-serif' font-size='60' font-weight='700' fill='%23fff' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='32' fill='%23b8450b'/%3E%3Ctext x='90' y='122' font-family='sans-serif' font-size='108' font-weight='700' fill='%23fff' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<title>Atölye Takip Sistemi</title>
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --surface: #ffffff;
+    --surface-alt: #faf8f3;
+    --border: #e2ddd0;
+    --border-strong: #c9c3b3;
+    --text: #2a2824;
+    --text-muted: #6b6658;
+    --text-light: #9b9585;
+    --accent: #b8450b;
+    --accent-soft: #f4e6dc;
+    --success: #2d6a3e;
+    --success-soft: #e3efe5;
+    --warning: #a67c00;
+    --warning-soft: #faf1d9;
+    --danger: #a52828;
+    --danger-soft: #f7e3e3;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
+    --radius: 6px;
+    --radius-lg: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .app { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .brand {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .brand h1 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    word-break: break-word;
+    line-height: 1.3;
+  }
+  .brand p {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-item:hover {
+    background: var(--surface-alt);
+    color: var(--text);
+  }
+  .nav-item.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-left-color: var(--accent);
+  }
+  .nav-icon { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* Main */
+  .main {
+    flex: 1;
+    padding: 24px 32px;
+    max-width: 1400px;
+  }
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-title { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; }
+  .page-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Buttons */
+  .btn {
+    padding: 8px 14px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: var(--surface-alt); border-color: var(--text-muted); }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #9e3a09; border-color: #9e3a09; }
+  .btn-danger {
+    background: var(--surface);
+    color: var(--danger);
+    border-color: var(--danger-soft);
+  }
+  .btn-danger:hover { background: var(--danger-soft); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-icon {
+    padding: 6px;
+    width: 30px;
+    height: 30px;
+    justify-content: center;
+  }
+
+  /* Stat cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 600;
+    margin-top: 6px;
+    letter-spacing: -0.5px;
+  }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .stat-accent { color: var(--accent); }
+
+  /* Section */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface-alt);
+  }
+  .section-title { font-size: 14px; font-weight: 600; }
+  .section-body { padding: 16px 18px; }
+
+  /* Search */
+  .search-box {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .search-input {
+    width: 100%;
+    padding: 10px 14px 10px 36px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+  }
+  .search-input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+  }
+
+  /* Table */
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+  }
+  .table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .table tr:last-child td { border-bottom: none; }
+  .table tr.clickable { cursor: pointer; }
+  .table tr.clickable:hover { background: var(--surface-alt); }
+  .plate {
+    display: inline-block;
+    font-family: 'Consolas', monospace;
+    font-weight: 600;
+    background: #2a2824;
+    color: #fff176;
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    font-size: 12px;
+  }
+
+  /* Forms */
+  .form-grid {
+    display: grid;
+    gap: 14px;
+  }
+  .form-row { display: grid; gap: 14px; }
+  .form-row-2 { grid-template-columns: 1fr 1fr; }
+  .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .form-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+  }
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+  }
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    outline: 2px solid var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .form-field textarea { resize: vertical; min-height: 70px; }
+
+  /* Parts table in service form */
+  .parts-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  .parts-table th {
+    padding: 8px;
+    background: var(--surface-alt);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .parts-table td { padding: 6px; border-bottom: 1px solid var(--border); }
+  .parts-table input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: inherit;
+    background: var(--surface);
+  }
+  .parts-table input:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+
+  /* Students chips */
+  .students-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .student-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 13px;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .student-chip:hover { background: var(--surface-alt); }
+  .student-chip.selected {
+    background: var(--success-soft);
+    border-color: var(--success);
+    color: var(--success);
+    font-weight: 500;
+  }
+  .student-chip input { margin: 0; }
+
+  /* Modal */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    overflow-y: auto;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 800px;
+    box-shadow: var(--shadow-lg);
+    margin: auto;
+  }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-title { font-size: 16px; font-weight: 600; }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+  }
+  .modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
+  .modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: var(--surface-alt);
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-muted);
+  }
+  .empty h3 { font-size: 15px; margin-bottom: 6px; color: var(--text); font-weight: 600; }
+  .empty p { font-size: 13px; }
+
+  /* Summary box in service form */
+  .summary-box {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .summary-item { }
+  .summary-item-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+  .summary-item-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 2px;
+  }
+  .summary-item-value.big {
+    font-size: 22px;
+    color: var(--accent);
+  }
+
+  /* Vehicle detail */
+  .vehicle-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .vehicle-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    padding: 14px 18px;
+    background: var(--surface-alt);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+  }
+  .vehicle-info-item {}
+  .vehicle-info-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .vehicle-info-value {
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .badge-success { background: var(--success-soft); color: var(--success); }
+  .badge-warning { background: var(--warning-soft); color: var(--warning); }
+  .badge-danger { background: var(--danger-soft); color: var(--danger); }
+  .badge-muted { background: var(--surface-alt); color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 18px;
+    background: var(--text);
+    color: white;
+    border-radius: var(--radius);
+    font-size: 13px;
+    z-index: 200;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .toast.success { background: var(--success); }
+  .toast.danger { background: var(--danger); }
+
+  /* Hidden */
+  .hidden { display: none !important; }
+
+  /* Period filter bar */
+  .period-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow);
+  }
+  .period-bar-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding-right: 8px;
+    border-right: 1px solid var(--border);
+  }
+  .period-chips {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .period-chip {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .period-chip:hover { background: var(--surface-alt); color: var(--text); }
+  .period-chip.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .period-custom {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .period-custom input[type="date"] {
+    padding: 5px 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+  }
+  .period-range-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: auto;
+    font-style: italic;
+  }
+
+  /* Maintenance list */
+  .maint-list {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .maint-item {
+    display: grid;
+    grid-template-columns: 110px 1fr auto;
+    gap: 14px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .maint-item:hover { background: var(--surface-alt); }
+  .maint-item:last-child { border-bottom: none; }
+  .maint-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .maint-status.overdue { background: var(--danger-soft); color: var(--danger); }
+  .maint-status.soon { background: var(--warning-soft); color: var(--warning); }
+  .maint-status.upcoming { background: #e8f0f7; color: #1d4c7a; }
+  .maint-status.future { background: var(--surface-alt); color: var(--text-muted); }
+  .maint-info {}
+  .maint-vehicle { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+  .maint-details { font-size: 12px; color: var(--text-muted); }
+  .maint-action {
+    display: flex;
+    gap: 6px;
+  }
+  .maint-tel {
+    padding: 6px 10px;
+    background: var(--success-soft);
+    color: var(--success);
+    border: 1px solid var(--success);
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .maint-tel:hover { background: var(--success); color: white; }
+
+  /* Bar chart */
+  .chart-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 180px;
+    padding: 0 10px;
+  }
+  .chart-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    height: 100%;
+  }
+  .chart-bar-value {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Consolas', monospace;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .chart-bar-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    min-height: 0;
+  }
+  .chart-bar {
+    width: 100%;
+    background: var(--accent);
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    transition: all 0.3s;
+  }
+  .chart-bar-wrap:hover .chart-bar { background: #9e3a09; }
+  .chart-bar-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Revenue panel */
+  .revenue-flow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .flow-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .flow-card.highlight {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .flow-card.net {
+    background: var(--success-soft);
+    border-color: var(--success);
+  }
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: var(--text-light);
+  }
+
+  /* Actions cell */
+  .actions { display: flex; gap: 4px; }
+
+  /* Helper text */
+  .help-text { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Money styling */
+  .money { font-family: 'Consolas', monospace; font-weight: 500; }
+  .money-big { font-size: 15px; }
+
+  /* ======================================== */
+  /* MOBIL RESPONSIVE                         */
+  /* ======================================== */
+  @media (max-width: 900px) {
+    body { font-size: 13px; }
+    .app { flex-direction: column; }
+
+    /* Sidebar üstte yatay nav olur */
+    .sidebar {
+      width: 100%;
+      height: auto;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 0;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      padding: 12px 16px 10px;
+      margin-bottom: 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand h1 { font-size: 15px; }
+    .brand p { display: none; }
+    .sidebar nav {
+      display: flex;
+      overflow-x: auto;
+      padding: 6px 8px;
+      gap: 4px;
+      scrollbar-width: none;
+    }
+    .sidebar nav::-webkit-scrollbar { display: none; }
+    .nav-item {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-left: none;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .nav-item.active {
+      border-left-color: transparent;
+      border-bottom-color: var(--accent);
+      background: transparent;
+    }
+    .nav-icon { width: 14px; height: 14px; }
+
+    /* Ana içerik */
+    .main {
+      padding: 14px 12px;
+      max-width: 100%;
+    }
+
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .page-header > div:last-child {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .page-title { font-size: 18px; }
+    .page-subtitle { font-size: 11px; }
+
+    /* Stat kartları tek sütun */
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .stat-card { padding: 12px; }
+    .stat-value { font-size: 20px; }
+    .stat-label { font-size: 10px; }
+    .stat-sub { font-size: 10px; }
+
+    /* Dönem bar — chipleri kaydırılabilir */
+    .period-bar {
+      padding: 8px 10px;
+      gap: 8px;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .period-bar-label {
+      border-right: none;
+      padding-right: 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+    }
+    .period-chips {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -10px;
+      padding: 0 10px;
+    }
+    .period-chips::-webkit-scrollbar { display: none; }
+    .period-chip {
+      flex-shrink: 0;
+      padding: 7px 12px;
+      font-size: 12px;
+    }
+    .period-custom {
+      margin-left: 0;
+      flex-wrap: wrap;
+    }
+    .period-range-info {
+      margin-left: 0;
+      font-size: 10px;
+    }
+
+    /* Tablolar yatay kaydırılabilir */
+    .section { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table { min-width: 600px; font-size: 12px; }
+    .table th, .table td { padding: 8px 10px; }
+    .plate { font-size: 11px; padding: 2px 6px; }
+
+    /* Section header */
+    .section-header { padding: 10px 14px; }
+    .section-title { font-size: 13px; }
+    .section-body { padding: 12px 14px; }
+
+    /* Bakım kartları mobilde düz görünsün */
+    .maint-item {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 12px 14px;
+    }
+    .maint-item > div:first-child { order: -1; }
+    .maint-status { align-self: flex-start; }
+    .maint-vehicle { font-size: 13px; white-space: normal; }
+    .maint-details { font-size: 11px; }
+    .maint-tel { padding: 8px 14px; font-size: 13px; display: inline-block; }
+
+    /* Gelir paneli flow kartları */
+    .revenue-flow {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .flow-card { padding: 12px; }
+
+    /* Çubuk grafik yükseklik */
+    .chart-container { height: 140px; gap: 6px; padding: 0 4px; }
+    .chart-bar-value { font-size: 9px; }
+    .chart-bar-label { font-size: 10px; transform: rotate(-45deg); transform-origin: top left; margin-top: 4px; }
+
+    /* Modal tam ekran */
+    .modal-backdrop { padding: 0; }
+    .modal {
+      max-width: 100% !important;
+      width: 100%;
+      min-height: 100vh;
+      border-radius: 0;
+    }
+    .modal-header { padding: 12px 14px; position: sticky; top: 0; background: var(--surface); z-index: 2; }
+    .modal-title { font-size: 15px; }
+    .modal-body { padding: 14px; max-height: none; }
+    .modal-footer { padding: 12px 14px; position: sticky; bottom: 0; background: var(--surface-alt); }
+
+    /* Form grid tek sütun */
+    .form-row-2, .form-row-3, .form-row-4 {
+      grid-template-columns: 1fr !important;
+    }
+    .form-grid { gap: 12px; }
+
+    /* Parça tablosu mobilde kart görünümü */
+    .parts-table { font-size: 12px; }
+    .parts-table th { font-size: 10px; padding: 6px 4px; }
+    .parts-table td { padding: 4px; }
+    .parts-table input { padding: 8px 6px; font-size: 13px; }
+
+    /* Öğrenci chipleri */
+    .students-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+    .student-chip { padding: 10px; font-size: 12px; }
+
+    /* Özet kutusu (servis formunda) */
+    .summary-box {
+      grid-template-columns: repeat(2, 1fr);
+      padding: 12px;
+      gap: 10px;
+    }
+    .summary-item-value { font-size: 14px; }
+    .summary-item-value.big { font-size: 18px; }
+
+    /* Araç detay grid */
+    .vehicle-info-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      padding: 12px;
+    }
+
+    /* Gelir paneli alt grid'i tek sütun */
+    #page-revenue > div[style*="grid-template-columns: 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* Arama kutusu */
+    .search-input { padding: 10px 12px 10px 36px; font-size: 14px; }
+
+    /* Toast mobilde ortala */
+    .toast {
+      right: 12px;
+      left: 12px;
+      bottom: 12px;
+      text-align: center;
+    }
+
+    /* Butonlar biraz büyük olsun (tıklama kolaylığı) */
+    .btn { padding: 9px 14px; font-size: 13px; }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
+    .btn-icon { width: 34px; height: 34px; padding: 8px; }
+
+    /* Safe area (iPhone notch) */
+    @supports (padding: max(0px)) {
+      .main { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+      .sidebar { padding-top: env(safe-area-inset-top); }
+    }
+  }
+
+  /* Çok küçük ekranlar */
+  @media (max-width: 420px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .revenue-flow { grid-template-columns: 1fr; }
+    .vehicle-info-grid { grid-template-columns: 1fr; }
+    .students-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Standalone PWA modu — tarayıcı çubuğu yokken */
+  @media (display-mode: standalone) {
+    body { user-select: none; -webkit-user-select: none; }
+    input, textarea { user-select: text; -webkit-user-select: text; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <h1 id="brand-name">Atölye</h1>
+      <p>Takip sistemi</p>
+    </div>
+    <nav>
+      <div class="nav-item active" data-page="dashboard">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/></svg>
+        Ana Panel
+      </div>
+      <div class="nav-item" data-page="vehicles">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17h14M5 17a2 2 0 100 4 2 2 0 000-4zM19 17a2 2 0 100 4 2 2 0 000-4zM3 13h18l-1.5-5a2 2 0 00-2-1.5h-11a2 2 0 00-2 1.5L3 13z"/></svg>
+        Araçlar
+      </div>
+      <div class="nav-item" data-page="services">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3l3 3m-11-3l9 9-3 3-9-9 3-3zM13 10l2 2m2.7-9.3l-4 4 3 3 4-4a3 3 0 00-3-3z"/></svg>
+        Servis Kayıtları
+      </div>
+      <div class="nav-item" data-page="students">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M9 7a4 4 0 100 8 4 4 0 000-8z"/></svg>
+        Öğrenciler
+      </div>
+      <div class="nav-item" data-page="revenue">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 4 4 6-6"/></svg>
+        Gelir Paneli
+      </div>
+      <div class="nav-item" data-page="settings">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Ayarlar
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Dashboard -->
+    <section id="page-dashboard" class="page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Ana Panel</h2>
+          <p class="page-subtitle" id="dashboard-date"></p>
+        </div>
+        <button class="btn btn-primary" onclick="openServiceModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Yeni Servis
+        </button>
+      </div>
+
+      <div class="period-bar" data-period-bar="dashboard"></div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Bu ay gelir</div>
+          <div class="stat-value money stat-accent" id="stat-revenue">₺0</div>
+          <div class="stat-sub" id="stat-revenue-sub">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Bu ay iş sayısı</div>
+          <div class="stat-value" id="stat-jobs">0</div>
+          <div class="stat-sub" id="stat-jobs-sub">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Toplam araç</div>
+          <div class="stat-value" id="stat-vehicles">0</div>
+          <div class="stat-sub" id="stat-vehicles-sub">Kayıtlı</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Aktif öğrenci</div>
+          <div class="stat-value" id="stat-students">0</div>
+          <div class="stat-sub" id="stat-students-sub">—</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Yaklaşan bakımlar</div>
+          <span style="font-size: 11px; color: var(--text-muted);">Dönem filtresinden bağımsız</span>
+        </div>
+        <div id="upcoming-maintenance"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Aylık gelir trendi</div>
+          <span style="font-size: 11px; color: var(--text-muted);">Son 6 ay</span>
+        </div>
+        <div class="section-body">
+          <div id="monthly-trend"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Son servis kayıtları</div>
+          <button class="btn btn-sm" onclick="goto('services')">Tümünü gör</button>
+        </div>
+        <div id="recent-services"></div>
+      </div>
+    </section>
+
+    <!-- Vehicles -->
+    <section id="page-vehicles" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Araçlar</h2>
+          <p class="page-subtitle" id="vehicles-count-sub">Plaka ile arama yapabilirsiniz</p>
+        </div>
+        <button class="btn btn-primary" onclick="openVehicleModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Yeni Araç
+        </button>
+      </div>
+
+      <div class="period-bar" data-period-bar="vehicles"></div>
+
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" class="search-input" id="vehicle-search" placeholder="Plaka, marka, model veya müşteri adı ile ara..." oninput="renderVehicles()">
+      </div>
+
+      <div class="section">
+        <div id="vehicles-list"></div>
+      </div>
+    </section>
+
+    <!-- Vehicle detail -->
+    <section id="page-vehicle-detail" class="page hidden">
+      <div id="vehicle-detail-content"></div>
+    </section>
+
+    <!-- Services -->
+    <section id="page-services" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Servis Kayıtları</h2>
+          <p class="page-subtitle">Tüm servis geçmişi</p>
+        </div>
+        <button class="btn btn-primary" onclick="openServiceModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Yeni Servis
+        </button>
+      </div>
+
+      <div class="period-bar" data-period-bar="services"></div>
+
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" class="search-input" id="service-search" placeholder="Plaka veya yapılan işleme göre ara..." oninput="renderServices()">
+      </div>
+
+      <div class="section">
+        <div id="services-list"></div>
+      </div>
+    </section>
+
+    <!-- Students -->
+    <section id="page-students" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Öğrenciler</h2>
+          <p class="page-subtitle">Atölyede çalışan öğrenci listesi</p>
+        </div>
+        <button class="btn btn-primary" onclick="openStudentModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Yeni Öğrenci
+        </button>
+      </div>
+
+      <div class="period-bar" data-period-bar="students"></div>
+
+      <div class="section">
+        <div id="students-list"></div>
+      </div>
+    </section>
+
+    <!-- Revenue panel -->
+    <section id="page-revenue" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Gelir Paneli</h2>
+          <p class="page-subtitle">Dönem bazlı gelir analizi ve öğrenci pay hesabı</p>
+        </div>
+      </div>
+
+      <div class="period-bar" data-period-bar="revenue"></div>
+
+      <div id="revenue-content"></div>
+    </section>
+
+    <!-- Settings -->
+    <section id="page-settings" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Ayarlar</h2>
+          <p class="page-subtitle">Atölye bilgileri ve veri yönetimi</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Atölye bilgileri</div>
+        </div>
+        <div class="section-body">
+          <div class="form-grid">
+            <div class="form-row form-row-2">
+              <div class="form-field">
+                <label>Atölye / Okul adı</label>
+                <input type="text" id="setting-workshop-name" placeholder="Örn: Ankara MTAL Otomotiv Atölyesi">
+              </div>
+              <div class="form-field">
+                <label>Varsayılan işçilik (₺)</label>
+                <input type="number" id="setting-default-labor" placeholder="0" step="10">
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-primary" onclick="saveSettings()">Kaydet</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Uygulama olarak kullanma</div>
+        </div>
+        <div class="section-body">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+            Bu sistemi telefonunuzda veya bilgisayarınızda ikondan açılan bir uygulama gibi kullanabilirsiniz. İnternet gerektirmez, verileriniz cihazınızda kalır.
+          </p>
+          <div style="display: grid; gap: 10px; font-size: 13px;">
+            <div style="padding: 10px 14px; background: var(--surface-alt); border-radius: var(--radius); border-left: 3px solid var(--accent);">
+              <strong>iPhone / iPad (Safari):</strong><br>
+              <span style="color: var(--text-muted);">Alttaki Paylaş butonuna (⎙) dokunun → "Ana Ekrana Ekle" seçeneğini bulun → Ekle</span>
+            </div>
+            <div style="padding: 10px 14px; background: var(--surface-alt); border-radius: var(--radius); border-left: 3px solid var(--accent);">
+              <strong>Android (Chrome):</strong><br>
+              <span style="color: var(--text-muted);">Sağ üstteki menüye (⋮) dokunun → "Ana ekrana ekle" veya "Uygulama yükle"</span>
+            </div>
+            <div style="padding: 10px 14px; background: var(--surface-alt); border-radius: var(--radius); border-left: 3px solid var(--accent);">
+              <strong>Bilgisayar (Chrome/Edge):</strong><br>
+              <span style="color: var(--text-muted);">Adres çubuğunun sağ ucundaki "Yükle" simgesine (⊕) tıklayın — yoksa Menü → Yayın aktarma, kaydetme ve paylaşma → Uygulamayı yükle</span>
+            </div>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 12px; font-style: italic;">
+            Not: "Ana ekrana ekle" özelliği çalışması için bu sistemin bir web adresinden (https://) açılmış olması gerekir. Dosyayı bilgisayardan çift tıklayarak açtıysanız bu özellik pasiftir — sayfayı yine de kullanabilirsiniz ama tarayıcı üzerinden açmanız gerekir.
+          </p>
+          <p id="install-status" style="font-size: 12px; margin-top: 8px;"></p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Veri yedekleme</div>
+        </div>
+        <div class="section-body">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+            Tüm veriler bu tarayıcıda saklanıyor. Güvenlik için düzenli aralıklarla yedek almanızı öneririz. Yedek dosyasını USB'ye veya buluta kopyalayabilirsiniz.
+          </p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" onclick="exportData()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Yedek İndir (JSON)
+            </button>
+            <button class="btn" onclick="document.getElementById('import-input').click()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              Yedekten Geri Yükle
+            </button>
+            <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(this.files[0])">
+            <button class="btn btn-danger" onclick="clearAllData()">Tüm Verileri Sil</button>
+          </div>
+          <p class="help-text" id="last-backup-info">Son yedek: henüz alınmadı</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Veri özeti</div>
+        </div>
+        <div class="section-body">
+          <div id="data-summary" style="font-size: 13px; line-height: 2;"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Vehicle Modal -->
+<div class="modal-backdrop" id="vehicle-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="vehicle-modal-title">Yeni Araç</div>
+      <button class="modal-close" onclick="closeModal('vehicle-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row form-row-3">
+          <div class="form-field">
+            <label>Plaka *</label>
+            <input type="text" id="veh-plate" placeholder="20 ABC 123" style="text-transform: uppercase;">
+          </div>
+          <div class="form-field">
+            <label>Marka</label>
+            <input type="text" id="veh-brand" placeholder="Renault">
+          </div>
+          <div class="form-field">
+            <label>Model</label>
+            <input type="text" id="veh-model" placeholder="Clio">
+          </div>
+        </div>
+        <div class="form-row form-row-3">
+          <div class="form-field">
+            <label>Yıl</label>
+            <input type="number" id="veh-year" placeholder="2018" min="1950" max="2030">
+          </div>
+          <div class="form-field">
+            <label>Motor / Yakıt</label>
+            <input type="text" id="veh-engine" placeholder="1.5 dCi">
+          </div>
+          <div class="form-field">
+            <label>Renk</label>
+            <input type="text" id="veh-color" placeholder="Beyaz">
+          </div>
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-field">
+            <label>Müşteri Adı</label>
+            <input type="text" id="veh-customer" placeholder="Ahmet Yılmaz">
+          </div>
+          <div class="form-field">
+            <label>Telefon</label>
+            <input type="text" id="veh-phone" placeholder="0555 123 45 67">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Notlar</label>
+          <textarea id="veh-notes" placeholder="Araç ile ilgili özel notlar..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('vehicle-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="saveVehicle()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Service Modal -->
+<div class="modal-backdrop" id="service-modal">
+  <div class="modal" style="max-width: 900px;">
+    <div class="modal-header">
+      <div class="modal-title" id="service-modal-title">Yeni Servis Kaydı</div>
+      <button class="modal-close" onclick="closeModal('service-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row form-row-3">
+          <div class="form-field">
+            <label>Araç (plaka) *</label>
+            <select id="srv-vehicle">
+              <option value="">— Araç seçin —</option>
+            </select>
+            <p class="help-text">Liste boşsa önce Araçlar sayfasından araç ekleyin.</p>
+          </div>
+          <div class="form-field">
+            <label>Tarih *</label>
+            <input type="date" id="srv-date">
+          </div>
+          <div class="form-field">
+            <label>Kilometre</label>
+            <input type="number" id="srv-km" placeholder="120000">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Yapılan İşlemler *</label>
+          <textarea id="srv-description" placeholder="Örn: Motor yağı değişimi, fren balata değişimi, genel kontrol" rows="2"></textarea>
+        </div>
+
+        <div>
+          <label style="display:block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px;">Parça / Malzeme</label>
+          <table class="parts-table" id="parts-table">
+            <thead>
+              <tr>
+                <th style="width: 35%;">Parça adı</th>
+                <th style="width: 12%;">Adet</th>
+                <th style="width: 18%;">Alış (₺)</th>
+                <th style="width: 18%;">Satış (₺)</th>
+                <th style="width: 12%;">Toplam</th>
+                <th style="width: 5%;"></th>
+              </tr>
+            </thead>
+            <tbody id="parts-tbody"></tbody>
+          </table>
+          <button class="btn btn-sm" onclick="addPartRow()" style="margin-top: 8px;">+ Parça Satırı Ekle</button>
+        </div>
+
+        <div class="form-row form-row-3">
+          <div class="form-field">
+            <label>İşçilik Ücreti (₺)</label>
+            <input type="number" id="srv-labor" placeholder="0" step="10" oninput="updateServiceSummary()">
+          </div>
+          <div class="form-field">
+            <label>Sonraki bakım tarihi</label>
+            <input type="date" id="srv-next-date">
+          </div>
+          <div class="form-field">
+            <label>Sonraki bakım km</label>
+            <input type="number" id="srv-next-km" placeholder="Örn: 150000">
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px;">Çalışan Öğrenciler</label>
+          <div class="students-grid" id="srv-students-grid"></div>
+          <p class="help-text">Bu işte çalışan öğrencileri işaretleyin — pay hesaplamasına dahil olacak.</p>
+        </div>
+
+        <div class="form-field">
+          <label>Genel Notlar</label>
+          <textarea id="srv-notes" placeholder="Ekstra bilgiler, müşteriye iletilecek notlar..."></textarea>
+        </div>
+
+        <div class="summary-box">
+          <div class="summary-item">
+            <div class="summary-item-label">Parça toplamı</div>
+            <div class="summary-item-value money"><span id="sum-parts">0</span> ₺</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-item-label">İşçilik</div>
+            <div class="summary-item-value money"><span id="sum-labor">0</span> ₺</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-item-label">Parça kârı</div>
+            <div class="summary-item-value money"><span id="sum-profit">0</span> ₺</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-item-label">Genel toplam</div>
+            <div class="summary-item-value big money"><span id="sum-total">0</span> ₺</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('service-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="saveService()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Student Modal -->
+<div class="modal-backdrop" id="student-modal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header">
+      <div class="modal-title" id="student-modal-title">Yeni Öğrenci</div>
+      <button class="modal-close" onclick="closeModal('student-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Ad Soyad *</label>
+          <input type="text" id="stu-name" placeholder="Öğrenci adı soyadı">
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-field">
+            <label>Sınıf / No</label>
+            <input type="text" id="stu-class" placeholder="11-A / 145">
+          </div>
+          <div class="form-field">
+            <label>Durum</label>
+            <select id="stu-active">
+              <option value="true">Aktif</option>
+              <option value="false">Pasif</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('student-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="saveStudent()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Service Detail Modal -->
+<div class="modal-backdrop" id="service-detail-modal">
+  <div class="modal" style="max-width: 800px;">
+    <div class="modal-header">
+      <div class="modal-title">Servis Kaydı Detayı</div>
+      <button class="modal-close" onclick="closeModal('service-detail-modal')">&times;</button>
+    </div>
+    <div class="modal-body" id="service-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="service-delete-btn">Sil</button>
+      <div style="flex:1"></div>
+      <button class="btn" onclick="closeModal('service-detail-modal')">Kapat</button>
+      <button class="btn btn-primary" id="service-edit-btn">Düzenle</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ STATE ============
+let state = {
+  vehicles: [],
+  services: [],
+  students: [],
+  settings: {
+    workshopName: 'Atölye',
+    defaultLabor: 0,
+    lastBackup: null
+  }
+};
+
+let editingVehicleId = null;
+let editingServiceId = null;
+let editingStudentId = null;
+let currentVehicleDetailId = null;
+
+// Global period filter state — her sayfaya uygulanır
+let periodFilter = {
+  type: 'month',     // day | week | month | quarter | halfyear | year | all | custom
+  customFrom: null,  // YYYY-MM-DD
+  customTo: null     // YYYY-MM-DD
+};
+
+const PERIOD_OPTIONS = [
+  { key: 'day',      label: 'Bugün' },
+  { key: 'week',     label: 'Bu Hafta' },
+  { key: 'month',    label: 'Bu Ay' },
+  { key: 'quarter',  label: '3 Aylık' },
+  { key: 'halfyear', label: '6 Aylık' },
+  { key: 'year',     label: 'Yıllık' },
+  { key: 'all',      label: 'Tümü' },
+  { key: 'custom',   label: 'Özel' }
+];
+
+// Seçilen dönem için başlangıç/bitiş tarihlerini döndürür (YYYY-MM-DD)
+function getPeriodRange() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let from = null;
+  let to = null;
+  const toStr = (d) => d ? d.toISOString().slice(0, 10) : null;
+
+  switch (periodFilter.type) {
+    case 'day':
+      from = new Date(today); to = new Date(today);
+      break;
+    case 'week': {
+      // Pazartesi başlangıç (TR standartı)
+      const d = new Date(today);
+      const dayOfWeek = (d.getDay() + 6) % 7; // Pzt=0, Pzr=6
+      d.setDate(d.getDate() - dayOfWeek);
+      from = d; to = new Date(today);
+      break;
+    }
+    case 'month':
+      from = new Date(today.getFullYear(), today.getMonth(), 1);
+      to = new Date(today);
+      break;
+    case 'quarter': {
+      const d = new Date(today);
+      d.setMonth(d.getMonth() - 3);
+      d.setDate(d.getDate() + 1);
+      from = d; to = new Date(today);
+      break;
+    }
+    case 'halfyear': {
+      const d = new Date(today);
+      d.setMonth(d.getMonth() - 6);
+      d.setDate(d.getDate() + 1);
+      from = d; to = new Date(today);
+      break;
+    }
+    case 'year': {
+      const d = new Date(today);
+      d.setFullYear(d.getFullYear() - 1);
+      d.setDate(d.getDate() + 1);
+      from = d; to = new Date(today);
+      break;
+    }
+    case 'custom':
+      return {
+        from: periodFilter.customFrom || null,
+        to: periodFilter.customTo || null
+      };
+    case 'all':
+    default:
+      return { from: null, to: null };
+  }
+  return { from: toStr(from), to: toStr(to) };
+}
+
+// Bir tarih seçilen aralıkta mı?
+function isInPeriod(dateStr) {
+  if (!dateStr) return false;
+  const { from, to } = getPeriodRange();
+  if (!from && !to) return true;
+  if (from && dateStr < from) return false;
+  if (to && dateStr > to) return false;
+  return true;
+}
+
+// Dönem etiketi kısa açıklama (subtitle için)
+function getPeriodLabel() {
+  const opt = PERIOD_OPTIONS.find(o => o.key === periodFilter.type);
+  if (!opt) return '';
+  if (periodFilter.type === 'all') return 'Tüm zamanlar';
+  if (periodFilter.type === 'custom') {
+    const f = periodFilter.customFrom ? fmtDate(periodFilter.customFrom) : '—';
+    const t = periodFilter.customTo ? fmtDate(periodFilter.customTo) : '—';
+    return `${f} → ${t}`;
+  }
+  const { from, to } = getPeriodRange();
+  if (from && to) {
+    if (from === to) return fmtDate(from);
+    return `${fmtDate(from)} → ${fmtDate(to)}`;
+  }
+  return opt.label;
+}
+
+// Bir sayfanın period-bar'ını render et ve event'lerini bağla
+function renderPeriodBar(pageKey) {
+  document.querySelectorAll(`.period-bar[data-period-bar="${pageKey}"]`).forEach(bar => {
+    const isCustom = periodFilter.type === 'custom';
+    bar.innerHTML = `
+      <span class="period-bar-label">Dönem</span>
+      <div class="period-chips">
+        ${PERIOD_OPTIONS.map(o =>
+          `<div class="period-chip ${periodFilter.type === o.key ? 'active' : ''}" data-period="${o.key}">${o.label}</div>`
+        ).join('')}
+      </div>
+      ${isCustom ? `
+        <div class="period-custom">
+          <input type="date" id="pc-from-${pageKey}" value="${periodFilter.customFrom || ''}">
+          <span>—</span>
+          <input type="date" id="pc-to-${pageKey}" value="${periodFilter.customTo || ''}">
+        </div>
+      ` : `<span class="period-range-info">${getPeriodLabel()}</span>`}
+    `;
+
+    // Chip click
+    bar.querySelectorAll('.period-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        periodFilter.type = chip.dataset.period;
+        if (chip.dataset.period === 'custom') {
+          // Varsayılan özel aralık: bu ayın başı - bugün
+          if (!periodFilter.customFrom) {
+            const d = new Date();
+            periodFilter.customFrom = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+            periodFilter.customTo = new Date().toISOString().slice(0, 10);
+          }
+        }
+        refreshCurrentPage();
+      });
+    });
+
+    // Custom date inputs
+    if (isCustom) {
+      const fromEl = bar.querySelector(`#pc-from-${pageKey}`);
+      const toEl = bar.querySelector(`#pc-to-${pageKey}`);
+      if (fromEl) fromEl.addEventListener('change', () => {
+        periodFilter.customFrom = fromEl.value;
+        refreshCurrentPage();
+      });
+      if (toEl) toEl.addEventListener('change', () => {
+        periodFilter.customTo = toEl.value;
+        refreshCurrentPage();
+      });
+    }
+  });
+}
+
+// Aktif olan sayfayı yeniden render eder
+function refreshCurrentPage() {
+  const pages = ['dashboard', 'vehicles', 'services', 'students', 'revenue'];
+  for (const p of pages) {
+    const el = document.getElementById('page-' + p);
+    if (el && !el.classList.contains('hidden')) {
+      if (p === 'dashboard') renderDashboard();
+      else if (p === 'vehicles') renderVehicles();
+      else if (p === 'services') renderServices();
+      else if (p === 'students') renderStudents();
+      else if (p === 'revenue') renderRevenue();
+      return;
+    }
+  }
+}
+
+// ============ DB (IndexedDB) ============
+const DB_NAME = 'atolye_db';
+const DB_VERSION = 1;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('kv')) {
+        d.createObjectStore('kv');
+      }
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbGet(key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('kv', 'readonly');
+    const req = tx.objectStore('kv').get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbSet(key, value) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('kv', 'readwrite');
+    const req = tx.objectStore('kv').put(value, key);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveState() {
+  try {
+    await dbSet('state', state);
+  } catch (e) {
+    showToast('Kayıt hatası: ' + e.message, 'danger');
+  }
+}
+
+async function loadState() {
+  const s = await dbGet('state');
+  if (s) {
+    state = {
+      vehicles: s.vehicles || [],
+      services: s.services || [],
+      students: s.students || [],
+      settings: Object.assign({
+        workshopName: 'Atölye',
+        defaultLabor: 0,
+        lastBackup: null
+      }, s.settings || {})
+    };
+  }
+}
+
+// ============ UTILS ============
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+}
+
+function fmtMoney(n) {
+  n = Number(n) || 0;
+  return n.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  return d.toLocaleDateString('tr-TR');
+}
+
+function todayStr() {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+
+function currentMonthKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function monthKeyOf(dateStr) {
+  if (!dateStr) return '';
+  return dateStr.slice(0, 7);
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function serviceTotal(srv) {
+  const partsTotal = (srv.parts || []).reduce((a, p) => a + (Number(p.sellPrice) || 0) * (Number(p.qty) || 0), 0);
+  const labor = Number(srv.labor) || 0;
+  return partsTotal + labor;
+}
+
+function servicePartsProfit(srv) {
+  return (srv.parts || []).reduce((a, p) => {
+    const qty = Number(p.qty) || 0;
+    return a + ((Number(p.sellPrice) || 0) - (Number(p.buyPrice) || 0)) * qty;
+  }, 0);
+}
+
+function servicePartsSum(srv) {
+  return (srv.parts || []).reduce((a, p) => a + (Number(p.sellPrice) || 0) * (Number(p.qty) || 0), 0);
+}
+
+// İki tarih arası gün sayısı (b - a)
+function daysBetween(a, b) {
+  if (!a || !b) return null;
+  const da = new Date(a); const db = new Date(b);
+  if (isNaN(da) || isNaN(db)) return null;
+  return Math.round((db - da) / (1000 * 60 * 60 * 24));
+}
+
+// Yaklaşan bakımları döndürür — her araç için son servisine bakıp sonraki bakım bilgisini çıkarır
+function getUpcomingMaintenances() {
+  const today = todayStr();
+  const items = [];
+
+  // Her araç için son serviste belirtilen "sonraki bakım" bilgisine bak
+  state.vehicles.forEach(v => {
+    const svcs = state.services.filter(s => s.vehicleId === v.id)
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    if (svcs.length === 0) return;
+    const last = svcs[0];
+    const nextDate = last.nextServiceDate;
+    const nextKm = last.nextServiceKm ? Number(last.nextServiceKm) : null;
+
+    if (!nextDate && !nextKm) return; // hatırlatıcı yok
+
+    let status = 'upcoming'; // upcoming | soon | overdue
+    let dayDiff = null;
+    if (nextDate) {
+      dayDiff = daysBetween(today, nextDate);
+      if (dayDiff < 0) status = 'overdue';
+      else if (dayDiff <= 14) status = 'soon';
+      else if (dayDiff <= 60) status = 'upcoming';
+      else status = 'future';
+    } else {
+      status = 'upcoming'; // sadece km verilmiş — tarihle sıralanamaz
+    }
+
+    items.push({
+      vehicleId: v.id,
+      vehicle: v,
+      lastService: last,
+      nextDate,
+      nextKm,
+      status,
+      dayDiff
+    });
+  });
+
+  // Sıralama: overdue (en geç olan önce) → soon → upcoming → future → sadece-km
+  const order = { overdue: 0, soon: 1, upcoming: 2, future: 3 };
+  items.sort((a, b) => {
+    const oa = order[a.status] ?? 4;
+    const ob = order[b.status] ?? 4;
+    if (oa !== ob) return oa - ob;
+    // tarihi olanlar gün farkına göre
+    if (a.nextDate && b.nextDate) return a.nextDate.localeCompare(b.nextDate);
+    if (a.nextDate) return -1;
+    if (b.nextDate) return 1;
+    return 0;
+  });
+
+  return items;
+}
+
+// ============ NAVIGATION ============
+function goto(page) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (navItem) navItem.classList.add('active');
+  document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+  const pageEl = document.getElementById('page-' + page);
+  if (pageEl) pageEl.classList.remove('hidden');
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'vehicles') renderVehicles();
+  if (page === 'services') renderServices();
+  if (page === 'students') renderStudents();
+  if (page === 'revenue') renderRevenue();
+  if (page === 'settings') renderSettings();
+  window.scrollTo(0, 0);
+}
+
+// ============ DASHBOARD ============
+function renderDashboard() {
+  renderPeriodBar('dashboard');
+
+  const d = new Date();
+  document.getElementById('dashboard-date').textContent =
+    d.toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  const periodSvcs = state.services.filter(s => isInPeriod(s.date));
+  const periodRevenue = periodSvcs.reduce((a, s) => a + serviceTotal(s), 0);
+  const periodLabor = periodSvcs.reduce((a, s) => a + (Number(s.labor) || 0), 0);
+  const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
+  const periodNet = periodLabor + periodProfit;
+
+  // Kişi başı pay: seçilen dönemdeki işlerde katılan her öğrenci için
+  // basitleştirilmiş dağıtım: toplam net / bu dönemde en az bir işte çalışmış öğrenci sayısı
+  const activeStudentIds = new Set();
+  periodSvcs.forEach(s => (s.studentIds || []).forEach(id => activeStudentIds.add(id)));
+  const perPersonShare = activeStudentIds.size > 0 ? periodNet / activeStudentIds.size : 0;
+
+  document.getElementById('stat-revenue').textContent = '₺' + fmtMoney(periodRevenue);
+  document.getElementById('stat-revenue-sub').textContent = `Net dağıtılabilir: ₺${fmtMoney(periodNet)}`;
+  document.getElementById('stat-jobs').textContent = periodSvcs.length;
+  document.getElementById('stat-jobs-sub').textContent = `${state.services.length} toplam kayıt`;
+  document.getElementById('stat-vehicles').textContent = state.vehicles.length;
+  document.getElementById('stat-vehicles-sub').textContent = 'Kayıtlı';
+  const allActiveStudents = state.students.filter(s => s.active).length;
+  document.getElementById('stat-students').textContent = allActiveStudents;
+  document.getElementById('stat-students-sub').textContent = activeStudentIds.size > 0
+    ? `Pay: ₺${fmtMoney(perPersonShare)} (${activeStudentIds.size} kişiye)`
+    : `${state.students.length} toplam`;
+
+  // Period subtitle
+  const dashSub = document.getElementById('dashboard-date');
+  dashSub.textContent += ` · ${getPeriodLabel()}`;
+
+  // Yaklaşan bakımlar
+  renderUpcomingMaintenance();
+
+  // Aylık trend grafiği
+  renderMonthlyTrend();
+
+  // Recent services (filtered)
+  const recentHost = document.getElementById('recent-services');
+  const recent = [...periodSvcs].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 10);
+  if (recent.length === 0) {
+    recentHost.innerHTML = `<div class="empty"><h3>Bu dönemde kayıt yok</h3><p>Farklı bir dönem seçebilir veya yeni kayıt ekleyebilirsiniz.</p></div>`;
+  } else {
+    let html = `<table class="table"><thead><tr>
+      <th>Tarih</th><th>Plaka</th><th>Araç</th><th>İşlem</th><th>Tutar</th><th></th>
+    </tr></thead><tbody>`;
+    recent.forEach(s => {
+      const v = state.vehicles.find(vx => vx.id === s.vehicleId);
+      html += `<tr class="clickable" onclick="showServiceDetail('${s.id}')">
+        <td>${fmtDate(s.date)}</td>
+        <td>${v ? `<span class="plate">${escapeHtml(v.plate)}</span>` : '—'}</td>
+        <td>${v ? escapeHtml((v.brand || '') + ' ' + (v.model || '')) : '—'}</td>
+        <td>${escapeHtml((s.description || '').substring(0, 60))}${(s.description || '').length > 60 ? '…' : ''}</td>
+        <td class="money">₺${fmtMoney(serviceTotal(s))}</td>
+        <td>›</td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+    recentHost.innerHTML = html;
+  }
+}
+
+// Yaklaşan bakımlar widget'ı
+function renderUpcomingMaintenance() {
+  const host = document.getElementById('upcoming-maintenance');
+  if (!host) return;
+  const items = getUpcomingMaintenances().slice(0, 8);
+  if (items.length === 0) {
+    host.innerHTML = `<div class="empty" style="padding: 30px 20px;"><p>Yaklaşan bakım kaydı yok. Servis girerken "sonraki bakım tarihi" alanını doldurun.</p></div>`;
+    return;
+  }
+
+  const statusLabels = {
+    overdue: 'Gecikti',
+    soon: 'Yakında',
+    upcoming: 'Yaklaşan',
+    future: 'İleride'
+  };
+
+  let html = '<div class="maint-list">';
+  items.forEach(it => {
+    const v = it.vehicle;
+    let detailParts = [];
+    if (it.nextDate) {
+      if (it.dayDiff === 0) detailParts.push('<strong>Bugün</strong>');
+      else if (it.dayDiff === 1) detailParts.push('<strong>Yarın</strong>');
+      else if (it.dayDiff > 0) detailParts.push(`${it.dayDiff} gün sonra (${fmtDate(it.nextDate)})`);
+      else detailParts.push(`<strong style="color: var(--danger)">${Math.abs(it.dayDiff)} gün geçmiş</strong> (${fmtDate(it.nextDate)})`);
+    }
+    if (it.nextKm) {
+      detailParts.push(`${Number(it.nextKm).toLocaleString('tr-TR')} km'de`);
+    }
+    detailParts.push(`Müşteri: ${escapeHtml(v.customerName || '—')}`);
+
+    const phone = (v.phone || '').replace(/\s/g, '');
+    html += `
+      <div class="maint-item" onclick="showVehicleDetail('${v.id}')">
+        <div><span class="maint-status ${it.status}">${statusLabels[it.status] || 'Takip'}</span></div>
+        <div class="maint-info">
+          <div class="maint-vehicle"><span class="plate">${escapeHtml(v.plate)}</span> ${escapeHtml((v.brand || '') + ' ' + (v.model || ''))}</div>
+          <div class="maint-details">${detailParts.join(' · ')}</div>
+        </div>
+        <div class="maint-action" onclick="event.stopPropagation()">
+          ${phone ? `<a href="tel:${phone}" class="maint-tel">☎ Ara</a>` : ''}
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  host.innerHTML = html;
+}
+
+// Son 6 ayın aylık gelir çubuk grafiği (dashboard'da)
+function renderMonthlyTrend() {
+  const host = document.getElementById('monthly-trend');
+  if (!host) return;
+
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' });
+    const svcs = state.services.filter(s => monthKeyOf(s.date) === key);
+    const revenue = svcs.reduce((a, s) => a + serviceTotal(s), 0);
+    months.push({ key, label, revenue, count: svcs.length });
+  }
+
+  const max = Math.max(1, ...months.map(m => m.revenue));
+
+  let html = '<div class="chart-container">';
+  months.forEach(m => {
+    const heightPct = (m.revenue / max) * 100;
+    const shortLabel = m.revenue > 0 ? '₺' + (m.revenue >= 1000 ? (m.revenue / 1000).toFixed(1) + 'b' : Math.round(m.revenue)) : '—';
+    html += `
+      <div class="chart-bar-wrap" title="${m.label}: ₺${fmtMoney(m.revenue)} (${m.count} iş)">
+        <div class="chart-bar-value">${shortLabel}</div>
+        <div class="chart-bar-area">
+          <div class="chart-bar" style="height: ${heightPct}%"></div>
+        </div>
+        <div class="chart-bar-label">${m.label}</div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  host.innerHTML = html;
+}
+
+// ============ REVENUE PANEL ============
+function renderRevenue() {
+  renderPeriodBar('revenue');
+  const host = document.getElementById('revenue-content');
+
+  const periodSvcs = state.services.filter(s => isInPeriod(s.date));
+
+  if (periodSvcs.length === 0) {
+    host.innerHTML = `<div class="section"><div class="empty" style="padding: 60px 20px;"><h3>Bu dönemde kayıt yok</h3><p>Farklı bir dönem seçerek verileri görüntüleyebilirsiniz.</p></div></div>`;
+    return;
+  }
+
+  // Finansal akış
+  const totalRevenue = periodSvcs.reduce((a, s) => a + serviceTotal(s), 0);
+  const totalPartsSell = periodSvcs.reduce((a, s) => a + servicePartsSum(s), 0);
+  const totalPartsBuy = periodSvcs.reduce((a, s) => {
+    return a + (s.parts || []).reduce((sum, p) => sum + (Number(p.buyPrice) || 0) * (Number(p.qty) || 0), 0);
+  }, 0);
+  const totalLabor = periodSvcs.reduce((a, s) => a + (Number(s.labor) || 0), 0);
+  const partsProfit = totalPartsSell - totalPartsBuy;
+  const netDistributable = totalLabor + partsProfit;
+
+  // Öğrenci katılımları
+  const studentStats = {};
+  periodSvcs.forEach(s => {
+    (s.studentIds || []).forEach(id => {
+      if (!studentStats[id]) studentStats[id] = { count: 0 };
+      studentStats[id].count++;
+    });
+  });
+  const activeStudentIds = Object.keys(studentStats);
+  const perPersonShare = activeStudentIds.length > 0 ? netDistributable / activeStudentIds.length : 0;
+
+  // İşlem tipleri (açıklamanın ilk kelimesinden yaklaşık tahmin)
+  const workTypes = {};
+  periodSvcs.forEach(s => {
+    const desc = (s.description || '').toLowerCase();
+    const patterns = [
+      { key: 'Periyodik bakım', match: ['periyodik', 'yağ değişim', 'yağ ve filt', 'bakım'] },
+      { key: 'Fren sistemi', match: ['fren', 'balata', 'disk', 'hidrolik'] },
+      { key: 'Debriyaj', match: ['debriyaj'] },
+      { key: 'Triger', match: ['triger'] },
+      { key: 'Klima', match: ['klima', 'gaz dolum'] },
+      { key: 'Akü / Elektrik', match: ['akü', 'marş', 'alternatör', 'şarj'] },
+      { key: 'Amortisör / Süspansiyon', match: ['amortisör', 'rot', 'balans', 'süspansiyon'] },
+      { key: 'Motor arıza', match: ['egr', 'motor arıza'] },
+      { key: 'Lastik / Jant', match: ['lastik', 'jant'] },
+      { key: 'Eksoz', match: ['eksoz', 'egzoz'] }
+    ];
+    let matched = false;
+    for (const p of patterns) {
+      if (p.match.some(m => desc.includes(m))) {
+        workTypes[p.key] = (workTypes[p.key] || 0) + 1;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) workTypes['Diğer'] = (workTypes['Diğer'] || 0) + 1;
+  });
+  const workTypesSorted = Object.entries(workTypes).sort((a, b) => b[1] - a[1]);
+
+  // En çok iş yapılan müşteriler
+  const customerStats = {};
+  periodSvcs.forEach(s => {
+    const v = state.vehicles.find(vx => vx.id === s.vehicleId);
+    if (!v) return;
+    const name = v.customerName || '—';
+    if (!customerStats[name]) customerStats[name] = { count: 0, total: 0 };
+    customerStats[name].count++;
+    customerStats[name].total += serviceTotal(s);
+  });
+  const topCustomers = Object.entries(customerStats)
+    .sort((a, b) => b[1].total - a[1].total)
+    .slice(0, 5);
+
+  // Öğrenci listesi render
+  const studentRows = [...state.students]
+    .sort((a, b) => {
+      const ca = studentStats[a.id]?.count || 0;
+      const cb = studentStats[b.id]?.count || 0;
+      return cb - ca;
+    })
+    .map(s => {
+      const count = studentStats[s.id]?.count || 0;
+      const share = count > 0 ? perPersonShare : 0;
+      return `<tr>
+        <td><strong>${escapeHtml(s.name)}</strong></td>
+        <td>${escapeHtml(s.class || '—')}</td>
+        <td>${s.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</td>
+        <td>${count}</td>
+        <td class="money">${share > 0 ? '<strong style="color: var(--success)">₺' + fmtMoney(share) + '</strong>' : '<span style="color: var(--text-light)">—</span>'}</td>
+      </tr>`;
+    }).join('');
+
+  host.innerHTML = `
+    <div class="revenue-flow">
+      <div class="flow-card">
+        <div class="stat-label">Toplam ciro</div>
+        <div class="stat-value money" style="color: var(--text);">₺${fmtMoney(totalRevenue)}</div>
+        <div class="stat-sub">${periodSvcs.length} servis kaydı</div>
+      </div>
+      <div class="flow-card">
+        <div class="stat-label">Parça satışı</div>
+        <div class="stat-value money">₺${fmtMoney(totalPartsSell)}</div>
+        <div class="stat-sub">Maliyet: ₺${fmtMoney(totalPartsBuy)}</div>
+      </div>
+      <div class="flow-card highlight">
+        <div class="stat-label">Parça kârı</div>
+        <div class="stat-value money stat-accent">₺${fmtMoney(partsProfit)}</div>
+        <div class="stat-sub">${totalPartsSell > 0 ? Math.round((partsProfit / totalPartsSell) * 100) + '% marj' : '—'}</div>
+      </div>
+      <div class="flow-card highlight">
+        <div class="stat-label">İşçilik geliri</div>
+        <div class="stat-value money stat-accent">₺${fmtMoney(totalLabor)}</div>
+        <div class="stat-sub">Tamamen dağıtılabilir</div>
+      </div>
+      <div class="flow-card net">
+        <div class="stat-label">Net dağıtılabilir</div>
+        <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(netDistributable)}</div>
+        <div class="stat-sub">İşçilik + Parça kârı</div>
+      </div>
+      <div class="flow-card net">
+        <div class="stat-label">Kişi başı pay</div>
+        <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(perPersonShare)}</div>
+        <div class="stat-sub">${activeStudentIds.length} öğrenciye bölünüyor</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Öğrenci pay dağılımı</div>
+        <span style="font-size: 11px; color: var(--text-muted);">Dönem içi katılımlar — eşit bölüşüm</span>
+      </div>
+      <table class="table">
+        <thead><tr>
+          <th>Ad Soyad</th><th>Sınıf</th><th>Durum</th><th>Dönem iş sayısı</th><th>Hak ettiği pay</th>
+        </tr></thead>
+        <tbody>${studentRows}</tbody>
+      </table>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">En sık yapılan işlemler</div>
+        </div>
+        <table class="table">
+          <thead><tr><th>İşlem tipi</th><th style="text-align:right">Adet</th></tr></thead>
+          <tbody>
+            ${workTypesSorted.map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td style="text-align:right"><strong>${v}</strong></td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">En çok iş yapılan müşteriler</div>
+        </div>
+        <table class="table">
+          <thead><tr><th>Müşteri</th><th>İş</th><th style="text-align:right">Toplam</th></tr></thead>
+          <tbody>
+            ${topCustomers.map(([name, s]) => `<tr>
+              <td>${escapeHtml(name)}</td>
+              <td>${s.count}</td>
+              <td style="text-align:right" class="money">₺${fmtMoney(s.total)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top: 20px;">
+      <div class="section-header">
+        <div class="section-title">Aylık gelir trendi (son 12 ay)</div>
+      </div>
+      <div class="section-body">
+        <div id="revenue-trend-chart"></div>
+      </div>
+    </div>
+  `;
+
+  renderRevenueTrend12();
+}
+
+function renderRevenueTrend12() {
+  const host = document.getElementById('revenue-trend-chart');
+  if (!host) return;
+  const now = new Date();
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' });
+    const svcs = state.services.filter(s => monthKeyOf(s.date) === key);
+    const revenue = svcs.reduce((a, s) => a + serviceTotal(s), 0);
+    months.push({ key, label, revenue, count: svcs.length });
+  }
+  const max = Math.max(1, ...months.map(m => m.revenue));
+  let html = '<div class="chart-container" style="height: 220px;">';
+  months.forEach(m => {
+    const heightPct = (m.revenue / max) * 100;
+    const shortLabel = m.revenue > 0 ? '₺' + (m.revenue >= 1000 ? (m.revenue / 1000).toFixed(1) + 'b' : Math.round(m.revenue)) : '—';
+    html += `
+      <div class="chart-bar-wrap" title="${m.label}: ₺${fmtMoney(m.revenue)} (${m.count} iş)">
+        <div class="chart-bar-value">${shortLabel}</div>
+        <div class="chart-bar-area">
+          <div class="chart-bar" style="height: ${heightPct}%"></div>
+        </div>
+        <div class="chart-bar-label">${m.label}</div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  host.innerHTML = html;
+}
+
+// ============ VEHICLES ============
+function renderVehicles() {
+  renderPeriodBar('vehicles');
+
+  const q = (document.getElementById('vehicle-search').value || '').toLowerCase().trim();
+  const isAllPeriod = periodFilter.type === 'all';
+
+  // Dönem içinde servis gelmiş araç ID'leri
+  const periodVehicleIds = new Set(
+    state.services.filter(s => isInPeriod(s.date)).map(s => s.vehicleId)
+  );
+
+  let list = state.vehicles.filter(v => {
+    if (q) {
+      const match = (v.plate || '').toLowerCase().includes(q) ||
+        (v.brand || '').toLowerCase().includes(q) ||
+        (v.model || '').toLowerCase().includes(q) ||
+        (v.customerName || '').toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    // Dönem filtresi: "tümü" değilse, sadece o dönemde servis gelen araçlar
+    if (!isAllPeriod && !periodVehicleIds.has(v.id)) return false;
+    return true;
+  }).sort((a, b) => (a.plate || '').localeCompare(b.plate || ''));
+
+  const host = document.getElementById('vehicles-list');
+  const subText = isAllPeriod
+    ? `${list.length} araç ${q ? 'bulundu' : 'kayıtlı'}`
+    : `${list.length} araç (${getPeriodLabel().toLowerCase()}) · toplam ${state.vehicles.length} kayıtlı`;
+  document.getElementById('vehicles-count-sub').textContent = subText;
+
+  if (list.length === 0) {
+    const msg = q
+      ? 'Arama kriterinize uyan araç yok.'
+      : isAllPeriod
+        ? 'İlk aracınızı eklemek için yukarıdaki butona tıklayın.'
+        : 'Seçilen dönemde servise gelen araç yok. "Tümü" seçerek tüm araçları görebilirsiniz.';
+    host.innerHTML = `<div class="empty"><h3>Araç bulunamadı</h3><p>${msg}</p></div>`;
+    return;
+  }
+
+  let html = `<table class="table"><thead><tr>
+    <th>Plaka</th><th>Araç</th><th>Yıl</th><th>Müşteri</th><th>Telefon</th><th>${isAllPeriod ? 'Servis' : 'Dönem servisi'}</th><th style="width:90px"></th>
+  </tr></thead><tbody>`;
+  list.forEach(v => {
+    const allSvcs = state.services.filter(s => s.vehicleId === v.id);
+    const periodSvcs = allSvcs.filter(s => isInPeriod(s.date));
+    const svcCount = isAllPeriod ? allSvcs.length : periodSvcs.length;
+    const lastSvc = allSvcs.sort((a,b) => (b.date || '').localeCompare(a.date || ''))[0];
+    html += `<tr class="clickable" onclick="showVehicleDetail('${v.id}')">
+      <td><span class="plate">${escapeHtml(v.plate)}</span></td>
+      <td>${escapeHtml((v.brand || '') + ' ' + (v.model || ''))}</td>
+      <td>${escapeHtml(v.year || '—')}</td>
+      <td>${escapeHtml(v.customerName || '—')}</td>
+      <td>${escapeHtml(v.phone || '—')}</td>
+      <td>${svcCount} kayıt${lastSvc ? `<div style="font-size:11px;color:var(--text-muted)">Son: ${fmtDate(lastSvc.date)}</div>` : ''}</td>
+      <td onclick="event.stopPropagation()">
+        <div class="actions">
+          <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); editVehicle('${v.id}')" title="Düzenle">✎</button>
+          <button class="btn btn-icon btn-sm btn-danger" onclick="event.stopPropagation(); deleteVehicle('${v.id}')" title="Sil">×</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  host.innerHTML = html;
+}
+
+function openVehicleModal() {
+  editingVehicleId = null;
+  document.getElementById('vehicle-modal-title').textContent = 'Yeni Araç';
+  ['veh-plate','veh-brand','veh-model','veh-year','veh-engine','veh-color','veh-customer','veh-phone','veh-notes']
+    .forEach(id => document.getElementById(id).value = '');
+  openModal('vehicle-modal');
+  setTimeout(() => document.getElementById('veh-plate').focus(), 50);
+}
+
+function editVehicle(id) {
+  const v = state.vehicles.find(x => x.id === id);
+  if (!v) return;
+  editingVehicleId = id;
+  document.getElementById('vehicle-modal-title').textContent = 'Araç Düzenle';
+  document.getElementById('veh-plate').value = v.plate || '';
+  document.getElementById('veh-brand').value = v.brand || '';
+  document.getElementById('veh-model').value = v.model || '';
+  document.getElementById('veh-year').value = v.year || '';
+  document.getElementById('veh-engine').value = v.engine || '';
+  document.getElementById('veh-color').value = v.color || '';
+  document.getElementById('veh-customer').value = v.customerName || '';
+  document.getElementById('veh-phone').value = v.phone || '';
+  document.getElementById('veh-notes').value = v.notes || '';
+  openModal('vehicle-modal');
+}
+
+async function saveVehicle() {
+  const plate = document.getElementById('veh-plate').value.trim().toUpperCase();
+  if (!plate) { showToast('Plaka zorunlu', 'danger'); return; }
+
+  const data = {
+    plate,
+    brand: document.getElementById('veh-brand').value.trim(),
+    model: document.getElementById('veh-model').value.trim(),
+    year: document.getElementById('veh-year').value.trim(),
+    engine: document.getElementById('veh-engine').value.trim(),
+    color: document.getElementById('veh-color').value.trim(),
+    customerName: document.getElementById('veh-customer').value.trim(),
+    phone: document.getElementById('veh-phone').value.trim(),
+    notes: document.getElementById('veh-notes').value.trim()
+  };
+
+  if (editingVehicleId) {
+    const v = state.vehicles.find(x => x.id === editingVehicleId);
+    if (v) Object.assign(v, data);
+  } else {
+    // Duplicate plate check
+    if (state.vehicles.some(v => v.plate === plate)) {
+      showToast('Bu plaka zaten kayıtlı', 'danger');
+      return;
+    }
+    state.vehicles.push(Object.assign({ id: uid(), createdAt: new Date().toISOString() }, data));
+  }
+  await saveState();
+  closeModal('vehicle-modal');
+  showToast('Araç kaydedildi', 'success');
+  renderVehicles();
+}
+
+async function deleteVehicle(id) {
+  const svcCount = state.services.filter(s => s.vehicleId === id).length;
+  const msg = svcCount > 0
+    ? `Bu araca bağlı ${svcCount} servis kaydı var. Araç silinirse kayıtlar "arşiv" durumuna geçer (veri silinmez). Devam edilsin mi?`
+    : 'Bu aracı silmek istediğinizden emin misiniz?';
+  if (!confirm(msg)) return;
+  state.vehicles = state.vehicles.filter(v => v.id !== id);
+  await saveState();
+  showToast('Araç silindi', 'success');
+  renderVehicles();
+}
+
+// ============ VEHICLE DETAIL ============
+function showVehicleDetail(id) {
+  currentVehicleDetailId = id;
+  const v = state.vehicles.find(x => x.id === id);
+  if (!v) return;
+  const svcs = state.services.filter(s => s.vehicleId === id).sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+  const totalSpent = svcs.reduce((a, s) => a + serviceTotal(s), 0);
+
+  document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+  document.getElementById('page-vehicle-detail').classList.remove('hidden');
+
+  let svcHtml = '';
+  if (svcs.length === 0) {
+    svcHtml = `<div class="empty"><h3>Henüz servis kaydı yok</h3><p>Bu araç için ilk servis kaydını ekleyin.</p></div>`;
+  } else {
+    svcHtml = `<table class="table"><thead><tr>
+      <th>Tarih</th><th>Km</th><th>İşlem</th><th>Parça</th><th>İşçilik</th><th>Toplam</th><th></th>
+    </tr></thead><tbody>`;
+    svcs.forEach(s => {
+      svcHtml += `<tr class="clickable" onclick="showServiceDetail('${s.id}')">
+        <td>${fmtDate(s.date)}</td>
+        <td>${s.km ? Number(s.km).toLocaleString('tr-TR') : '—'}</td>
+        <td>${escapeHtml((s.description || '').substring(0, 60))}${(s.description || '').length > 60 ? '…' : ''}</td>
+        <td class="money">₺${fmtMoney(servicePartsSum(s))}</td>
+        <td class="money">₺${fmtMoney(s.labor || 0)}</td>
+        <td class="money"><strong>₺${fmtMoney(serviceTotal(s))}</strong></td>
+        <td>›</td>
+      </tr>`;
+    });
+    svcHtml += `</tbody></table>`;
+  }
+
+  document.getElementById('vehicle-detail-content').innerHTML = `
+    <div class="page-header">
+      <div>
+        <button class="btn btn-sm" onclick="goto('vehicles')" style="margin-bottom: 8px;">‹ Araçlar</button>
+        <h2 class="page-title"><span class="plate" style="font-size: 18px;">${escapeHtml(v.plate)}</span> ${escapeHtml((v.brand || '') + ' ' + (v.model || ''))}</h2>
+        <p class="page-subtitle">${escapeHtml(v.customerName || '—')} · ${escapeHtml(v.phone || '')}</p>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="editVehicle('${v.id}')">Düzenle</button>
+        <button class="btn btn-primary" onclick="openServiceModal('${v.id}')">+ Servis Kaydı</button>
+      </div>
+    </div>
+
+    <div class="vehicle-info-grid">
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Yıl</div><div class="vehicle-info-value">${escapeHtml(v.year || '—')}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Motor</div><div class="vehicle-info-value">${escapeHtml(v.engine || '—')}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Renk</div><div class="vehicle-info-value">${escapeHtml(v.color || '—')}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Toplam servis</div><div class="vehicle-info-value">${svcs.length} kayıt</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Toplam tutar</div><div class="vehicle-info-value money">₺${fmtMoney(totalSpent)}</div></div>
+    </div>
+
+    ${v.notes ? `<div class="section"><div class="section-body"><strong style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Not:</strong><br>${escapeHtml(v.notes)}</div></div>` : ''}
+
+    <div class="section">
+      <div class="section-header"><div class="section-title">Servis Geçmişi</div></div>
+      ${svcHtml}
+    </div>
+  `;
+}
+
+// ============ SERVICES ============
+function renderServices() {
+  renderPeriodBar('services');
+
+  const q = (document.getElementById('service-search').value || '').toLowerCase().trim();
+  const list = state.services.map(s => {
+    const v = state.vehicles.find(vx => vx.id === s.vehicleId);
+    return Object.assign({}, s, { vehicle: v });
+  }).filter(s => {
+    if (!isInPeriod(s.date)) return false;
+    if (!q) return true;
+    return (s.vehicle?.plate || '').toLowerCase().includes(q) ||
+      (s.description || '').toLowerCase().includes(q) ||
+      (s.vehicle?.customerName || '').toLowerCase().includes(q);
+  }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const host = document.getElementById('services-list');
+
+  // Özet bilgi — dönem toplamı
+  const totalRevenue = list.reduce((a, s) => a + serviceTotal(s), 0);
+  const totalLabor = list.reduce((a, s) => a + (Number(s.labor) || 0), 0);
+  const totalProfit = list.reduce((a, s) => a + servicePartsProfit(s), 0);
+
+  if (list.length === 0) {
+    host.innerHTML = `<div class="empty"><h3>Kayıt yok</h3><p>${q ? 'Aramanıza uyan kayıt yok.' : 'Bu dönemde kayıt yok. Farklı bir dönem seçin veya yeni kayıt ekleyin.'}</p></div>`;
+    return;
+  }
+
+  let html = `
+    <div style="padding: 12px 16px; background: var(--surface-alt); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div style="font-size: 12px; color: var(--text-muted);"><strong style="color: var(--text); font-size: 13px;">${list.length} kayıt</strong> · ${getPeriodLabel()}</div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        Toplam: <strong class="money" style="color: var(--accent); font-size: 13px;">₺${fmtMoney(totalRevenue)}</strong>
+        · İşçilik: <strong class="money">₺${fmtMoney(totalLabor)}</strong>
+        · Parça kârı: <strong class="money">₺${fmtMoney(totalProfit)}</strong>
+      </div>
+    </div>
+    <table class="table"><thead><tr>
+      <th>Tarih</th><th>Plaka</th><th>Araç</th><th>İşlem</th><th>Öğrenci</th><th>Tutar</th><th></th>
+    </tr></thead><tbody>`;
+  list.forEach(s => {
+    const studentNames = (s.studentIds || [])
+      .map(sid => state.students.find(st => st.id === sid))
+      .filter(Boolean)
+      .map(st => st.name.split(' ')[0])
+      .join(', ');
+    html += `<tr class="clickable" onclick="showServiceDetail('${s.id}')">
+      <td>${fmtDate(s.date)}</td>
+      <td>${s.vehicle ? `<span class="plate">${escapeHtml(s.vehicle.plate)}</span>` : '<span class="badge badge-muted">silinmiş</span>'}</td>
+      <td>${s.vehicle ? escapeHtml((s.vehicle.brand || '') + ' ' + (s.vehicle.model || '')) : '—'}</td>
+      <td>${escapeHtml((s.description || '').substring(0, 50))}${(s.description || '').length > 50 ? '…' : ''}</td>
+      <td style="font-size: 12px; color: var(--text-muted);">${escapeHtml(studentNames || '—')}</td>
+      <td class="money"><strong>₺${fmtMoney(serviceTotal(s))}</strong></td>
+      <td>›</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  host.innerHTML = html;
+}
+
+function openServiceModal(preselectedVehicleId) {
+  editingServiceId = null;
+  document.getElementById('service-modal-title').textContent = 'Yeni Servis Kaydı';
+
+  // Populate vehicle select
+  const vehSel = document.getElementById('srv-vehicle');
+  vehSel.innerHTML = '<option value="">— Araç seçin —</option>';
+  [...state.vehicles].sort((a,b) => (a.plate || '').localeCompare(b.plate || '')).forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.id;
+    opt.textContent = `${v.plate} — ${v.brand || ''} ${v.model || ''}`;
+    vehSel.appendChild(opt);
+  });
+  vehSel.value = preselectedVehicleId || '';
+
+  document.getElementById('srv-date').value = todayStr();
+  document.getElementById('srv-km').value = '';
+  document.getElementById('srv-description').value = '';
+  document.getElementById('srv-labor').value = state.settings.defaultLabor || '';
+  document.getElementById('srv-next-date').value = '';
+  document.getElementById('srv-next-km').value = '';
+  document.getElementById('srv-notes').value = '';
+
+  // Reset parts table
+  document.getElementById('parts-tbody').innerHTML = '';
+  addPartRow();
+
+  // Render student chips
+  renderServiceStudentChips([]);
+
+  updateServiceSummary();
+  openModal('service-modal');
+}
+
+function editService(id) {
+  const s = state.services.find(x => x.id === id);
+  if (!s) return;
+  editingServiceId = id;
+  document.getElementById('service-modal-title').textContent = 'Servis Kaydı Düzenle';
+
+  const vehSel = document.getElementById('srv-vehicle');
+  vehSel.innerHTML = '<option value="">— Araç seçin —</option>';
+  [...state.vehicles].sort((a,b) => (a.plate || '').localeCompare(b.plate || '')).forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.id;
+    opt.textContent = `${v.plate} — ${v.brand || ''} ${v.model || ''}`;
+    vehSel.appendChild(opt);
+  });
+  vehSel.value = s.vehicleId || '';
+
+  document.getElementById('srv-date').value = s.date || todayStr();
+  document.getElementById('srv-km').value = s.km || '';
+  document.getElementById('srv-description').value = s.description || '';
+  document.getElementById('srv-labor').value = s.labor || 0;
+  document.getElementById('srv-next-date').value = s.nextServiceDate || '';
+  document.getElementById('srv-next-km').value = s.nextServiceKm || '';
+  document.getElementById('srv-notes').value = s.notes || '';
+
+  document.getElementById('parts-tbody').innerHTML = '';
+  (s.parts || []).forEach(p => addPartRow(p));
+  if ((s.parts || []).length === 0) addPartRow();
+
+  renderServiceStudentChips(s.studentIds || []);
+  updateServiceSummary();
+
+  // Close service detail if open
+  closeModal('service-detail-modal');
+  openModal('service-modal');
+}
+
+function renderServiceStudentChips(selectedIds) {
+  const host = document.getElementById('srv-students-grid');
+  const active = state.students.filter(s => s.active);
+  if (active.length === 0) {
+    host.innerHTML = `<div style="font-size: 12px; color: var(--text-muted); grid-column: 1/-1;">Henüz aktif öğrenci eklenmemiş. Öğrenciler sayfasından ekleyebilirsiniz.</div>`;
+    return;
+  }
+  host.innerHTML = active.map(s => `
+    <label class="student-chip ${selectedIds.includes(s.id) ? 'selected' : ''}">
+      <input type="checkbox" value="${s.id}" ${selectedIds.includes(s.id) ? 'checked' : ''} onchange="this.parentElement.classList.toggle('selected', this.checked)">
+      ${escapeHtml(s.name)}
+    </label>
+  `).join('');
+}
+
+function addPartRow(part) {
+  const tbody = document.getElementById('parts-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="p-name" placeholder="Parça adı" value="${escapeHtml(part?.name || '')}"></td>
+    <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty || ''}" step="1" oninput="updateServiceSummary()"></td>
+    <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
+    <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
+    <td class="money p-line-total" style="text-align:right; padding-right:10px;">0</td>
+    <td><button class="btn btn-icon btn-sm btn-danger" onclick="this.closest('tr').remove(); updateServiceSummary();">×</button></td>
+  `;
+  tbody.appendChild(tr);
+  updateServiceSummary();
+}
+
+function collectParts() {
+  const rows = document.querySelectorAll('#parts-tbody tr');
+  const parts = [];
+  rows.forEach(tr => {
+    const name = tr.querySelector('.p-name').value.trim();
+    const qty = Number(tr.querySelector('.p-qty').value) || 0;
+    const buyPrice = Number(tr.querySelector('.p-buy').value) || 0;
+    const sellPrice = Number(tr.querySelector('.p-sell').value) || 0;
+    if (name || qty || buyPrice || sellPrice) {
+      parts.push({ name, qty, buyPrice, sellPrice });
+    }
+  });
+  return parts;
+}
+
+function updateServiceSummary() {
+  const rows = document.querySelectorAll('#parts-tbody tr');
+  let partsTotal = 0;
+  let buyTotal = 0;
+  rows.forEach(tr => {
+    const qty = Number(tr.querySelector('.p-qty').value) || 0;
+    const buy = Number(tr.querySelector('.p-buy').value) || 0;
+    const sell = Number(tr.querySelector('.p-sell').value) || 0;
+    const lineTotal = qty * sell;
+    partsTotal += lineTotal;
+    buyTotal += qty * buy;
+    tr.querySelector('.p-line-total').textContent = fmtMoney(lineTotal);
+  });
+  const labor = Number(document.getElementById('srv-labor').value) || 0;
+  const profit = partsTotal - buyTotal;
+  const total = partsTotal + labor;
+  document.getElementById('sum-parts').textContent = fmtMoney(partsTotal);
+  document.getElementById('sum-labor').textContent = fmtMoney(labor);
+  document.getElementById('sum-profit').textContent = fmtMoney(profit);
+  document.getElementById('sum-total').textContent = fmtMoney(total);
+}
+
+async function saveService() {
+  const vehicleId = document.getElementById('srv-vehicle').value;
+  if (!vehicleId) { showToast('Araç seçimi zorunlu', 'danger'); return; }
+  const date = document.getElementById('srv-date').value;
+  if (!date) { showToast('Tarih zorunlu', 'danger'); return; }
+  const description = document.getElementById('srv-description').value.trim();
+  if (!description) { showToast('Yapılan işlem açıklaması zorunlu', 'danger'); return; }
+
+  const studentIds = Array.from(document.querySelectorAll('#srv-students-grid input:checked')).map(i => i.value);
+
+  const data = {
+    vehicleId,
+    date,
+    km: document.getElementById('srv-km').value,
+    description,
+    parts: collectParts(),
+    labor: Number(document.getElementById('srv-labor').value) || 0,
+    nextServiceDate: document.getElementById('srv-next-date').value || '',
+    nextServiceKm: document.getElementById('srv-next-km').value || '',
+    notes: document.getElementById('srv-notes').value.trim(),
+    studentIds
+  };
+
+  if (editingServiceId) {
+    const s = state.services.find(x => x.id === editingServiceId);
+    if (s) Object.assign(s, data);
+  } else {
+    state.services.push(Object.assign({ id: uid(), createdAt: new Date().toISOString() }, data));
+  }
+
+  await saveState();
+  closeModal('service-modal');
+  showToast('Servis kaydı kaydedildi', 'success');
+  // Refresh current page
+  if (!document.getElementById('page-dashboard').classList.contains('hidden')) renderDashboard();
+  if (!document.getElementById('page-services').classList.contains('hidden')) renderServices();
+  if (!document.getElementById('page-vehicle-detail').classList.contains('hidden') && currentVehicleDetailId) showVehicleDetail(currentVehicleDetailId);
+}
+
+function showServiceDetail(id) {
+  const s = state.services.find(x => x.id === id);
+  if (!s) return;
+  const v = state.vehicles.find(vx => vx.id === s.vehicleId);
+  const studentNames = (s.studentIds || [])
+    .map(sid => state.students.find(st => st.id === sid))
+    .filter(Boolean)
+    .map(st => st.name);
+
+  const partsSum = servicePartsSum(s);
+  const total = serviceTotal(s);
+
+  let partsHtml = '';
+  if ((s.parts || []).length > 0) {
+    partsHtml = `<table class="table" style="margin-top: 8px;"><thead><tr>
+      <th>Parça</th><th style="text-align:right">Adet</th><th style="text-align:right">Birim</th><th style="text-align:right">Toplam</th>
+    </tr></thead><tbody>`;
+    s.parts.forEach(p => {
+      partsHtml += `<tr>
+        <td>${escapeHtml(p.name)}</td>
+        <td style="text-align:right">${p.qty}</td>
+        <td style="text-align:right; font-family: Consolas, monospace;">₺${fmtMoney(p.sellPrice)}</td>
+        <td style="text-align:right; font-family: Consolas, monospace;">₺${fmtMoney((p.qty || 0) * (p.sellPrice || 0))}</td>
+      </tr>`;
+    });
+    partsHtml += `</tbody></table>`;
+  }
+
+  document.getElementById('service-detail-body').innerHTML = `
+    <div class="vehicle-info-grid" style="margin-bottom: 16px;">
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Tarih</div><div class="vehicle-info-value">${fmtDate(s.date)}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Araç</div><div class="vehicle-info-value">${v ? `<span class="plate">${escapeHtml(v.plate)}</span> ${escapeHtml((v.brand||'') + ' ' + (v.model||''))}` : '—'}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Kilometre</div><div class="vehicle-info-value">${s.km ? Number(s.km).toLocaleString('tr-TR') + ' km' : '—'}</div></div>
+    </div>
+
+    <div style="margin-bottom: 14px;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px;">Yapılan İşlem</div>
+      <div style="font-size: 14px;">${escapeHtml(s.description)}</div>
+    </div>
+
+    ${partsHtml ? `<div><div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 500;">Parçalar</div>${partsHtml}</div>` : ''}
+
+    <div class="summary-box" style="margin-top: 14px;">
+      <div class="summary-item">
+        <div class="summary-item-label">Parça toplamı</div>
+        <div class="summary-item-value money">₺${fmtMoney(partsSum)}</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-item-label">İşçilik</div>
+        <div class="summary-item-value money">₺${fmtMoney(s.labor || 0)}</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-item-label">Genel Toplam</div>
+        <div class="summary-item-value big money">₺${fmtMoney(total)}</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-item-label">Öğrenci sayısı</div>
+        <div class="summary-item-value">${studentNames.length}</div>
+      </div>
+    </div>
+
+    ${studentNames.length > 0 ? `<div style="margin-top: 14px;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 500; margin-bottom: 6px;">Çalışan Öğrenciler</div>
+      <div>${studentNames.map(n => `<span class="badge badge-success" style="margin-right: 6px; padding: 4px 10px;">${escapeHtml(n)}</span>`).join('')}</div>
+    </div>` : ''}
+
+    ${(s.nextServiceDate || s.nextServiceKm || s.nextService) ? `<div style="margin-top: 14px; padding: 10px 14px; background: var(--warning-soft); border-radius: var(--radius); font-size: 13px;"><strong>Sonraki bakım:</strong> ${[
+      s.nextServiceDate ? fmtDate(s.nextServiceDate) : null,
+      s.nextServiceKm ? Number(s.nextServiceKm).toLocaleString('tr-TR') + ' km' : null,
+      s.nextService || null
+    ].filter(Boolean).join(' · ')}</div>` : ''}
+
+    ${s.notes ? `<div style="margin-top: 14px;"><div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px;">Notlar</div><div style="font-size: 13px;">${escapeHtml(s.notes)}</div></div>` : ''}
+  `;
+
+  document.getElementById('service-edit-btn').onclick = () => editService(id);
+  document.getElementById('service-delete-btn').onclick = () => deleteService(id);
+
+  openModal('service-detail-modal');
+}
+
+async function deleteService(id) {
+  if (!confirm('Bu servis kaydını silmek istediğinizden emin misiniz?')) return;
+  state.services = state.services.filter(s => s.id !== id);
+  await saveState();
+  closeModal('service-detail-modal');
+  showToast('Kayıt silindi', 'success');
+  if (!document.getElementById('page-services').classList.contains('hidden')) renderServices();
+  if (!document.getElementById('page-dashboard').classList.contains('hidden')) renderDashboard();
+  if (!document.getElementById('page-vehicle-detail').classList.contains('hidden') && currentVehicleDetailId) showVehicleDetail(currentVehicleDetailId);
+}
+
+// ============ STUDENTS ============
+function renderStudents() {
+  renderPeriodBar('students');
+
+  const host = document.getElementById('students-list');
+  if (state.students.length === 0) {
+    host.innerHTML = `<div class="empty"><h3>Henüz öğrenci yok</h3><p>Atölyede çalışan öğrencileri ekleyerek başlayın.</p></div>`;
+    return;
+  }
+
+  // Dönem servisleri
+  const periodSvcs = state.services.filter(s => isInPeriod(s.date));
+  const periodLabor = periodSvcs.reduce((a, s) => a + (Number(s.labor) || 0), 0);
+  const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
+  const periodNet = periodLabor + periodProfit;
+
+  // Dönem içinde en az bir işe katılan öğrenci sayısı
+  const activeIds = new Set();
+  periodSvcs.forEach(s => (s.studentIds || []).forEach(id => activeIds.add(id)));
+  const perPersonShare = activeIds.size > 0 ? periodNet / activeIds.size : 0;
+
+  const sorted = [...state.students].sort((a, b) => {
+    if (a.active !== b.active) return a.active ? -1 : 1;
+    return a.name.localeCompare(b.name, 'tr');
+  });
+
+  let html = `
+    <div style="padding: 12px 16px; background: var(--surface-alt); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div style="font-size: 12px; color: var(--text-muted);">
+        <strong style="color: var(--text); font-size: 13px;">${activeIds.size} öğrenci</strong> bu dönemde iş yaptı · ${getPeriodLabel()}
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        Dağıtılabilir net: <strong class="money" style="color: var(--accent); font-size: 13px;">₺${fmtMoney(periodNet)}</strong>
+        · Kişi başı pay: <strong class="money" style="color: var(--success); font-size: 13px;">₺${fmtMoney(perPersonShare)}</strong>
+      </div>
+    </div>
+    <table class="table"><thead><tr>
+      <th>Ad Soyad</th><th>Sınıf</th><th>Durum</th><th>Dönem işi</th><th>Toplam iş</th><th>Dönem payı</th><th style="width:90px"></th>
+    </tr></thead><tbody>`;
+  sorted.forEach(s => {
+    const periodCount = periodSvcs.filter(svc => (svc.studentIds || []).includes(s.id)).length;
+    const totalCount = state.services.filter(svc => (svc.studentIds || []).includes(s.id)).length;
+    const share = periodCount > 0 ? perPersonShare : 0;
+    html += `<tr>
+      <td><strong>${escapeHtml(s.name)}</strong></td>
+      <td>${escapeHtml(s.class || '—')}</td>
+      <td>${s.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</td>
+      <td>${periodCount}</td>
+      <td>${totalCount}</td>
+      <td class="money">${share > 0 ? '₺' + fmtMoney(share) : '<span style="color: var(--text-light)">—</span>'}</td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-icon btn-sm" onclick="editStudent('${s.id}')" title="Düzenle">✎</button>
+          <button class="btn btn-icon btn-sm btn-danger" onclick="deleteStudent('${s.id}')" title="Sil">×</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  host.innerHTML = html;
+}
+
+function openStudentModal() {
+  editingStudentId = null;
+  document.getElementById('student-modal-title').textContent = 'Yeni Öğrenci';
+  document.getElementById('stu-name').value = '';
+  document.getElementById('stu-class').value = '';
+  document.getElementById('stu-active').value = 'true';
+  openModal('student-modal');
+  setTimeout(() => document.getElementById('stu-name').focus(), 50);
+}
+
+function editStudent(id) {
+  const s = state.students.find(x => x.id === id);
+  if (!s) return;
+  editingStudentId = id;
+  document.getElementById('student-modal-title').textContent = 'Öğrenci Düzenle';
+  document.getElementById('stu-name').value = s.name || '';
+  document.getElementById('stu-class').value = s.class || '';
+  document.getElementById('stu-active').value = String(s.active);
+  openModal('student-modal');
+}
+
+async function saveStudent() {
+  const name = document.getElementById('stu-name').value.trim();
+  if (!name) { showToast('Ad soyad zorunlu', 'danger'); return; }
+  const data = {
+    name,
+    class: document.getElementById('stu-class').value.trim(),
+    active: document.getElementById('stu-active').value === 'true'
+  };
+  if (editingStudentId) {
+    const s = state.students.find(x => x.id === editingStudentId);
+    if (s) Object.assign(s, data);
+  } else {
+    state.students.push(Object.assign({ id: uid(), createdAt: new Date().toISOString() }, data));
+  }
+  await saveState();
+  closeModal('student-modal');
+  showToast('Öğrenci kaydedildi', 'success');
+  renderStudents();
+}
+
+async function deleteStudent(id) {
+  const svcCount = state.services.filter(s => (s.studentIds || []).includes(id)).length;
+  const msg = svcCount > 0
+    ? `Bu öğrenci ${svcCount} servis kaydına dahil. Silerseniz o kayıtlarda ismi görünmeyecek. Devam edilsin mi?`
+    : 'Bu öğrenciyi silmek istediğinizden emin misiniz?';
+  if (!confirm(msg)) return;
+  state.students = state.students.filter(s => s.id !== id);
+  state.services.forEach(s => {
+    s.studentIds = (s.studentIds || []).filter(sid => sid !== id);
+  });
+  await saveState();
+  showToast('Öğrenci silindi', 'success');
+  renderStudents();
+}
+
+// ============ SETTINGS ============
+function renderSettings() {
+  document.getElementById('setting-workshop-name').value = state.settings.workshopName || '';
+  document.getElementById('setting-default-labor').value = state.settings.defaultLabor || '';
+  document.getElementById('last-backup-info').textContent =
+    state.settings.lastBackup
+      ? `Son yedek: ${new Date(state.settings.lastBackup).toLocaleString('tr-TR')}`
+      : 'Son yedek: henüz alınmadı';
+
+  const totalRevenue = state.services.reduce((a, s) => a + serviceTotal(s), 0);
+  document.getElementById('data-summary').innerHTML = `
+    <div><strong>${state.vehicles.length}</strong> araç kayıtlı</div>
+    <div><strong>${state.services.length}</strong> servis kaydı</div>
+    <div><strong>${state.students.length}</strong> öğrenci (${state.students.filter(s => s.active).length} aktif)</div>
+    <div><strong>₺${fmtMoney(totalRevenue)}</strong> toplam gelir (tüm zamanlar)</div>
+  `;
+
+  updateInstallStatus();
+}
+
+async function saveSettings() {
+  state.settings.workshopName = document.getElementById('setting-workshop-name').value.trim() || 'Atölye';
+  state.settings.defaultLabor = Number(document.getElementById('setting-default-labor').value) || 0;
+  await saveState();
+  document.getElementById('brand-name').textContent = state.settings.workshopName;
+  showToast('Ayarlar kaydedildi', 'success');
+}
+
+// PWA durum göstergesini güncelle
+function updateInstallStatus() {
+  const el = document.getElementById('install-status');
+  if (!el) return;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+  const isHttps = location.protocol === 'https:' || location.hostname === 'localhost';
+
+  if (isStandalone) {
+    el.innerHTML = '✅ <strong style="color: var(--success)">Uygulama olarak kurulmuş ve çalışıyor.</strong>';
+  } else if (!isHttps) {
+    el.innerHTML = '⚠️ <span style="color: var(--warning)">Dosya yerel olarak açıldığı için PWA özellikleri pasif. Bir web adresinden açıldığında aktifleşir.</span>';
+  } else {
+    el.innerHTML = '🟢 <span style="color: var(--text-muted)">Bu sayfa ana ekrana eklenebilir durumda. Yukarıdaki adımları izleyin.</span>';
+  }
+}
+
+async function exportData() {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    data: state
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `atolye-yedek-${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  state.settings.lastBackup = new Date().toISOString();
+  await saveState();
+  renderSettings();
+  showToast('Yedek indirildi', 'success');
+}
+
+async function importData(file) {
+  if (!file) return;
+  if (!confirm('Mevcut tüm veriler yedekteki verilerle DEĞİŞTİRİLECEK. Önce mevcut verileri yedeklemeniz önerilir. Devam edilsin mi?')) {
+    document.getElementById('import-input').value = '';
+    return;
+  }
+  try {
+    const text = await file.text();
+    const payload = JSON.parse(text);
+    if (!payload.data) throw new Error('Geçersiz yedek dosyası');
+    state = {
+      vehicles: payload.data.vehicles || [],
+      services: payload.data.services || [],
+      students: payload.data.students || [],
+      settings: Object.assign({
+        workshopName: 'Atölye',
+        defaultLabor: 0,
+        lastBackup: null
+      }, payload.data.settings || {})
+    };
+    await saveState();
+    document.getElementById('brand-name').textContent = state.settings.workshopName;
+    renderSettings();
+    showToast('Veriler yüklendi', 'success');
+  } catch (e) {
+    showToast('Yedek yüklenemedi: ' + e.message, 'danger');
+  }
+  document.getElementById('import-input').value = '';
+}
+
+async function clearAllData() {
+  if (!confirm('TÜM VERİLER SİLİNECEK. Bu işlem geri alınamaz. Devam etmeden önce yedek aldınız mı?')) return;
+  if (!confirm('Son uyarı: Gerçekten tüm verileri silmek istiyor musunuz?')) return;
+  state = {
+    vehicles: [], services: [], students: [],
+    settings: { workshopName: 'Atölye', defaultLabor: 0, lastBackup: null }
+  };
+  await saveState();
+  document.getElementById('brand-name').textContent = 'Atölye';
+  renderSettings();
+  showToast('Tüm veriler silindi', 'success');
+}
+
+// ============ MODAL HELPERS ============
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(el => {
+  el.addEventListener('click', (e) => {
+    if (e.target === el) closeModal(el.id);
+  });
+});
+
+// ============ SEED DATA (Test Verisi) ============
+function seedTestData() {
+  // Öğrenciler
+  const students = [
+    { id: 'stu_001', name: 'Mehmet Kaya', class: '12-A / 142', active: true, createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_002', name: 'Ahmet Demir', class: '12-A / 145', active: true, createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_003', name: 'Burak Şahin', class: '12-B / 156', active: true, createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_004', name: 'Emre Yıldız', class: '11-A / 178', active: true, createdAt: '2025-09-15T08:00:00Z' },
+    { id: 'stu_005', name: 'Furkan Çelik', class: '11-A / 181', active: true, createdAt: '2025-09-15T08:00:00Z' },
+    { id: 'stu_006', name: 'Hasan Polat', class: '11-B / 192', active: true, createdAt: '2025-10-01T08:00:00Z' },
+    { id: 'stu_007', name: 'Kaan Arslan', class: '12-B / 158', active: false, createdAt: '2025-09-01T08:00:00Z' }
+  ];
+
+  // Araçlar - Denizli plakası 20
+  const vehicles = [
+    { id: 'veh_001', plate: '20 ABC 123', brand: 'Renault', model: 'Clio', year: '2015', engine: '1.5 dCi', color: 'Beyaz', customerName: 'Ahmet Yılmaz', phone: '0535 411 22 33', notes: 'Düzenli müşteri, 3 aracı var.', createdAt: '2024-06-10T09:00:00Z' },
+    { id: 'veh_002', plate: '20 DEF 456', brand: 'Fiat', model: 'Egea', year: '2019', engine: '1.3 Multijet', color: 'Gri', customerName: 'Mustafa Öztürk', phone: '0542 765 88 19', notes: '', createdAt: '2024-08-22T10:30:00Z' },
+    { id: 'veh_003', plate: '20 GHI 789', brand: 'Ford', model: 'Focus', year: '2012', engine: '1.6 TDCi', color: 'Siyah', customerName: 'Ayşe Kara', phone: '0533 222 11 44', notes: 'Eşi getiriyor genelde.', createdAt: '2024-11-05T14:00:00Z' },
+    { id: 'veh_004', plate: '20 JKL 321', brand: 'Volkswagen', model: 'Polo', year: '2017', engine: '1.4 TDI', color: 'Kırmızı', customerName: 'Fatma Şen', phone: '0505 876 54 32', notes: '', createdAt: '2025-01-18T11:00:00Z' },
+    { id: 'veh_005', plate: '20 MNO 654', brand: 'Dacia', model: 'Duster', year: '2020', engine: '1.5 dCi 4x4', color: 'Mavi', customerName: 'Hüseyin Aydın', phone: '0544 123 67 89', notes: 'Arazi aracı, offroad kullanılıyor.', createdAt: '2025-03-12T09:15:00Z' },
+    { id: 'veh_006', plate: '20 PRS 987', brand: 'Hyundai', model: 'i20', year: '2021', engine: '1.4 MPI', color: 'Gümüş', customerName: 'Zeynep Korkmaz', phone: '0532 987 65 43', notes: '', createdAt: '2025-05-20T13:45:00Z' },
+    { id: 'veh_007', plate: '20 TUV 147', brand: 'Peugeot', model: '301', year: '2016', engine: '1.6 HDi', color: 'Beyaz', customerName: 'Osman Yılmaz', phone: '0543 111 22 88', notes: 'Ticari araç, km çok fazla.', createdAt: '2024-10-08T08:30:00Z' },
+    { id: 'veh_008', plate: '20 XYZ 258', brand: 'Honda', model: 'Civic', year: '2014', engine: '1.6 i-DTEC', color: 'Antrasit', customerName: 'İbrahim Kılıç', phone: '0531 456 78 90', notes: '', createdAt: '2025-02-14T10:00:00Z' },
+    { id: 'veh_009', plate: '34 ABT 741', brand: 'Toyota', model: 'Corolla', year: '2018', engine: '1.6 Valvematic', color: 'Beyaz', customerName: 'Mehmet Turan', phone: '0536 654 32 10', notes: 'İstanbul plakası, ailesi Denizli\'de.', createdAt: '2025-06-25T15:20:00Z' },
+    { id: 'veh_010', plate: '20 KLM 369', brand: 'Opel', model: 'Astra', year: '2013', engine: '1.3 CDTi', color: 'Lacivert', customerName: 'Selim Doğan', phone: '0538 741 85 96', notes: '', createdAt: '2025-07-10T12:00:00Z' }
+  ];
+
+  // Yardımcı: günler önce tarih üret
+  const daysAgo = (n) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toISOString().slice(0, 10);
+  };
+
+  // Servis kayıtları - son 4 ay dağıtılmış, gerçekçi
+  const services = [
+    // BU AY - aktif dönem
+    {
+      id: 'svc_001', vehicleId: 'veh_001', date: daysAgo(2), km: '145000',
+      description: 'Periyodik bakım: motor yağı, yağ filtresi, hava filtresi, polen filtresi değişimi. Fren kontrolü yapıldı.',
+      parts: [
+        { name: 'Motor yağı 5W-30 (5L)', qty: 1, buyPrice: 580, sellPrice: 750 },
+        { name: 'Yağ filtresi', qty: 1, buyPrice: 85, sellPrice: 130 },
+        { name: 'Hava filtresi', qty: 1, buyPrice: 95, sellPrice: 160 },
+        { name: 'Polen filtresi', qty: 1, buyPrice: 75, sellPrice: 120 }
+      ],
+      labor: 400, nextService: '10.000 km sonra veya 6 ay',
+      notes: 'Müşteriye fren balatalarının %40 kaldığı söylendi, sonraki bakımda değişecek.',
+      studentIds: ['stu_001', 'stu_002'], createdAt: new Date().toISOString()
+    },
+    {
+      id: 'svc_002', vehicleId: 'veh_005', date: daysAgo(5), km: '68500',
+      description: 'Ön fren balata ve disk değişimi. Fren hidroliği yenilendi.',
+      parts: [
+        { name: 'Ön fren balatası (takım)', qty: 1, buyPrice: 420, sellPrice: 650 },
+        { name: 'Ön fren diski (çift)', qty: 1, buyPrice: 850, sellPrice: 1250 },
+        { name: 'Fren hidroliği DOT4 (1L)', qty: 1, buyPrice: 95, sellPrice: 150 }
+      ],
+      labor: 550, nextService: '30.000 km',
+      notes: '',
+      studentIds: ['stu_003', 'stu_004', 'stu_001'], createdAt: new Date().toISOString()
+    },
+    {
+      id: 'svc_003', vehicleId: 'veh_002', date: daysAgo(8), km: '87200',
+      description: 'Akü değişimi, aküyü test cihazında ölçüldü ölü çıktı.',
+      parts: [
+        { name: 'Akü 72 Ah Mutlu', qty: 1, buyPrice: 2100, sellPrice: 2650 }
+      ],
+      labor: 150, nextService: '',
+      notes: 'Eski akü geri alındı (hurda).',
+      studentIds: ['stu_002'], createdAt: new Date().toISOString()
+    },
+    {
+      id: 'svc_004', vehicleId: 'veh_006', date: daysAgo(10), km: '42000',
+      description: 'Periyodik bakım + buji değişimi.',
+      parts: [
+        { name: 'Motor yağı 5W-30 (4L)', qty: 1, buyPrice: 480, sellPrice: 620 },
+        { name: 'Yağ filtresi', qty: 1, buyPrice: 80, sellPrice: 125 },
+        { name: 'Buji (4 adet)', qty: 4, buyPrice: 95, sellPrice: 150 }
+      ],
+      labor: 350, nextService: '15.000 km',
+      notes: '',
+      studentIds: ['stu_005', 'stu_006'], createdAt: new Date().toISOString()
+    },
+    {
+      id: 'svc_005', vehicleId: 'veh_007', date: daysAgo(14), km: '285000',
+      description: 'Triger seti ve devirdaim değişimi. Motor yağı+filtre. Kasnaklar temizlendi.',
+      parts: [
+        { name: 'Triger seti (kayış+gergi)', qty: 1, buyPrice: 1850, sellPrice: 2600 },
+        { name: 'Devirdaim pompası', qty: 1, buyPrice: 1250, sellPrice: 1750 },
+        { name: 'Motor yağı 10W-40 (5L)', qty: 1, buyPrice: 520, sellPrice: 680 },
+        { name: 'Yağ filtresi', qty: 1, buyPrice: 90, sellPrice: 135 },
+        { name: 'Antifriz (2L)', qty: 1, buyPrice: 180, sellPrice: 260 }
+      ],
+      labor: 1800, nextService: '80.000 km sonra',
+      notes: 'Ticari kullanım, km yüksek ama motor iyi durumda.',
+      studentIds: ['stu_001', 'stu_003', 'stu_005'], createdAt: new Date().toISOString()
+    },
+
+    // GEÇEN AY
+    {
+      id: 'svc_006', vehicleId: 'veh_001', date: daysAgo(38), km: '141000',
+      description: 'Debriyaj seti değişimi. Şaft ve dişli kontrolü.',
+      parts: [
+        { name: 'Debriyaj seti (3 parça)', qty: 1, buyPrice: 2400, sellPrice: 3300 },
+        { name: 'Debriyaj hidroliği', qty: 1, buyPrice: 85, sellPrice: 130 }
+      ],
+      labor: 1500, nextService: '',
+      notes: 'Debriyaj tamamen bitmişti.',
+      studentIds: ['stu_002', 'stu_004'], createdAt: '2025-03-10T10:00:00Z'
+    },
+    {
+      id: 'svc_007', vehicleId: 'veh_003', date: daysAgo(42), km: '198000',
+      description: 'Periyodik bakım ve arka amortisör değişimi.',
+      parts: [
+        { name: 'Motor yağı 5W-30 (4L)', qty: 1, buyPrice: 470, sellPrice: 610 },
+        { name: 'Yağ filtresi', qty: 1, buyPrice: 85, sellPrice: 130 },
+        { name: 'Arka amortisör (çift)', qty: 1, buyPrice: 1400, sellPrice: 1950 }
+      ],
+      labor: 650, nextService: '10.000 km',
+      notes: '',
+      studentIds: ['stu_001', 'stu_006'], createdAt: '2025-03-06T09:00:00Z'
+    },
+    {
+      id: 'svc_008', vehicleId: 'veh_004', date: daysAgo(48), km: '92000',
+      description: 'Klima bakımı, gaz dolumu ve polen filtresi değişimi.',
+      parts: [
+        { name: 'Klima gazı R134a', qty: 1, buyPrice: 380, sellPrice: 550 },
+        { name: 'Polen filtresi', qty: 1, buyPrice: 80, sellPrice: 130 }
+      ],
+      labor: 250, nextService: 'Yaz öncesi tekrar',
+      notes: 'Klima zayıf çalışıyordu, şimdi iyi.',
+      studentIds: ['stu_003'], createdAt: '2025-02-28T14:30:00Z'
+    },
+    {
+      id: 'svc_009', vehicleId: 'veh_008', date: daysAgo(52), km: '156000',
+      description: 'Motor arıza lambası yandı. EGR valfi tıkanıklığı, temizlik yapıldı.',
+      parts: [
+        { name: 'EGR temizlik spreyi', qty: 1, buyPrice: 120, sellPrice: 200 }
+      ],
+      labor: 800, nextService: '',
+      notes: 'Valfi yenilemek yerine temizlik yeterli geldi.',
+      studentIds: ['stu_002', 'stu_005'], createdAt: '2025-02-24T11:00:00Z'
+    },
+    {
+      id: 'svc_010', vehicleId: 'veh_010', date: daysAgo(58), km: '167000',
+      description: 'Marş motoru arızalıydı, değiştirildi.',
+      parts: [
+        { name: 'Marş motoru (revizyonlu)', qty: 1, buyPrice: 1600, sellPrice: 2250 }
+      ],
+      labor: 600, nextService: '',
+      notes: '',
+      studentIds: ['stu_004', 'stu_006'], createdAt: '2025-02-18T15:00:00Z'
+    },
+
+    // 2 AY ÖNCE
+    {
+      id: 'svc_011', vehicleId: 'veh_002', date: daysAgo(68), km: '82000',
+      description: 'Periyodik bakım: yağ, filtreler, ön takım kontrolü.',
+      parts: [
+        { name: 'Motor yağı 5W-30 (4L)', qty: 1, buyPrice: 470, sellPrice: 610 },
+        { name: 'Yağ filtresi', qty: 1, buyPrice: 80, sellPrice: 125 },
+        { name: 'Hava filtresi', qty: 1, buyPrice: 90, sellPrice: 150 },
+        { name: 'Yakıt filtresi', qty: 1, buyPrice: 180, sellPrice: 270 }
+      ],
+      labor: 400, nextService: '10.000 km',
+      notes: '',
+      studentIds: ['stu_001', 'stu_003'], createdAt: '2025-02-08T10:00:00Z'
+    },
+    {
+      id: 'svc_012', vehicleId: 'veh_009', date: daysAgo(72), km: '58000',
+      description: 'Eksoz bağlantısında kaçak vardı, conta değişti ve kelepçe sıkıldı.',
+      parts: [
+        { name: 'Eksoz conta', qty: 1, buyPrice: 75, sellPrice: 130 },
+        { name: 'Eksoz kelepçesi', qty: 2, buyPrice: 35, sellPrice: 60 }
+      ],
+      labor: 200, nextService: '',
+      notes: '',
+      studentIds: ['stu_005'], createdAt: '2025-02-04T09:30:00Z'
+    },
+    {
+      id: 'svc_013', vehicleId: 'veh_005', date: daysAgo(78), km: '65000',
+      description: 'Dört lastik rotasyonu, balans ve rot ayarı.',
+      parts: [],
+      labor: 450, nextService: '',
+      notes: 'Ön lastikler arkaya, arka lastikler öne.',
+      studentIds: ['stu_002', 'stu_004'], createdAt: '2025-01-29T13:00:00Z'
+    },
+    {
+      id: 'svc_014', vehicleId: 'veh_006', date: daysAgo(82), km: '38500',
+      description: 'Akü şarj problemi. Alternatör regülatörü değişti.',
+      parts: [
+        { name: 'Alternatör regülatörü', qty: 1, buyPrice: 580, sellPrice: 850 }
+      ],
+      labor: 400, nextService: '',
+      notes: '',
+      studentIds: ['stu_001', 'stu_006'], createdAt: '2025-01-25T11:30:00Z'
+    },
+
+    // 3 AY ÖNCE
+    {
+      id: 'svc_015', vehicleId: 'veh_007', date: daysAgo(95), km: '278000',
+      description: 'Debriyaj değişimi ve volant taşlaması.',
+      parts: [
+        { name: 'Debriyaj seti', qty: 1, buyPrice: 2600, sellPrice: 3500 },
+        { name: 'Volant (revize)', qty: 1, buyPrice: 1200, sellPrice: 1800 }
+      ],
+      labor: 1800, nextService: '',
+      notes: 'Ticari araç, yük taşıyor, debriyaj sık yanıyor.',
+      studentIds: ['stu_003', 'stu_005', 'stu_002'], createdAt: '2025-01-12T14:00:00Z'
+    },
+    {
+      id: 'svc_016', vehicleId: 'veh_001', date: daysAgo(100), km: '138500',
+      description: 'Kış lastiği montajı ve balans.',
+      parts: [],
+      labor: 350, nextService: 'İlkbahar lastik değişimi',
+      notes: 'Müşterinin lastikleri depoda duruyordu.',
+      studentIds: ['stu_004'], createdAt: '2025-01-07T10:00:00Z'
+    },
+    {
+      id: 'svc_017', vehicleId: 'veh_003', date: daysAgo(108), km: '193000',
+      description: 'Motor sesi şikayeti. Egzantrik triger kayışı ve gergi rulmanı değişti.',
+      parts: [
+        { name: 'Triger kayışı', qty: 1, buyPrice: 620, sellPrice: 950 },
+        { name: 'Gergi rulmanı', qty: 1, buyPrice: 380, sellPrice: 580 }
+      ],
+      labor: 1200, nextService: '80.000 km',
+      notes: '',
+      studentIds: ['stu_001', 'stu_003'], createdAt: '2024-12-30T09:00:00Z'
+    },
+
+    // 4 AY ÖNCE
+    {
+      id: 'svc_018', vehicleId: 'veh_008', date: daysAgo(120), km: '148000',
+      description: 'Fren sisteminde hava problemi. Tüm sistem havası alındı, hidrolik yenilendi.',
+      parts: [
+        { name: 'Fren hidroliği DOT4 (1L)', qty: 2, buyPrice: 95, sellPrice: 150 }
+      ],
+      labor: 300, nextService: '',
+      notes: '',
+      studentIds: ['stu_002', 'stu_006'], createdAt: '2024-12-18T13:00:00Z'
+    },
+    {
+      id: 'svc_019', vehicleId: 'veh_004', date: daysAgo(128), km: '85500',
+      description: 'Ön cam silecek motoru değişimi.',
+      parts: [
+        { name: 'Silecek motoru', qty: 1, buyPrice: 750, sellPrice: 1100 },
+        { name: 'Silecek süpürgesi (çift)', qty: 1, buyPrice: 180, sellPrice: 280 }
+      ],
+      labor: 250, nextService: '',
+      notes: '',
+      studentIds: ['stu_005'], createdAt: '2024-12-10T10:30:00Z'
+    },
+    {
+      id: 'svc_020', vehicleId: 'veh_010', date: daysAgo(135), km: '161000',
+      description: 'Periyodik bakım, yağ ve tüm filtreler.',
+      parts: [
+        { name: 'Motor yağı 10W-40 (4L)', qty: 1, buyPrice: 440, sellPrice: 580 },
+        { name: 'Yağ filtresi', qty: 1, buyPrice: 80, sellPrice: 125 },
+        { name: 'Hava filtresi', qty: 1, buyPrice: 85, sellPrice: 140 },
+        { name: 'Yakıt filtresi', qty: 1, buyPrice: 160, sellPrice: 240 }
+      ],
+      labor: 400, nextService: '10.000 km',
+      notes: '',
+      studentIds: ['stu_001', 'stu_004'], createdAt: '2024-12-03T11:00:00Z'
+    }
+  ];
+
+  return {
+    vehicles,
+    services,
+    students,
+    settings: {
+      workshopName: 'Denizli MTAL Otomotiv',
+      defaultLabor: 350,
+      lastBackup: null
+    }
+  };
+}
+
+// ============ INIT ============
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => goto(item.dataset.page));
+});
+
+async function init() {
+  try {
+    await openDB();
+    await loadState();
+    // İlk açılışta boşsa test verisi yükle
+    const isEmpty = state.vehicles.length === 0 && state.services.length === 0 && state.students.length === 0;
+    if (isEmpty) {
+      state = seedTestData();
+      await saveState();
+      showToast('Örnek veriler yüklendi', 'success');
+    }
+    // Migration: eski nextService (serbest metin) alanını yeni yapıya dönüştür
+    // ve demo amaçlı en son servislere anlamlı bakım tarihleri ekle
+    migrateServiceData();
+    document.getElementById('brand-name').textContent = (state.settings.workshopName || 'Atölye');
+    renderDashboard();
+  } catch (e) {
+    showToast('Veritabanı açılamadı: ' + e.message, 'danger');
+  }
+}
+
+// Veri migrasyonu — eski kayıtları yeni yapıya çevirir, demo bakım tarihleri ekler
+function migrateServiceData() {
+  let changed = false;
+  // Demo: belirli servislere gelecek tarihli bakım ekle (hatırlatıcı widget'ını göstermek için)
+  const demoReminders = {
+    'svc_001': { daysFromNow: 45, km: '155000' },   // 1.5 ay sonra
+    'svc_002': { daysFromNow: -5, km: '98500' },    // 5 gün geçmiş (overdue göstermek için)
+    'svc_004': { daysFromNow: 12, km: '52000' },    // bu hafta/ay içinde
+    'svc_005': { daysFromNow: 90, km: '365000' },   // 3 ay sonra
+    'svc_007': { daysFromNow: -20, km: '' },        // 20 gün geçmiş
+    'svc_012': { daysFromNow: 3, km: '63000' },     // 3 gün sonra
+    'svc_006': { daysFromNow: 180, km: '' }         // uzak gelecek
+  };
+
+  state.services.forEach(s => {
+    // Eski serbest metin alanını temizle
+    if (s.nextService !== undefined) {
+      // Demo servisler için yapılandırılmış veri oluştur
+      if (demoReminders[s.id] && !s.nextServiceDate && !s.nextServiceKm) {
+        const rem = demoReminders[s.id];
+        if (rem.daysFromNow !== undefined) {
+          const d = new Date();
+          d.setDate(d.getDate() + rem.daysFromNow);
+          s.nextServiceDate = d.toISOString().slice(0, 10);
+        }
+        if (rem.km) s.nextServiceKm = rem.km;
+        changed = true;
+      }
+      delete s.nextService;
+      changed = true;
+    }
+  });
+
+  if (changed) saveState();
+}
+
+init();
+
+// ============ SERVICE WORKER (PWA Offline Support) ============
+// HTTPS veya localhost gerekir — file:// üzerinde çalışmaz
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  const swCode = `
+    const CACHE_NAME = 'atolye-cache-v2';
+    const APP_URL = self.registration.scope;
+
+    self.addEventListener('install', e => {
+      self.skipWaiting();
+    });
+
+    self.addEventListener('activate', e => {
+      e.waitUntil(
+        caches.keys().then(keys => Promise.all(
+          keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+        )).then(() => self.clients.claim())
+      );
+    });
+
+    self.addEventListener('fetch', e => {
+      if (e.request.method !== 'GET') return;
+      e.respondWith(
+        caches.open(CACHE_NAME).then(async cache => {
+          const cached = await cache.match(e.request);
+          try {
+            const fresh = await fetch(e.request);
+            if (fresh && fresh.ok) cache.put(e.request, fresh.clone());
+            return fresh;
+          } catch (err) {
+            if (cached) return cached;
+            // Ana sayfayı cache'ten ver (offline iken başka sayfa istenmişse)
+            const appShell = await cache.match(APP_URL) || await cache.match(APP_URL + 'index.html');
+            if (appShell) return appShell;
+            throw err;
+          }
+        })
+      );
+    });
+  `;
+
+  window.addEventListener('load', () => {
+    try {
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      const swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl, { scope: './' })
+        .then(reg => {
+          console.log('Service Worker kaydı tamam');
+          // Mevcut sayfayı cache'le
+          if (reg.active) {
+            caches.open('atolye-cache-v2').then(cache => {
+              cache.add(location.href).catch(() => {});
+            });
+          }
+        })
+        .catch(err => console.log('SW kayıt hatası:', err));
+    } catch (e) {
+      console.log('SW desteği yok:', e);
+    }
+  });
+}
+
+// ============ "ANA EKRANA EKLE" İPUCU ============
+// Kullanıcı dosyayı tarayıcıda açtığında tek seferlik ipucu göster
+window.addEventListener('load', () => {
+  if (window.matchMedia('(display-mode: standalone)').matches) return; // zaten PWA modunda
+  if (localStorage.getItem('installHintDismissed')) return;
+  if (location.protocol === 'file:') return; // file:// üzerinde ipucu gösterme
+
+  setTimeout(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    if (!isIOS && !isAndroid) return;
+
+    const hint = document.createElement('div');
+    hint.style.cssText = 'position:fixed; bottom:16px; left:16px; right:16px; background:var(--text); color:white; padding:12px 16px; border-radius:10px; font-size:13px; z-index:1000; box-shadow:0 4px 16px rgba(0,0,0,0.2); display:flex; gap:10px; align-items:center;';
+    const msg = isIOS
+      ? '📱 Uygulama olarak ekle: Paylaş butonu → "Ana Ekrana Ekle"'
+      : '📱 Uygulama olarak ekle: Menü (⋮) → "Ana ekrana ekle"';
+    hint.innerHTML = `<span style="flex:1">${msg}</span><button style="background:transparent;border:1px solid rgba(255,255,255,0.4);color:white;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer">Tamam</button>`;
+    hint.querySelector('button').onclick = () => {
+      localStorage.setItem('installHintDismissed', '1');
+      hint.remove();
+    };
+    document.body.appendChild(hint);
+  }, 3000);
+});
+</script>
+
+</body>
+</html>
