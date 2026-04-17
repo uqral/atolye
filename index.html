@@ -1878,6 +1878,9 @@ function fmtMoney(n) {
 
 function fmtDate(dateStr) {
   if (!dateStr) return '—';
+  // YYYY-MM-DD formatını UTC değil yerel saat olarak parse et
+  const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('tr-TR');
   const d = new Date(dateStr);
   if (isNaN(d)) return dateStr;
   return d.toLocaleDateString('tr-TR');
@@ -3321,7 +3324,8 @@ async function exportData() {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const dateStr = new Date().toISOString().slice(0, 10);
+  const _d = new Date();
+  const dateStr = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
   a.href = url;
   a.download = `atolye-yedek-${dateStr}.json`;
   a.click();
@@ -3441,7 +3445,7 @@ function seedTestData() {
   const daysAgo = (n) => {
     const d = new Date();
     d.setDate(d.getDate() - n);
-    return d.toISOString().slice(0, 10);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
 
   // Servis kayıtları - son 4 ay dağıtılmış, gerçekçi
@@ -3787,7 +3791,7 @@ function migrateServiceData() {
         if (rem.daysFromNow !== undefined) {
           const d = new Date();
           d.setDate(d.getDate() + rem.daysFromNow);
-          s.nextServiceDate = d.toISOString().slice(0, 10);
+          s.nextServiceDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         }
         if (rem.km) s.nextServiceKm = rem.km;
         changed = true;
