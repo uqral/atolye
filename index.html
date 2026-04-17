@@ -1485,6 +1485,22 @@
   </div>
 </div>
 
+<!-- Confirm Modal -->
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="modal" style="max-width: 420px;">
+    <div class="modal-header">
+      <div class="modal-title" id="confirm-modal-title">Emin misiniz?</div>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-modal-message" style="font-size: 14px; color: var(--text-muted); margin: 0;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('confirm-modal')">İptal</button>
+      <button class="btn btn-danger" id="confirm-modal-ok" onclick="confirmOk()">Sil</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -2374,16 +2390,17 @@ async function saveVehicle() {
   renderVehicles();
 }
 
-async function deleteVehicle(id) {
+function deleteVehicle(id) {
   const svcCount = state.services.filter(s => s.vehicleId === id).length;
   const msg = svcCount > 0
     ? `Bu araca bağlı ${svcCount} servis kaydı var. Araç silinirse kayıtlar "arşiv" durumuna geçer (veri silinmez). Devam edilsin mi?`
     : 'Bu aracı silmek istediğinizden emin misiniz?';
-  if (!confirm(msg)) return;
-  state.vehicles = state.vehicles.filter(v => v.id !== id);
-  await saveState();
-  showToast('Araç silindi', 'success');
-  renderVehicles();
+  showConfirm(msg, async () => {
+    state.vehicles = state.vehicles.filter(v => v.id !== id);
+    await saveState();
+    showToast('Araç silindi', 'success');
+    renderVehicles();
+  });
 }
 
 // ============ VEHICLE DETAIL ============
@@ -2765,15 +2782,16 @@ function showServiceDetail(id) {
   openModal('service-detail-modal');
 }
 
-async function deleteService(id) {
-  if (!confirm('Bu servis kaydını silmek istediğinizden emin misiniz?')) return;
-  state.services = state.services.filter(s => s.id !== id);
-  await saveState();
-  closeModal('service-detail-modal');
-  showToast('Kayıt silindi', 'success');
-  if (!document.getElementById('page-services').classList.contains('hidden')) renderServices();
-  if (!document.getElementById('page-dashboard').classList.contains('hidden')) renderDashboard();
-  if (!document.getElementById('page-vehicle-detail').classList.contains('hidden') && currentVehicleDetailId) showVehicleDetail(currentVehicleDetailId);
+function deleteService(id) {
+  showConfirm('Bu servis kaydını silmek istediğinizden emin misiniz?', async () => {
+    state.services = state.services.filter(s => s.id !== id);
+    await saveState();
+    closeModal('service-detail-modal');
+    showToast('Kayıt silindi', 'success');
+    if (!document.getElementById('page-services').classList.contains('hidden')) renderServices();
+    if (!document.getElementById('page-dashboard').classList.contains('hidden')) renderDashboard();
+    if (!document.getElementById('page-vehicle-detail').classList.contains('hidden') && currentVehicleDetailId) showVehicleDetail(currentVehicleDetailId);
+  });
 }
 
 // ============ STUDENTS ============
@@ -2879,19 +2897,20 @@ async function saveStudent() {
   renderStudents();
 }
 
-async function deleteStudent(id) {
+function deleteStudent(id) {
   const svcCount = state.services.filter(s => (s.studentIds || []).includes(id)).length;
   const msg = svcCount > 0
     ? `Bu öğrenci ${svcCount} servis kaydına dahil. Silerseniz o kayıtlarda ismi görünmeyecek. Devam edilsin mi?`
     : 'Bu öğrenciyi silmek istediğinizden emin misiniz?';
-  if (!confirm(msg)) return;
-  state.students = state.students.filter(s => s.id !== id);
-  state.services.forEach(s => {
-    s.studentIds = (s.studentIds || []).filter(sid => sid !== id);
+  showConfirm(msg, async () => {
+    state.students = state.students.filter(s => s.id !== id);
+    state.services.forEach(s => {
+      s.studentIds = (s.studentIds || []).filter(sid => sid !== id);
+    });
+    await saveState();
+    showToast('Öğrenci silindi', 'success');
+    renderStudents();
   });
-  await saveState();
-  showToast('Öğrenci silindi', 'success');
-  renderStudents();
 }
 
 // ============ STUDENT DETAIL ============
@@ -3044,47 +3063,64 @@ async function exportData() {
   showToast('Yedek indirildi', 'success');
 }
 
-async function importData(file) {
+function importData(file) {
   if (!file) return;
-  if (!confirm('Mevcut tüm veriler yedekteki verilerle DEĞİŞTİRİLECEK. Önce mevcut verileri yedeklemeniz önerilir. Devam edilsin mi?')) {
+  showConfirm('Mevcut tüm veriler yedekteki verilerle DEĞİŞTİRİLECEK. Önce mevcut verileri yedeklemeniz önerilir. Devam edilsin mi?', async () => {
+    try {
+      const text = await file.text();
+      const payload = JSON.parse(text);
+      if (!payload.data) throw new Error('Geçersiz yedek dosyası');
+      state = {
+        vehicles: payload.data.vehicles || [],
+        services: payload.data.services || [],
+        students: payload.data.students || [],
+        settings: Object.assign({
+          workshopName: 'Atölye',
+          defaultLabor: 0,
+          lastBackup: null
+        }, payload.data.settings || {})
+      };
+      await saveState();
+      document.getElementById('brand-name').textContent = state.settings.workshopName;
+      renderSettings();
+      showToast('Veriler yüklendi', 'success');
+    } catch (e) {
+      showToast('Yedek yüklenemedi: ' + e.message, 'danger');
+    }
     document.getElementById('import-input').value = '';
-    return;
-  }
-  try {
-    const text = await file.text();
-    const payload = JSON.parse(text);
-    if (!payload.data) throw new Error('Geçersiz yedek dosyası');
-    state = {
-      vehicles: payload.data.vehicles || [],
-      services: payload.data.services || [],
-      students: payload.data.students || [],
-      settings: Object.assign({
-        workshopName: 'Atölye',
-        defaultLabor: 0,
-        lastBackup: null
-      }, payload.data.settings || {})
-    };
-    await saveState();
-    document.getElementById('brand-name').textContent = state.settings.workshopName;
-    renderSettings();
-    showToast('Veriler yüklendi', 'success');
-  } catch (e) {
-    showToast('Yedek yüklenemedi: ' + e.message, 'danger');
-  }
-  document.getElementById('import-input').value = '';
+  }, 'Veri geri yükleme', 'Devam Et');
 }
 
-async function clearAllData() {
-  if (!confirm('TÜM VERİLER SİLİNECEK. Bu işlem geri alınamaz. Devam etmeden önce yedek aldınız mı?')) return;
-  if (!confirm('Son uyarı: Gerçekten tüm verileri silmek istiyor musunuz?')) return;
-  state = {
-    vehicles: [], services: [], students: [],
-    settings: { workshopName: 'Atölye', defaultLabor: 0, lastBackup: null }
-  };
-  await saveState();
-  document.getElementById('brand-name').textContent = 'Atölye';
-  renderSettings();
-  showToast('Tüm veriler silindi', 'success');
+function clearAllData() {
+  showConfirm('TÜM VERİLER SİLİNECEK. Bu işlem geri alınamaz. Devam etmeden önce yedek aldınız mı?', () => {
+    showConfirm('Son uyarı: Gerçekten tüm verileri silmek istiyor musunuz?', async () => {
+      state = {
+        vehicles: [], services: [], students: [],
+        settings: { workshopName: 'Atölye', defaultLabor: 0, lastBackup: null }
+      };
+      await saveState();
+      document.getElementById('brand-name').textContent = 'Atölye';
+      renderSettings();
+      showToast('Tüm veriler silindi', 'success');
+    }, 'Son uyarı!', 'Evet, Sil');
+  }, 'Dikkat!', 'Devam Et');
+}
+
+// ============ CONFIRM HELPER ============
+let _confirmCallback = null;
+
+function showConfirm(message, onConfirm, title = 'Emin misiniz?', okLabel = 'Sil') {
+  document.getElementById('confirm-modal-title').textContent = title;
+  document.getElementById('confirm-modal-message').textContent = message;
+  document.getElementById('confirm-modal-ok').textContent = okLabel;
+  _confirmCallback = onConfirm;
+  openModal('confirm-modal');
+}
+
+function confirmOk() {
+  closeModal('confirm-modal');
+  if (_confirmCallback) _confirmCallback();
+  _confirmCallback = null;
 }
 
 // ============ MODAL HELPERS ============
