@@ -302,6 +302,47 @@
   }
   .form-field textarea { resize: vertical; min-height: 70px; }
 
+  /* Vehicle search combobox */
+  .vehicle-search-wrap { position: relative; }
+  .vehicle-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0; right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 200;
+  }
+  .vehicle-dropdown.open { display: block; }
+  .vehicle-dropdown-item {
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .vehicle-dropdown-item:last-child { border-bottom: none; }
+  .vehicle-dropdown-item:hover { background: var(--surface-alt); }
+  .vehicle-dropdown-item .vd-plate {
+    font-family: monospace;
+    font-weight: 700;
+    background: #1a1a2e;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .vehicle-dropdown-item .vd-name { flex: 1; }
+  .vehicle-dropdown-item .vd-customer { font-size: 11px; color: var(--text-muted); }
+
   /* Parts table in service form */
   .parts-table {
     width: 100%;
@@ -1342,9 +1383,11 @@
         <div class="form-row form-row-3">
           <div class="form-field">
             <label>Araç (plaka) *</label>
-            <select id="srv-vehicle">
-              <option value="">— Araç seçin —</option>
-            </select>
+            <div class="vehicle-search-wrap">
+              <input type="text" id="srv-vehicle-input" placeholder="Plaka, marka veya müşteri adı yazın..." autocomplete="off" oninput="vehicleSearchInput()" onfocus="vehicleSearchInput()">
+              <input type="hidden" id="srv-vehicle">
+              <div class="vehicle-dropdown" id="vehicle-dropdown"></div>
+            </div>
             <p class="help-text">Liste boşsa önce Araçlar sayfasından araç ekleyin.</p>
           </div>
           <div class="form-field">
@@ -2525,20 +2568,52 @@ function renderServices() {
   host.innerHTML = html;
 }
 
+function vehicleSearchInput() {
+  const q = (document.getElementById('srv-vehicle-input').value || '').toLowerCase().trim();
+  const dropdown = document.getElementById('vehicle-dropdown');
+  const sorted = [...state.vehicles].sort((a,b) => (a.plate || '').localeCompare(b.plate || ''));
+  const filtered = q ? sorted.filter(v =>
+    (v.plate || '').toLowerCase().includes(q) ||
+    (v.brand || '').toLowerCase().includes(q) ||
+    (v.model || '').toLowerCase().includes(q) ||
+    (v.customerName || '').toLowerCase().includes(q)
+  ) : sorted;
+
+  if (filtered.length === 0) {
+    dropdown.innerHTML = `<div class="vehicle-dropdown-item" style="color:var(--text-muted)">Araç bulunamadı</div>`;
+  } else {
+    dropdown.innerHTML = filtered.map(v => `
+      <div class="vehicle-dropdown-item" onmousedown="selectVehicle('${v.id}')">
+        <span class="vd-plate">${escapeHtml(v.plate)}</span>
+        <span class="vd-name">${escapeHtml((v.brand || '') + ' ' + (v.model || ''))}</span>
+        ${v.customerName ? `<span class="vd-customer">${escapeHtml(v.customerName)}</span>` : ''}
+      </div>`).join('');
+  }
+  dropdown.classList.add('open');
+  document.getElementById('srv-vehicle').value = '';
+}
+
+function selectVehicle(id) {
+  const v = state.vehicles.find(x => x.id === id);
+  if (!v) return;
+  document.getElementById('srv-vehicle').value = id;
+  document.getElementById('srv-vehicle-input').value = `${v.plate}${v.brand ? ' — ' + v.brand + ' ' + (v.model || '') : ''}`;
+  document.getElementById('vehicle-dropdown').classList.remove('open');
+}
+
+function setVehicleField(id) {
+  if (id) {
+    selectVehicle(id);
+  } else {
+    document.getElementById('srv-vehicle').value = '';
+    document.getElementById('srv-vehicle-input').value = '';
+  }
+}
+
 function openServiceModal(preselectedVehicleId) {
   editingServiceId = null;
   document.getElementById('service-modal-title').textContent = 'Yeni Servis Kaydı';
-
-  // Populate vehicle select
-  const vehSel = document.getElementById('srv-vehicle');
-  vehSel.innerHTML = '<option value="">— Araç seçin —</option>';
-  [...state.vehicles].sort((a,b) => (a.plate || '').localeCompare(b.plate || '')).forEach(v => {
-    const opt = document.createElement('option');
-    opt.value = v.id;
-    opt.textContent = `${v.plate} — ${v.brand || ''} ${v.model || ''}`;
-    vehSel.appendChild(opt);
-  });
-  vehSel.value = preselectedVehicleId || '';
+  setVehicleField(preselectedVehicleId || '');
 
   document.getElementById('srv-date').value = todayStr();
   document.getElementById('srv-km').value = '';
@@ -2565,15 +2640,7 @@ function editService(id) {
   editingServiceId = id;
   document.getElementById('service-modal-title').textContent = 'Servis Kaydı Düzenle';
 
-  const vehSel = document.getElementById('srv-vehicle');
-  vehSel.innerHTML = '<option value="">— Araç seçin —</option>';
-  [...state.vehicles].sort((a,b) => (a.plate || '').localeCompare(b.plate || '')).forEach(v => {
-    const opt = document.createElement('option');
-    opt.value = v.id;
-    opt.textContent = `${v.plate} — ${v.brand || ''} ${v.model || ''}`;
-    vehSel.appendChild(opt);
-  });
-  vehSel.value = s.vehicleId || '';
+  setVehicleField(s.vehicleId || '');
 
   document.getElementById('srv-date').value = s.date || todayStr();
   document.getElementById('srv-km').value = s.km || '';
@@ -3423,6 +3490,13 @@ function seedTestData() {
 // ============ INIT ============
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => goto(item.dataset.page));
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.vehicle-search-wrap')) {
+    const dd = document.getElementById('vehicle-dropdown');
+    if (dd) dd.classList.remove('open');
+  }
 });
 
 async function init() {
