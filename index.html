@@ -1042,6 +1042,10 @@
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M9 7a4 4 0 100 8 4 4 0 000-8z"/></svg>
         Öğrenciler
       </div>
+      <div class="nav-item" data-page="teachers">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h3m-1.5-2v4M13 10h4"/></svg>
+        Öğretmenler
+      </div>
       <div class="nav-item" data-page="revenue">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 4 4 6-6"/></svg>
         Gelir Paneli
@@ -1198,6 +1202,26 @@
     <!-- Student detail -->
     <section id="page-student-detail" class="page hidden">
       <div id="student-detail-content"></div>
+    </section>
+
+    <!-- Teachers -->
+    <section id="page-teachers" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Öğretmenler</h2>
+          <p class="page-subtitle">Atölyede görevli öğretmen listesi</p>
+        </div>
+        <button class="btn btn-primary" onclick="openTeacherModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Yeni Öğretmen
+        </button>
+      </div>
+
+      <div class="period-bar" data-period-bar="teachers"></div>
+
+      <div class="section">
+        <div id="teachers-list"></div>
+      </div>
     </section>
 
     <!-- Revenue panel -->
@@ -1438,6 +1462,12 @@
           </div>
         </div>
 
+        <div class="form-field">
+          <label>Sorumlu Öğretmen</label>
+          <select id="srv-teacher"></select>
+          <p class="help-text">Bu servisi yöneten öğretmeni seçin — pay hesaplamasına dahil olacak.</p>
+        </div>
+
         <div>
           <label style="display:block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px;">Çalışan Öğrenciler</label>
           <div class="students-grid" id="srv-students-grid"></div>
@@ -1511,6 +1541,41 @@
   </div>
 </div>
 
+<!-- Teacher Modal -->
+<div class="modal-backdrop" id="teacher-modal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header">
+      <div class="modal-title" id="teacher-modal-title">Yeni Öğretmen</div>
+      <button class="modal-close" onclick="closeModal('teacher-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Ad Soyad *</label>
+          <input type="text" id="tch-name" placeholder="Öğretmen adı soyadı">
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-field">
+            <label>Branş</label>
+            <input type="text" id="tch-branch" placeholder="Otomotiv">
+          </div>
+          <div class="form-field">
+            <label>Durum</label>
+            <select id="tch-active">
+              <option value="true">Aktif</option>
+              <option value="false">Pasif</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('teacher-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="saveTeacher()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
 <!-- Service Detail Modal -->
 <div class="modal-backdrop" id="service-detail-modal">
   <div class="modal" style="max-width: 800px;">
@@ -1552,6 +1617,7 @@ let state = {
   vehicles: [],
   services: [],
   students: [],
+  teachers: [],
   settings: {
     workshopName: 'Atölye',
     defaultLabor: 0,
@@ -1562,6 +1628,7 @@ let state = {
 let editingVehicleId = null;
 let editingServiceId = null;
 let editingStudentId = null;
+let editingTeacherId = null;
 let currentVehicleDetailId = null;
 
 // Global period filter state — her sayfaya uygulanır
@@ -1588,7 +1655,7 @@ function getPeriodRange() {
   today.setHours(0, 0, 0, 0);
   let from = null;
   let to = null;
-  const toStr = (d) => d ? d.toISOString().slice(0, 10) : null;
+  const toStr = (d) => d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : null;
 
   switch (periodFilter.type) {
     case 'day':
@@ -1695,8 +1762,9 @@ function renderPeriodBar(pageKey) {
           // Varsayılan özel aralık: bu ayın başı - bugün
           if (!periodFilter.customFrom) {
             const d = new Date();
-            periodFilter.customFrom = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
-            periodFilter.customTo = new Date().toISOString().slice(0, 10);
+            const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
+            periodFilter.customFrom = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-01`;
+            periodFilter.customTo = todayStr();
           }
         }
         refreshCurrentPage();
@@ -1721,7 +1789,7 @@ function renderPeriodBar(pageKey) {
 
 // Aktif olan sayfayı yeniden render eder
 function refreshCurrentPage() {
-  const pages = ['dashboard', 'vehicles', 'services', 'students', 'revenue'];
+  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue'];
   for (const p of pages) {
     const el = document.getElementById('page-' + p);
     if (el && !el.classList.contains('hidden')) {
@@ -1729,6 +1797,7 @@ function refreshCurrentPage() {
       else if (p === 'vehicles') renderVehicles();
       else if (p === 'services') renderServices();
       else if (p === 'students') renderStudents();
+      else if (p === 'teachers') renderTeachers();
       else if (p === 'revenue') renderRevenue();
       return;
     }
@@ -1787,6 +1856,7 @@ async function loadState() {
       vehicles: s.vehicles || [],
       services: s.services || [],
       students: s.students || [],
+      teachers: s.teachers || [],
       settings: Object.assign({
         workshopName: 'Atölye',
         defaultLabor: 0,
@@ -1815,7 +1885,7 @@ function fmtDate(dateStr) {
 
 function todayStr() {
   const d = new Date();
-  return d.toISOString().slice(0, 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function currentMonthKey() {
@@ -1932,6 +2002,7 @@ function goto(page) {
   if (page === 'vehicles') renderVehicles();
   if (page === 'services') renderServices();
   if (page === 'students') renderStudents();
+  if (page === 'teachers') renderTeachers();
   if (page === 'revenue') renderRevenue();
   if (page === 'settings') renderSettings();
   window.scrollTo(0, 0);
@@ -2627,8 +2698,8 @@ function openServiceModal(preselectedVehicleId) {
   document.getElementById('parts-tbody').innerHTML = '';
   addPartRow();
 
-  // Render student chips
   renderServiceStudentChips([]);
+  renderServiceTeacherSelect('');
 
   updateServiceSummary();
   openModal('service-modal');
@@ -2655,11 +2726,19 @@ function editService(id) {
   if ((s.parts || []).length === 0) addPartRow();
 
   renderServiceStudentChips(s.studentIds || []);
+  renderServiceTeacherSelect(s.teacherId || '');
   updateServiceSummary();
 
   // Close service detail if open
   closeModal('service-detail-modal');
   openModal('service-modal');
+}
+
+function renderServiceTeacherSelect(selectedId) {
+  const sel = document.getElementById('srv-teacher');
+  const active = state.teachers.filter(t => t.active);
+  sel.innerHTML = `<option value="">— Öğretmen seçin (opsiyonel) —</option>` +
+    active.map(t => `<option value="${t.id}" ${selectedId === t.id ? 'selected' : ''}>${escapeHtml(t.name)}${t.branch ? ' · ' + escapeHtml(t.branch) : ''}</option>`).join('');
 }
 
 function renderServiceStudentChips(selectedIds) {
@@ -2738,6 +2817,7 @@ async function saveService() {
   if (!description) { showToast('Yapılan işlem açıklaması zorunlu', 'danger'); return; }
 
   const studentIds = Array.from(document.querySelectorAll('#srv-students-grid input:checked')).map(i => i.value);
+  const teacherId = document.getElementById('srv-teacher').value || '';
 
   const data = {
     vehicleId,
@@ -2749,7 +2829,8 @@ async function saveService() {
     nextServiceDate: document.getElementById('srv-next-date').value || '',
     nextServiceKm: document.getElementById('srv-next-km').value || '',
     notes: document.getElementById('srv-notes').value.trim(),
-    studentIds
+    studentIds,
+    teacherId
   };
 
   if (editingServiceId) {
@@ -2776,6 +2857,7 @@ function showServiceDetail(id) {
     .map(sid => state.students.find(st => st.id === sid))
     .filter(Boolean)
     .map(st => st.name);
+  const teacher = s.teacherId ? state.teachers.find(t => t.id === s.teacherId) : null;
 
   const partsSum = servicePartsSum(s);
   const total = serviceTotal(s);
@@ -2829,6 +2911,11 @@ function showServiceDetail(id) {
       </div>
     </div>
 
+    ${teacher ? `<div style="margin-top: 14px;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 500; margin-bottom: 6px;">Sorumlu Öğretmen</div>
+      <div><span class="badge badge-muted" style="padding: 4px 10px;">${escapeHtml(teacher.name)}${teacher.branch ? ' · ' + escapeHtml(teacher.branch) : ''}</span></div>
+    </div>` : ''}
+
     ${studentNames.length > 0 ? `<div style="margin-top: 14px;">
       <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 500; margin-bottom: 6px;">Çalışan Öğrenciler</div>
       <div>${studentNames.map(n => `<span class="badge badge-success" style="margin-right: 6px; padding: 4px 10px;">${escapeHtml(n)}</span>`).join('')}</div>
@@ -2858,6 +2945,121 @@ function deleteService(id) {
     if (!document.getElementById('page-services').classList.contains('hidden')) renderServices();
     if (!document.getElementById('page-dashboard').classList.contains('hidden')) renderDashboard();
     if (!document.getElementById('page-vehicle-detail').classList.contains('hidden') && currentVehicleDetailId) showVehicleDetail(currentVehicleDetailId);
+  });
+}
+
+// ============ TEACHERS ============
+function renderTeachers() {
+  renderPeriodBar('teachers');
+
+  const host = document.getElementById('teachers-list');
+  if (state.teachers.length === 0) {
+    host.innerHTML = `<div class="empty"><h3>Henüz öğretmen yok</h3><p>Atölyede görevli öğretmenleri ekleyerek başlayın.</p></div>`;
+    return;
+  }
+
+  const periodSvcs = state.services.filter(s => isInPeriod(s.date));
+  const periodLabor = periodSvcs.reduce((a, s) => a + (Number(s.labor) || 0), 0);
+  const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
+  const periodNet = periodLabor + periodProfit;
+
+  const activeTeacherIds = new Set(periodSvcs.filter(s => s.teacherId).map(s => s.teacherId));
+  const perTeacherShare = activeTeacherIds.size > 0 ? periodNet / activeTeacherIds.size : 0;
+
+  const sorted = [...state.teachers].sort((a, b) => {
+    if (a.active !== b.active) return a.active ? -1 : 1;
+    return a.name.localeCompare(b.name, 'tr');
+  });
+
+  let html = `
+    <div style="padding: 12px 16px; background: var(--surface-alt); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div style="font-size: 12px; color: var(--text-muted);">
+        <strong style="color: var(--text); font-size: 13px;">${activeTeacherIds.size} öğretmen</strong> bu dönemde servis yaptı · ${getPeriodLabel()}
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        Toplam net: <strong class="money" style="color: var(--accent); font-size: 13px;">₺${fmtMoney(periodNet)}</strong>
+        · Kişi başı pay: <strong class="money" style="color: var(--success); font-size: 13px;">₺${fmtMoney(perTeacherShare)}</strong>
+      </div>
+    </div>
+    <table class="table"><thead><tr>
+      <th>Ad Soyad</th><th>Branş</th><th>Durum</th><th>Dönem servisi</th><th>Toplam servis</th><th>Dönem payı</th><th style="width:90px"></th>
+    </tr></thead><tbody>`;
+
+  sorted.forEach(t => {
+    const periodCount = periodSvcs.filter(s => s.teacherId === t.id).length;
+    const totalCount = state.services.filter(s => s.teacherId === t.id).length;
+    const share = periodCount > 0 ? perTeacherShare : 0;
+    html += `<tr>
+      <td><strong>${escapeHtml(t.name)}</strong></td>
+      <td>${escapeHtml(t.branch || '—')}</td>
+      <td>${t.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</td>
+      <td>${periodCount}</td>
+      <td>${totalCount}</td>
+      <td class="money">${share > 0 ? '₺' + fmtMoney(share) : '<span style="color: var(--text-light)">—</span>'}</td>
+      <td>
+        <div class="actions" onclick="event.stopPropagation()">
+          <button class="btn btn-icon btn-sm" onclick="editTeacher('${t.id}')" title="Düzenle">✎</button>
+          <button class="btn btn-icon btn-sm btn-danger" onclick="deleteTeacher('${t.id}')" title="Sil">×</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  host.innerHTML = html;
+}
+
+function openTeacherModal() {
+  editingTeacherId = null;
+  document.getElementById('teacher-modal-title').textContent = 'Yeni Öğretmen';
+  document.getElementById('tch-name').value = '';
+  document.getElementById('tch-branch').value = '';
+  document.getElementById('tch-active').value = 'true';
+  openModal('teacher-modal');
+  setTimeout(() => document.getElementById('tch-name').focus(), 50);
+}
+
+function editTeacher(id) {
+  const t = state.teachers.find(x => x.id === id);
+  if (!t) return;
+  editingTeacherId = id;
+  document.getElementById('teacher-modal-title').textContent = 'Öğretmen Düzenle';
+  document.getElementById('tch-name').value = t.name || '';
+  document.getElementById('tch-branch').value = t.branch || '';
+  document.getElementById('tch-active').value = String(t.active);
+  openModal('teacher-modal');
+}
+
+async function saveTeacher() {
+  const name = document.getElementById('tch-name').value.trim();
+  if (!name) { showToast('Ad soyad zorunlu', 'danger'); return; }
+  const data = {
+    name,
+    branch: document.getElementById('tch-branch').value.trim(),
+    active: document.getElementById('tch-active').value === 'true'
+  };
+  if (editingTeacherId) {
+    const t = state.teachers.find(x => x.id === editingTeacherId);
+    if (t) Object.assign(t, data);
+  } else {
+    state.teachers.push(Object.assign({ id: uid(), createdAt: new Date().toISOString() }, data));
+  }
+  await saveState();
+  closeModal('teacher-modal');
+  showToast('Öğretmen kaydedildi', 'success');
+  renderTeachers();
+}
+
+function deleteTeacher(id) {
+  const svcCount = state.services.filter(s => s.teacherId === id).length;
+  const msg = svcCount > 0
+    ? `Bu öğretmen ${svcCount} servis kaydına atanmış. Silerseniz o kayıtlarda ismi görünmeyecek. Devam edilsin mi?`
+    : 'Bu öğretmeni silmek istediğinizden emin misiniz?';
+  showConfirm(msg, async () => {
+    state.teachers = state.teachers.filter(t => t.id !== id);
+    state.services.forEach(s => { if (s.teacherId === id) s.teacherId = ''; });
+    await saveState();
+    showToast('Öğretmen silindi', 'success');
+    renderTeachers();
   });
 }
 
@@ -3141,6 +3343,7 @@ function importData(file) {
         vehicles: payload.data.vehicles || [],
         services: payload.data.services || [],
         students: payload.data.students || [],
+        teachers: payload.data.teachers || [],
         settings: Object.assign({
           workshopName: 'Atölye',
           defaultLabor: 0,
@@ -3162,7 +3365,7 @@ function clearAllData() {
   showConfirm('TÜM VERİLER SİLİNECEK. Bu işlem geri alınamaz. Devam etmeden önce yedek aldınız mı?', () => {
     showConfirm('Son uyarı: Gerçekten tüm verileri silmek istiyor musunuz?', async () => {
       state = {
-        vehicles: [], services: [], students: [],
+        vehicles: [], services: [], students: [], teachers: [],
         settings: { workshopName: 'Atölye', defaultLabor: 0, lastBackup: null }
       };
       await saveState();
@@ -3475,10 +3678,29 @@ function seedTestData() {
     }
   ];
 
+  const teachers = [
+    { id: 'tch_001', name: 'Mustafa Çetin', branch: 'Motor ve Aktarma', active: true, createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'tch_002', name: 'Kadir Yıldırım', branch: 'Elektrik-Elektronik', active: true, createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'tch_003', name: 'Hülya Arslan', branch: 'Şasi ve Fren', active: true, createdAt: '2025-09-01T08:00:00Z' }
+  ];
+
+  // Servislere öğretmen ata
+  const teacherAssignments = {
+    svc_001: 'tch_001', svc_002: 'tch_003', svc_003: 'tch_002',
+    svc_004: 'tch_001', svc_005: 'tch_001', svc_006: 'tch_001',
+    svc_007: 'tch_003', svc_008: 'tch_002', svc_009: 'tch_002',
+    svc_010: 'tch_002', svc_011: 'tch_001', svc_012: 'tch_003',
+    svc_013: 'tch_003', svc_014: 'tch_002', svc_015: 'tch_001',
+    svc_016: 'tch_003', svc_017: 'tch_001', svc_018: 'tch_003',
+    svc_019: 'tch_002', svc_020: 'tch_001'
+  };
+  services.forEach(s => { s.teacherId = teacherAssignments[s.id] || ''; });
+
   return {
     vehicles,
     services,
     students,
+    teachers,
     settings: {
       workshopName: 'Denizli MTAL Otomotiv',
       defaultLabor: 350,
@@ -3510,14 +3732,36 @@ async function init() {
       await saveState();
       showToast('Örnek veriler yüklendi', 'success');
     }
-    // Migration: eski nextService (serbest metin) alanını yeni yapıya dönüştür
-    // ve demo amaçlı en son servislere anlamlı bakım tarihleri ekle
+    migrateTeacherData();
     migrateServiceData();
     document.getElementById('brand-name').textContent = (state.settings.workshopName || 'Atölye');
     renderDashboard();
   } catch (e) {
     showToast('Veritabanı açılamadı: ' + e.message, 'danger');
   }
+}
+
+// Demo öğretmen verisi yoksa ekle ve mevcut demo servislere ata
+async function migrateTeacherData() {
+  if (state.teachers.length > 0) return;
+  if (state.services.length === 0) return;
+
+  state.teachers = [
+    { id: 'tch_001', name: 'Mustafa Çetin', branch: 'Motor ve Aktarma', active: true, createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'tch_002', name: 'Kadir Yıldırım', branch: 'Elektrik-Elektronik', active: true, createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'tch_003', name: 'Hülya Arslan', branch: 'Şasi ve Fren', active: true, createdAt: '2025-09-01T08:00:00Z' }
+  ];
+  const assignments = {
+    svc_001: 'tch_001', svc_002: 'tch_003', svc_003: 'tch_002',
+    svc_004: 'tch_001', svc_005: 'tch_001', svc_006: 'tch_001',
+    svc_007: 'tch_003', svc_008: 'tch_002', svc_009: 'tch_002',
+    svc_010: 'tch_002', svc_011: 'tch_001', svc_012: 'tch_003',
+    svc_013: 'tch_003', svc_014: 'tch_002', svc_015: 'tch_001',
+    svc_016: 'tch_003', svc_017: 'tch_001', svc_018: 'tch_003',
+    svc_019: 'tch_002', svc_020: 'tch_001'
+  };
+  state.services.forEach(s => { if (!s.teacherId) s.teacherId = assignments[s.id] || ''; });
+  await saveState();
 }
 
 // Veri migrasyonu — eski kayıtları yeni yapıya çevirir, demo bakım tarihleri ekler
