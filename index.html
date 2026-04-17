@@ -1434,12 +1434,13 @@
           <table class="parts-table" id="parts-table">
             <thead>
               <tr>
-                <th style="width: 35%;">Parça adı</th>
-                <th style="width: 12%;">Adet</th>
-                <th style="width: 18%;">Alış (₺)</th>
-                <th style="width: 18%;">Satış (₺)</th>
-                <th style="width: 12%;">Toplam</th>
-                <th style="width: 5%;"></th>
+                <th style="width: 28%;">Parça adı</th>
+                <th style="width: 10%;">Adet</th>
+                <th style="width: 14%;">Alış (₺)</th>
+                <th style="width: 14%;">Satış (₺)</th>
+                <th style="width: 14%;">İşçilik (₺)</th>
+                <th style="width: 14%;">Toplam</th>
+                <th style="width: 6%;"></th>
               </tr>
             </thead>
             <tbody id="parts-tbody"></tbody>
@@ -1447,18 +1448,17 @@
           <button class="btn btn-sm" onclick="addPartRow()" style="margin-top: 8px;">+ Parça Satırı Ekle</button>
         </div>
 
-        <div class="form-row form-row-3">
+        <div class="form-row form-row-2">
           <div class="form-field">
             <label>İşçilik Ücreti (₺)</label>
             <input type="number" id="srv-labor" placeholder="0" step="10" oninput="updateServiceSummary()">
           </div>
           <div class="form-field">
             <label>Sonraki bakım tarihi</label>
-            <input type="date" id="srv-next-date">
-          </div>
-          <div class="form-field">
-            <label>Sonraki bakım km</label>
-            <input type="number" id="srv-next-km" placeholder="Örn: 150000">
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <input type="date" id="srv-next-date" style="flex: 1;">
+              <button type="button" class="btn btn-sm" onclick="setNextDatePlusOneYear()">+1 Yıl</button>
+            </div>
           </div>
         </div>
 
@@ -1915,8 +1915,9 @@ function showToast(msg, type) {
 
 function serviceTotal(srv) {
   const partsTotal = (srv.parts || []).reduce((a, p) => a + (Number(p.sellPrice) || 0) * (Number(p.qty) || 0), 0);
+  const partsLabor = (srv.parts || []).reduce((a, p) => a + (Number(p.labor) || 0), 0);
   const labor = Number(srv.labor) || 0;
-  return partsTotal + labor;
+  return partsTotal + labor + partsLabor;
 }
 
 function servicePartsProfit(srv) {
@@ -2684,6 +2685,14 @@ function setVehicleField(id) {
   }
 }
 
+function setNextDatePlusOneYear() {
+  const srvDate = document.getElementById('srv-date').value;
+  const base = srvDate ? new Date(srvDate + 'T12:00:00') : new Date();
+  const next = new Date(base);
+  next.setFullYear(next.getFullYear() + 1);
+  document.getElementById('srv-next-date').value = `${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
+}
+
 function openServiceModal(preselectedVehicleId) {
   editingServiceId = null;
   document.getElementById('service-modal-title').textContent = 'Yeni Servis Kaydı';
@@ -2694,7 +2703,6 @@ function openServiceModal(preselectedVehicleId) {
   document.getElementById('srv-description').value = '';
   document.getElementById('srv-labor').value = state.settings.defaultLabor || '';
   document.getElementById('srv-next-date').value = '';
-  document.getElementById('srv-next-km').value = '';
   document.getElementById('srv-notes').value = '';
 
   // Reset parts table
@@ -2721,7 +2729,6 @@ function editService(id) {
   document.getElementById('srv-description').value = s.description || '';
   document.getElementById('srv-labor').value = s.labor || 0;
   document.getElementById('srv-next-date').value = s.nextServiceDate || '';
-  document.getElementById('srv-next-km').value = s.nextServiceKm || '';
   document.getElementById('srv-notes').value = s.notes || '';
 
   document.getElementById('parts-tbody').innerHTML = '';
@@ -2767,6 +2774,7 @@ function addPartRow(part) {
     <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty || ''}" step="1" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
+    <td><input type="number" class="p-labor" placeholder="0" value="${part?.labor || ''}" step="1" oninput="updateServiceSummary()"></td>
     <td class="money p-line-total" style="text-align:right; padding-right:10px;">0</td>
     <td><button class="btn btn-icon btn-sm btn-danger" onclick="this.closest('tr').remove(); updateServiceSummary();">×</button></td>
   `;
@@ -2782,8 +2790,9 @@ function collectParts() {
     const qty = Number(tr.querySelector('.p-qty').value) || 0;
     const buyPrice = Number(tr.querySelector('.p-buy').value) || 0;
     const sellPrice = Number(tr.querySelector('.p-sell').value) || 0;
-    if (name || qty || buyPrice || sellPrice) {
-      parts.push({ name, qty, buyPrice, sellPrice });
+    const labor = Number(tr.querySelector('.p-labor').value) || 0;
+    if (name || qty || buyPrice || sellPrice || labor) {
+      parts.push({ name, qty, buyPrice, sellPrice, labor });
     }
   });
   return parts;
@@ -2793,20 +2802,24 @@ function updateServiceSummary() {
   const rows = document.querySelectorAll('#parts-tbody tr');
   let partsTotal = 0;
   let buyTotal = 0;
+  let partsLaborTotal = 0;
   rows.forEach(tr => {
     const qty = Number(tr.querySelector('.p-qty').value) || 0;
     const buy = Number(tr.querySelector('.p-buy').value) || 0;
     const sell = Number(tr.querySelector('.p-sell').value) || 0;
-    const lineTotal = qty * sell;
-    partsTotal += lineTotal;
+    const partLabor = Number(tr.querySelector('.p-labor').value) || 0;
+    const lineTotal = qty * sell + partLabor;
+    partsTotal += qty * sell;
     buyTotal += qty * buy;
+    partsLaborTotal += partLabor;
     tr.querySelector('.p-line-total').textContent = fmtMoney(lineTotal);
   });
-  const labor = Number(document.getElementById('srv-labor').value) || 0;
+  const generalLabor = Number(document.getElementById('srv-labor').value) || 0;
+  const totalLabor = generalLabor + partsLaborTotal;
   const profit = partsTotal - buyTotal;
-  const total = partsTotal + labor;
+  const total = partsTotal + totalLabor;
   document.getElementById('sum-parts').textContent = fmtMoney(partsTotal);
-  document.getElementById('sum-labor').textContent = fmtMoney(labor);
+  document.getElementById('sum-labor').textContent = fmtMoney(totalLabor);
   document.getElementById('sum-profit').textContent = fmtMoney(profit);
   document.getElementById('sum-total').textContent = fmtMoney(total);
 }
@@ -2830,7 +2843,6 @@ async function saveService() {
     parts: collectParts(),
     labor: Number(document.getElementById('srv-labor').value) || 0,
     nextServiceDate: document.getElementById('srv-next-date').value || '',
-    nextServiceKm: document.getElementById('srv-next-km').value || '',
     notes: document.getElementById('srv-notes').value.trim(),
     studentIds,
     teacherId
@@ -2868,14 +2880,16 @@ function showServiceDetail(id) {
   let partsHtml = '';
   if ((s.parts || []).length > 0) {
     partsHtml = `<table class="table" style="margin-top: 8px;"><thead><tr>
-      <th>Parça</th><th style="text-align:right">Adet</th><th style="text-align:right">Birim</th><th style="text-align:right">Toplam</th>
+      <th>Parça</th><th style="text-align:right">Adet</th><th style="text-align:right">Birim</th><th style="text-align:right">İşçilik</th><th style="text-align:right">Toplam</th>
     </tr></thead><tbody>`;
     s.parts.forEach(p => {
+      const lineTotal = (Number(p.qty) || 0) * (Number(p.sellPrice) || 0) + (Number(p.labor) || 0);
       partsHtml += `<tr>
         <td>${escapeHtml(p.name)}</td>
         <td style="text-align:right">${p.qty}</td>
         <td style="text-align:right; font-family: Consolas, monospace;">₺${fmtMoney(p.sellPrice)}</td>
-        <td style="text-align:right; font-family: Consolas, monospace;">₺${fmtMoney((p.qty || 0) * (p.sellPrice || 0))}</td>
+        <td style="text-align:right; font-family: Consolas, monospace;">${p.labor ? '₺' + fmtMoney(p.labor) : '—'}</td>
+        <td style="text-align:right; font-family: Consolas, monospace;">₺${fmtMoney(lineTotal)}</td>
       </tr>`;
     });
     partsHtml += `</tbody></table>`;
@@ -2924,9 +2938,8 @@ function showServiceDetail(id) {
       <div>${studentNames.map(n => `<span class="badge badge-success" style="margin-right: 6px; padding: 4px 10px;">${escapeHtml(n)}</span>`).join('')}</div>
     </div>` : ''}
 
-    ${(s.nextServiceDate || s.nextServiceKm || s.nextService) ? `<div style="margin-top: 14px; padding: 10px 14px; background: var(--warning-soft); border-radius: var(--radius); font-size: 13px;"><strong>Sonraki bakım:</strong> ${[
+    ${(s.nextServiceDate || s.nextService) ? `<div style="margin-top: 14px; padding: 10px 14px; background: var(--warning-soft); border-radius: var(--radius); font-size: 13px;"><strong>Sonraki bakım:</strong> ${[
       s.nextServiceDate ? fmtDate(s.nextServiceDate) : null,
-      s.nextServiceKm ? Number(s.nextServiceKm).toLocaleString('tr-TR') + ' km' : null,
       s.nextService || null
     ].filter(Boolean).join(' · ')}</div>` : ''}
 
