@@ -1014,6 +1014,117 @@
     body { user-select: none; -webkit-user-select: none; }
     input, textarea { user-select: text; -webkit-user-select: text; }
   }
+
+/* ============ INVOICE ============ */
+.invoice-doc {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  color: #222;
+}
+
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #222;
+}
+
+.invoice-workshop {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.invoice-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #222;
+}
+
+.invoice-number {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.invoice-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 16px 0;
+  padding: 14px;
+  background: var(--surface-alt);
+  border-radius: var(--radius);
+}
+
+.invoice-meta-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.invoice-meta-value {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.invoice-parts-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+
+.invoice-parts-table thead {
+  background: var(--surface-alt);
+}
+
+.invoice-parts-table th,
+.invoice-parts-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.invoice-parts-table th {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.invoice-totals {
+  margin-top: 16px;
+  margin-left: auto;
+  width: 260px;
+}
+
+.invoice-total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.invoice-grand-total {
+  font-weight: 700;
+  font-size: 16px;
+  border-bottom: 2px solid #222 !important;
+  padding-top: 8px !important;
+  color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  .invoice-meta { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -1049,6 +1160,10 @@
       <div class="nav-item" data-page="revenue">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 4 4 6-6"/></svg>
         Gelir Paneli
+      </div>
+      <div class="nav-item" data-page="invoices">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        Faturalar
       </div>
       <div class="nav-item" data-page="settings">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -1221,6 +1336,22 @@
 
       <div class="section">
         <div id="teachers-list"></div>
+      </div>
+    </section>
+
+    <!-- Invoices -->
+    <section id="page-invoices" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Faturalar</h2>
+          <p class="page-subtitle">Proforma fatura listesi</p>
+        </div>
+      </div>
+
+      <div class="period-bar" data-period-bar="invoices"></div>
+
+      <div class="section">
+        <div id="invoices-list"></div>
       </div>
     </section>
 
@@ -1587,8 +1718,29 @@
     <div class="modal-footer">
       <button class="btn btn-danger" id="service-delete-btn">Sil</button>
       <div style="flex:1"></div>
+      <button class="btn" id="service-invoice-btn">Proforma Fatura Oluştur</button>
       <button class="btn" onclick="closeModal('service-detail-modal')">Kapat</button>
       <button class="btn btn-primary" id="service-edit-btn">Düzenle</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invoice View Modal -->
+<div class="modal-backdrop" id="invoice-view-modal">
+  <div class="modal" style="max-width: 780px;">
+    <div class="modal-header">
+      <div class="modal-title">Proforma Fatura</div>
+      <button class="modal-close" onclick="closeModal('invoice-view-modal')">&times;</button>
+    </div>
+    <div class="modal-body" id="invoice-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="invoice-delete-btn">Sil</button>
+      <div style="flex:1"></div>
+      <button class="btn" onclick="closeModal('invoice-view-modal')">Kapat</button>
+      <button class="btn btn-primary" id="invoice-print-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
+        Yazdır / PDF Kaydet
+      </button>
     </div>
   </div>
 </div>
@@ -1618,6 +1770,7 @@ let state = {
   services: [],
   students: [],
   teachers: [],
+  invoices: [],
   settings: {
     workshopName: 'Atölye',
     defaultLabor: 0,
@@ -1789,7 +1942,7 @@ function renderPeriodBar(pageKey) {
 
 // Aktif olan sayfayı yeniden render eder
 function refreshCurrentPage() {
-  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue'];
+  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue', 'invoices'];
   for (const p of pages) {
     const el = document.getElementById('page-' + p);
     if (el && !el.classList.contains('hidden')) {
@@ -1799,6 +1952,7 @@ function refreshCurrentPage() {
       else if (p === 'students') renderStudents();
       else if (p === 'teachers') renderTeachers();
       else if (p === 'revenue') renderRevenue();
+      else if (p === 'invoices') renderInvoices();
       return;
     }
   }
@@ -1857,6 +2011,7 @@ async function loadState() {
       services: s.services || [],
       students: s.students || [],
       teachers: s.teachers || [],
+      invoices: s.invoices || [],
       settings: Object.assign({
         workshopName: 'Atölye',
         defaultLabor: 0,
@@ -2012,6 +2167,7 @@ function goto(page) {
   if (page === 'students') renderStudents();
   if (page === 'teachers') renderTeachers();
   if (page === 'revenue') renderRevenue();
+  if (page === 'invoices') renderInvoices();
   if (page === 'settings') renderSettings();
   window.scrollTo(0, 0);
 }
@@ -2961,6 +3117,21 @@ function showServiceDetail(id) {
   document.getElementById('service-edit-btn').onclick = () => editService(id);
   document.getElementById('service-delete-btn').onclick = () => deleteService(id);
 
+  const svcInvoices = state.invoices.filter(inv => inv.serviceId === id);
+  const invoiceBtn = document.getElementById('service-invoice-btn');
+  if (svcInvoices.length === 0) {
+    invoiceBtn.textContent = 'Proforma Fatura Oluştur';
+    invoiceBtn.className = 'btn';
+    invoiceBtn.onclick = () => createInvoice(id);
+  } else {
+    invoiceBtn.textContent = `Fatura (${svcInvoices.length})`;
+    invoiceBtn.className = 'btn btn-success';
+    invoiceBtn.onclick = () => {
+      closeModal('service-detail-modal');
+      goto('invoices');
+    };
+  }
+
   openModal('service-detail-modal');
 }
 
@@ -2973,6 +3144,217 @@ function deleteService(id) {
     if (!document.getElementById('page-services').classList.contains('hidden')) renderServices();
     if (!document.getElementById('page-dashboard').classList.contains('hidden')) renderDashboard();
     if (!document.getElementById('page-vehicle-detail').classList.contains('hidden') && currentVehicleDetailId) showVehicleDetail(currentVehicleDetailId);
+  });
+}
+
+// ============ INVOICES ============
+function generateInvoiceNumber() {
+  const year = new Date().getFullYear();
+  const existing = state.invoices.filter(inv => inv.number && inv.number.startsWith(`PRF-${year}-`));
+  const maxSeq = existing.reduce((max, inv) => {
+    const seq = parseInt(inv.number.split('-')[2]) || 0;
+    return seq > max ? seq : max;
+  }, 0);
+  return `PRF-${year}-${String(maxSeq + 1).padStart(3, '0')}`;
+}
+
+async function createInvoice(serviceId) {
+  const s = state.services.find(x => x.id === serviceId);
+  if (!s) return;
+  const v = state.vehicles.find(x => x.id === s.vehicleId);
+  const teacherNames = getSvcTeacherIds(s).map(id => state.teachers.find(t => t.id === id)).filter(Boolean).map(t => t.name + (t.branch ? ' · ' + t.branch : ''));
+  const studentNames = (s.studentIds || []).map(id => state.students.find(st => st.id === id)).filter(Boolean).map(st => st.name);
+
+  const invoice = {
+    id: uid(),
+    number: generateInvoiceNumber(),
+    serviceId,
+    createdAt: new Date().toISOString(),
+    workshopName: state.settings.workshopName || 'Atölye',
+    date: s.date,
+    vehicle: v ? { plate: v.plate, brand: v.brand, model: v.model, customerName: v.customerName, phone: v.phone } : {},
+    description: s.description,
+    parts: JSON.parse(JSON.stringify(s.parts || [])),
+    labor: s.labor || 0,
+    total: serviceTotal(s),
+    teacherNames,
+    studentNames,
+    notes: s.notes || ''
+  };
+
+  state.invoices.push(invoice);
+  await saveState();
+  showToast(`Fatura ${invoice.number} oluşturuldu`, 'success');
+  closeModal('service-detail-modal');
+  showInvoiceModal(invoice.id);
+}
+
+function renderInvoices() {
+  renderPeriodBar('invoices');
+  const host = document.getElementById('invoices-list');
+
+  const periodInvoices = state.invoices
+    .filter(inv => isInPeriod(inv.date))
+    .sort((a, b) => b.number.localeCompare(a.number));
+
+  if (periodInvoices.length === 0) {
+    host.innerHTML = `<div class="empty"><h3>Bu dönemde fatura yok</h3><p>Servis kaydı detayından "Proforma Fatura Oluştur" ile fatura oluşturabilirsiniz.</p></div>`;
+    return;
+  }
+
+  let html = `<table class="table"><thead><tr>
+    <th>Fatura No</th><th>Tarih</th><th>Araç</th><th>Müşteri</th><th style="text-align:right">Tutar</th><th style="width:100px"></th>
+  </tr></thead><tbody>`;
+
+  periodInvoices.forEach(inv => {
+    const plate = inv.vehicle?.plate || '—';
+    const vehicleLabel = [inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '—';
+    html += `<tr>
+      <td><strong>${escapeHtml(inv.number)}</strong></td>
+      <td>${fmtDate(inv.date)}</td>
+      <td><span class="plate">${escapeHtml(plate)}</span> ${escapeHtml(vehicleLabel)}</td>
+      <td>${escapeHtml(inv.vehicle?.customerName || '—')}</td>
+      <td style="text-align:right" class="money">₺${fmtMoney(inv.total)}</td>
+      <td>
+        <div class="actions" onclick="event.stopPropagation()">
+          <button class="btn btn-sm" onclick="showInvoiceModal('${inv.id}')" title="Görüntüle">⊞</button>
+          <button class="btn btn-icon btn-sm btn-danger" onclick="deleteInvoice('${inv.id}')" title="Sil">×</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>`;
+  host.innerHTML = html;
+}
+
+function showInvoiceModal(invoiceId) {
+  const inv = state.invoices.find(x => x.id === invoiceId);
+  if (!inv) return;
+
+  const partsLaborTotal = (inv.parts || []).reduce((a, p) => a + (Number(p.labor) || 0), 0);
+  const partsTotal = (inv.parts || []).reduce((a, p) => a + (Number(p.qty) || 0) * (Number(p.sellPrice) || 0), 0);
+  const totalLabor = (Number(inv.labor) || 0) + partsLaborTotal;
+
+  let partsRows = '';
+  (inv.parts || []).forEach(p => {
+    const lineTotal = (Number(p.qty) || 0) * (Number(p.sellPrice) || 0) + (Number(p.labor) || 0);
+    partsRows += `<tr>
+      <td>${escapeHtml(p.name || '')}</td>
+      <td style="text-align:center">${p.qty}</td>
+      <td style="text-align:right">₺${fmtMoney(p.sellPrice)}</td>
+      <td style="text-align:right">${p.labor ? '₺' + fmtMoney(p.labor) : '—'}</td>
+      <td style="text-align:right"><strong>₺${fmtMoney(lineTotal)}</strong></td>
+    </tr>`;
+  });
+
+  document.getElementById('invoice-modal-body').innerHTML = `
+    <div class="invoice-doc" id="invoice-printable-${inv.id}">
+      <div class="invoice-header">
+        <div>
+          <div class="invoice-workshop">${escapeHtml(inv.workshopName)}</div>
+          <div style="font-size: 11px; color: #888; margin-top: 2px;">Atölye Takip Sistemi</div>
+        </div>
+        <div style="text-align:right">
+          <div class="invoice-title">PROFORMA FATURA</div>
+          <div class="invoice-number">${escapeHtml(inv.number)}</div>
+          <div style="font-size: 12px; color: #666; margin-top: 4px;">Düzenleme: ${fmtDate(inv.createdAt?.slice(0,10))}</div>
+        </div>
+      </div>
+
+      <div class="invoice-meta">
+        <div class="invoice-meta-block">
+          <div class="invoice-meta-label">Araç</div>
+          <div class="invoice-meta-value"><span style="font-family: monospace; font-weight:700; background:#222; color:#fff; padding:2px 6px; border-radius:3px; font-size:12px;">${escapeHtml(inv.vehicle?.plate || '—')}</span> ${escapeHtml([inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '')}</div>
+        </div>
+        <div class="invoice-meta-block">
+          <div class="invoice-meta-label">Müşteri</div>
+          <div class="invoice-meta-value">${escapeHtml(inv.vehicle?.customerName || '—')}${inv.vehicle?.phone ? '<br><span style="font-size:12px;color:#666;">' + escapeHtml(inv.vehicle.phone) + '</span>' : ''}</div>
+        </div>
+        <div class="invoice-meta-block">
+          <div class="invoice-meta-label">Servis Tarihi</div>
+          <div class="invoice-meta-value">${fmtDate(inv.date)}</div>
+        </div>
+      </div>
+
+      <div style="margin: 14px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; font-weight: 600;">Yapılan İşlemler</div>
+      <div style="font-size: 13px; color: #333; padding: 10px 14px; background: #f9f7f4; border-radius: 6px; margin-bottom: 16px;">${escapeHtml(inv.description)}</div>
+
+      ${inv.parts?.length > 0 ? `
+      <table class="invoice-parts-table">
+        <thead><tr>
+          <th style="width:38%">Parça / Malzeme</th>
+          <th style="width:10%;text-align:center">Adet</th>
+          <th style="width:17%;text-align:right">Birim (₺)</th>
+          <th style="width:17%;text-align:right">İşçilik (₺)</th>
+          <th style="width:18%;text-align:right">Toplam (₺)</th>
+        </tr></thead>
+        <tbody>${partsRows}</tbody>
+      </table>` : ''}
+
+      <div class="invoice-totals">
+        <div class="invoice-total-row"><span>Parça Toplamı</span><span>₺${fmtMoney(partsTotal)}</span></div>
+        <div class="invoice-total-row"><span>İşçilik Toplamı</span><span>₺${fmtMoney(totalLabor)}</span></div>
+        <div class="invoice-total-row invoice-grand-total"><span>GENEL TOPLAM</span><span>₺${fmtMoney(inv.total)}</span></div>
+      </div>
+
+      ${inv.teacherNames?.length > 0 ? `<div style="margin-top:14px;font-size:12px;color:#666;">Sorumlu Öğretmen: ${inv.teacherNames.map(n => escapeHtml(n)).join(', ')}</div>` : ''}
+      ${inv.studentNames?.length > 0 ? `<div style="margin-top:4px;font-size:12px;color:#666;">Çalışan Öğrenciler: ${inv.studentNames.map(n => escapeHtml(n)).join(', ')}</div>` : ''}
+      ${inv.notes ? `<div style="margin-top:10px;font-size:12px;color:#666;border-top:1px solid #eee;padding-top:10px;">Not: ${escapeHtml(inv.notes)}</div>` : ''}
+
+      <div style="margin-top:24px;padding-top:14px;border-top:1px solid #eee;font-size:11px;color:#aaa;text-align:center;">
+        Bu belge proforma niteliğinde olup resmi fatura değildir.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('invoice-print-btn').onclick = () => printInvoice(inv.id);
+  document.getElementById('invoice-delete-btn').onclick = () => deleteInvoice(inv.id);
+  openModal('invoice-view-modal');
+}
+
+function printInvoice(invoiceId) {
+  const inv = state.invoices.find(x => x.id === invoiceId);
+  if (!inv) return;
+  const content = document.getElementById(`invoice-printable-${invoiceId}`);
+  if (!content) return;
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8">
+  <title>Fatura ${escapeHtml(inv.number)}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; color: #222; background: #fff; padding: 32px; max-width: 800px; margin: 0 auto; }
+    .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #222; }
+    .invoice-workshop { font-size: 20px; font-weight: 700; color: #b8450b; }
+    .invoice-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+    .invoice-number { font-size: 14px; color: #b8450b; font-weight: 600; margin-top: 4px; }
+    .invoice-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; padding: 16px; background: #f9f7f4; border-radius: 8px; }
+    .invoice-meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; font-weight: 600; margin-bottom: 4px; }
+    .invoice-meta-value { font-weight: 600; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    thead { background: #f0ece6; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #e8e4dc; font-size: 12px; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: #666; font-weight: 600; }
+    .invoice-totals { margin-top: 16px; margin-left: auto; width: 280px; }
+    .invoice-total-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+    .invoice-grand-total { font-weight: 700; font-size: 16px; border-bottom: 2px solid #222; padding-top: 8px; color: #b8450b; }
+    @media print { body { padding: 16px; } }
+  </style></head><body>
+  ${content.innerHTML}
+  </body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 400);
+}
+
+async function deleteInvoice(id) {
+  showConfirm('Bu faturayı silmek istediğinizden emin misiniz?', async () => {
+    state.invoices = state.invoices.filter(inv => inv.id !== id);
+    await saveState();
+    closeModal('invoice-view-modal');
+    showToast('Fatura silindi', 'success');
+    renderInvoices();
   });
 }
 
@@ -3373,6 +3755,7 @@ function importData(file) {
         services: payload.data.services || [],
         students: payload.data.students || [],
         teachers: payload.data.teachers || [],
+        invoices: payload.data.invoices || [],
         settings: Object.assign({
           workshopName: 'Atölye',
           defaultLabor: 0,
@@ -3394,7 +3777,7 @@ function clearAllData() {
   showConfirm('TÜM VERİLER SİLİNECEK. Bu işlem geri alınamaz. Devam etmeden önce yedek aldınız mı?', () => {
     showConfirm('Son uyarı: Gerçekten tüm verileri silmek istiyor musunuz?', async () => {
       state = {
-        vehicles: [], services: [], students: [], teachers: [],
+        vehicles: [], services: [], students: [], teachers: [], invoices: [],
         settings: { workshopName: 'Atölye', defaultLabor: 0, lastBackup: null }
       };
       await saveState();
