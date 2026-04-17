@@ -1154,6 +1154,11 @@
       </div>
     </section>
 
+    <!-- Student detail -->
+    <section id="page-student-detail" class="page hidden">
+      <div id="student-detail-content"></div>
+    </section>
+
     <!-- Revenue panel -->
     <section id="page-revenue" class="page hidden">
       <div class="page-header">
@@ -2814,7 +2819,7 @@ function renderStudents() {
     const periodCount = periodSvcs.filter(svc => (svc.studentIds || []).includes(s.id)).length;
     const totalCount = state.services.filter(svc => (svc.studentIds || []).includes(s.id)).length;
     const share = periodCount > 0 ? perPersonShare : 0;
-    html += `<tr>
+    html += `<tr class="clickable" onclick="showStudentDetail('${s.id}')">
       <td><strong>${escapeHtml(s.name)}</strong></td>
       <td>${escapeHtml(s.class || '—')}</td>
       <td>${s.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</td>
@@ -2822,7 +2827,7 @@ function renderStudents() {
       <td>${totalCount}</td>
       <td class="money">${share > 0 ? '₺' + fmtMoney(share) : '<span style="color: var(--text-light)">—</span>'}</td>
       <td>
-        <div class="actions">
+        <div class="actions" onclick="event.stopPropagation()">
           <button class="btn btn-icon btn-sm" onclick="editStudent('${s.id}')" title="Düzenle">✎</button>
           <button class="btn btn-icon btn-sm btn-danger" onclick="deleteStudent('${s.id}')" title="Sil">×</button>
         </div>
@@ -2887,6 +2892,91 @@ async function deleteStudent(id) {
   await saveState();
   showToast('Öğrenci silindi', 'success');
   renderStudents();
+}
+
+// ============ STUDENT DETAIL ============
+let currentStudentDetailId = null;
+
+function showStudentDetail(id) {
+  currentStudentDetailId = id;
+  const s = state.students.find(x => x.id === id);
+  if (!s) return;
+
+  const svcs = state.services
+    .filter(svc => (svc.studentIds || []).includes(id))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const totalJobs = svcs.length;
+
+  // Group by vehicleId to find unique vehicles worked on
+  const vehicleIds = [...new Set(svcs.map(svc => svc.vehicleId).filter(Boolean))];
+  const workedVehicles = vehicleIds.map(vid => state.vehicles.find(v => v.id === vid)).filter(Boolean);
+
+  let svcHtml = '';
+  if (svcs.length === 0) {
+    svcHtml = `<div class="empty"><h3>Henüz servis kaydı yok</h3><p>Bu öğrenci henüz hiçbir serviste çalışmamış.</p></div>`;
+  } else {
+    svcHtml = `<table class="table"><thead><tr>
+      <th>Tarih</th><th>Araç</th><th>Yapılan İşlem</th><th>İşçilik</th><th></th>
+    </tr></thead><tbody>`;
+    svcs.forEach(svc => {
+      const v = state.vehicles.find(vx => vx.id === svc.vehicleId);
+      svcHtml += `<tr class="clickable" onclick="showServiceDetail('${svc.id}')">
+        <td>${fmtDate(svc.date)}</td>
+        <td>${v ? `<span class="plate">${escapeHtml(v.plate)}</span> <span style="color:var(--text-muted);font-size:12px;">${escapeHtml((v.brand || '') + ' ' + (v.model || ''))}</span>` : '—'}</td>
+        <td>${escapeHtml((svc.description || '').substring(0, 70))}${(svc.description || '').length > 70 ? '…' : ''}</td>
+        <td class="money">₺${fmtMoney(svc.labor || 0)}</td>
+        <td>›</td>
+      </tr>`;
+    });
+    svcHtml += `</tbody></table>`;
+  }
+
+  let vehiclesHtml = '';
+  if (workedVehicles.length > 0) {
+    vehiclesHtml = `<div class="section">
+      <div class="section-header"><div class="section-title">Çalıştığı Araçlar</div><span style="font-size:12px;color:var(--text-muted)">${workedVehicles.length} farklı araç</span></div>
+      <table class="table"><thead><tr>
+        <th>Plaka</th><th>Araç</th><th>Müşteri</th><th>Servis sayısı</th>
+      </tr></thead><tbody>`;
+    workedVehicles.forEach(v => {
+      const count = svcs.filter(svc => svc.vehicleId === v.id).length;
+      vehiclesHtml += `<tr class="clickable" onclick="showVehicleDetail('${v.id}')">
+        <td><span class="plate">${escapeHtml(v.plate)}</span></td>
+        <td>${escapeHtml((v.brand || '') + ' ' + (v.model || ''))}</td>
+        <td>${escapeHtml(v.customerName || '—')}</td>
+        <td>${count} servis</td>
+      </tr>`;
+    });
+    vehiclesHtml += `</tbody></table></div>`;
+  }
+
+  document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+  document.getElementById('page-student-detail').classList.remove('hidden');
+
+  document.getElementById('student-detail-content').innerHTML = `
+    <div class="page-header">
+      <div>
+        <button class="btn btn-sm" onclick="goto('students')" style="margin-bottom:8px;">‹ Öğrenciler</button>
+        <h2 class="page-title">${escapeHtml(s.name)}</h2>
+        <p class="page-subtitle">${escapeHtml(s.class || '—')} · ${s.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</p>
+      </div>
+      <button class="btn" onclick="editStudent('${s.id}')">Düzenle</button>
+    </div>
+
+    <div class="vehicle-info-grid">
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Toplam iş</div><div class="vehicle-info-value">${totalJobs}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Çalıştığı araç</div><div class="vehicle-info-value">${workedVehicles.length}</div></div>
+    </div>
+
+    ${vehiclesHtml}
+
+    <div class="section">
+      <div class="section-header"><div class="section-title">Tüm Servis Kayıtları</div></div>
+      ${svcHtml}
+    </div>
+  `;
+  window.scrollTo(0, 0);
 }
 
 // ============ SETTINGS ============
