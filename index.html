@@ -3913,268 +3913,319 @@ document.querySelectorAll('.modal-backdrop').forEach(el => {
 function seedTestData() {
   // Öğrenciler
   const students = [
-    { id: 'stu_001', name: 'Mehmet Kaya', class: '12-A / 142', active: true, createdAt: '2025-09-01T08:00:00Z' },
-    { id: 'stu_002', name: 'Ahmet Demir', class: '12-A / 145', active: true, createdAt: '2025-09-01T08:00:00Z' },
-    { id: 'stu_003', name: 'Burak Şahin', class: '12-B / 156', active: true, createdAt: '2025-09-01T08:00:00Z' },
-    { id: 'stu_004', name: 'Emre Yıldız', class: '11-A / 178', active: true, createdAt: '2025-09-15T08:00:00Z' },
-    { id: 'stu_005', name: 'Furkan Çelik', class: '11-A / 181', active: true, createdAt: '2025-09-15T08:00:00Z' },
-    { id: 'stu_006', name: 'Hasan Polat', class: '11-B / 192', active: true, createdAt: '2025-10-01T08:00:00Z' },
-    { id: 'stu_007', name: 'Kaan Arslan', class: '12-B / 158', active: false, createdAt: '2025-09-01T08:00:00Z' }
+    { id: 'stu_001', name: 'Mehmet Kaya',       class: '12-A / 142', active: true,  createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_002', name: 'Ahmet Demir',       class: '12-A / 145', active: true,  createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_003', name: 'Burak Şahin',       class: '12-B / 156', active: true,  createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_004', name: 'Emre Yıldız',       class: '11-A / 178', active: true,  createdAt: '2025-09-15T08:00:00Z' },
+    { id: 'stu_005', name: 'Furkan Çelik',      class: '11-A / 181', active: true,  createdAt: '2025-09-15T08:00:00Z' },
+    { id: 'stu_006', name: 'Hasan Polat',       class: '11-B / 192', active: true,  createdAt: '2025-10-01T08:00:00Z' },
+    { id: 'stu_007', name: 'Kaan Arslan',       class: '12-B / 158', active: false, createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_008', name: 'Tarık Özdemir',     class: '12-A / 149', active: true,  createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_009', name: 'Serkan Güneş',      class: '12-B / 162', active: true,  createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_010', name: 'Okan Tunç',         class: '11-B / 197', active: true,  createdAt: '2025-09-15T08:00:00Z' },
+    { id: 'stu_011', name: 'Murat Koçak',       class: '11-A / 184', active: true,  createdAt: '2025-09-15T08:00:00Z' },
+    { id: 'stu_012', name: 'Cenk Avcı',         class: '10-A / 211', active: true,  createdAt: '2025-10-01T08:00:00Z' },
+    { id: 'stu_013', name: 'Deniz Karahan',     class: '10-A / 215', active: true,  createdAt: '2025-10-01T08:00:00Z' },
+    { id: 'stu_014', name: 'Arda Kılıç',        class: '10-B / 228', active: true,  createdAt: '2025-10-01T08:00:00Z' },
+    { id: 'stu_015', name: 'Bora Duman',        class: '10-B / 233', active: true,  createdAt: '2025-10-01T08:00:00Z' },
+    { id: 'stu_016', name: 'Cem Uçar',          class: '12-A / 151', active: true,  createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_017', name: 'Haluk Şimşek',      class: '12-B / 167', active: true,  createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_018', name: 'İlker Aydın',       class: '11-A / 186', active: true,  createdAt: '2025-09-15T08:00:00Z' },
+    { id: 'stu_019', name: 'Kerem Çakır',       class: '11-B / 201', active: false, createdAt: '2025-09-15T08:00:00Z' },
+    { id: 'stu_020', name: 'Levent Özcan',      class: '11-A / 189', active: true,  createdAt: '2025-09-15T08:00:00Z' },
+    { id: 'stu_021', name: 'Mert Aksoy',        class: '10-A / 219', active: true,  createdAt: '2025-10-01T08:00:00Z' },
+    { id: 'stu_022', name: 'Nail Bozkurt',      class: '10-B / 237', active: true,  createdAt: '2025-10-01T08:00:00Z' },
+    { id: 'stu_023', name: 'Onur Yalçın',       class: '10-A / 223', active: true,  createdAt: '2025-10-01T08:00:00Z' },
+    { id: 'stu_024', name: 'Poyraz Taş',        class: '10-B / 241', active: true,  createdAt: '2025-10-15T08:00:00Z' },
+    { id: 'stu_025', name: 'Rıfat Güler',       class: '10-A / 226', active: false, createdAt: '2025-10-15T08:00:00Z' },
+    { id: 'stu_026', name: 'Sinan Erdoğan',     class: '12-A / 153', active: true,  createdAt: '2025-09-01T08:00:00Z' },
+    { id: 'stu_027', name: 'Tuncay Sarı',       class: '11-B / 205', active: true,  createdAt: '2025-09-15T08:00:00Z' },
+    { id: 'stu_028', name: 'Umut Kaplan',       class: '12-B / 171', active: true,  createdAt: '2025-09-01T08:00:00Z' }
   ];
 
-  // Araçlar - Denizli plakası 20
+  // Araçlar
   const vehicles = [
-    { id: 'veh_001', plate: '20 ABC 123', brand: 'Renault', model: 'Clio', year: '2015', engine: '1.5 dCi', color: 'Beyaz', customerName: 'Ahmet Yılmaz', phone: '0535 411 22 33', notes: 'Düzenli müşteri, 3 aracı var.', createdAt: '2024-06-10T09:00:00Z' },
-    { id: 'veh_002', plate: '20 DEF 456', brand: 'Fiat', model: 'Egea', year: '2019', engine: '1.3 Multijet', color: 'Gri', customerName: 'Mustafa Öztürk', phone: '0542 765 88 19', notes: '', createdAt: '2024-08-22T10:30:00Z' },
-    { id: 'veh_003', plate: '20 GHI 789', brand: 'Ford', model: 'Focus', year: '2012', engine: '1.6 TDCi', color: 'Siyah', customerName: 'Ayşe Kara', phone: '0533 222 11 44', notes: 'Eşi getiriyor genelde.', createdAt: '2024-11-05T14:00:00Z' },
-    { id: 'veh_004', plate: '20 JKL 321', brand: 'Volkswagen', model: 'Polo', year: '2017', engine: '1.4 TDI', color: 'Kırmızı', customerName: 'Fatma Şen', phone: '0505 876 54 32', notes: '', createdAt: '2025-01-18T11:00:00Z' },
-    { id: 'veh_005', plate: '20 MNO 654', brand: 'Dacia', model: 'Duster', year: '2020', engine: '1.5 dCi 4x4', color: 'Mavi', customerName: 'Hüseyin Aydın', phone: '0544 123 67 89', notes: 'Arazi aracı, offroad kullanılıyor.', createdAt: '2025-03-12T09:15:00Z' },
-    { id: 'veh_006', plate: '20 PRS 987', brand: 'Hyundai', model: 'i20', year: '2021', engine: '1.4 MPI', color: 'Gümüş', customerName: 'Zeynep Korkmaz', phone: '0532 987 65 43', notes: '', createdAt: '2025-05-20T13:45:00Z' },
-    { id: 'veh_007', plate: '20 TUV 147', brand: 'Peugeot', model: '301', year: '2016', engine: '1.6 HDi', color: 'Beyaz', customerName: 'Osman Yılmaz', phone: '0543 111 22 88', notes: 'Ticari araç, km çok fazla.', createdAt: '2024-10-08T08:30:00Z' },
-    { id: 'veh_008', plate: '20 XYZ 258', brand: 'Honda', model: 'Civic', year: '2014', engine: '1.6 i-DTEC', color: 'Antrasit', customerName: 'İbrahim Kılıç', phone: '0531 456 78 90', notes: '', createdAt: '2025-02-14T10:00:00Z' },
-    { id: 'veh_009', plate: '34 ABT 741', brand: 'Toyota', model: 'Corolla', year: '2018', engine: '1.6 Valvematic', color: 'Beyaz', customerName: 'Mehmet Turan', phone: '0536 654 32 10', notes: 'İstanbul plakası, ailesi Denizli\'de.', createdAt: '2025-06-25T15:20:00Z' },
-    { id: 'veh_010', plate: '20 KLM 369', brand: 'Opel', model: 'Astra', year: '2013', engine: '1.3 CDTi', color: 'Lacivert', customerName: 'Selim Doğan', phone: '0538 741 85 96', notes: '', createdAt: '2025-07-10T12:00:00Z' }
+    { id: 'veh_001', plate: '20 ABC 123', brand: 'Renault',    model: 'Clio',       year: '2015', engine: '1.5 dCi',      color: 'Beyaz',    customerName: 'Ahmet Yılmaz',     phone: '0535 411 22 33', notes: 'Düzenli müşteri.',    createdAt: '2024-06-10T09:00:00Z' },
+    { id: 'veh_002', plate: '20 DEF 456', brand: 'Fiat',       model: 'Egea',       year: '2019', engine: '1.3 Multijet', color: 'Gri',      customerName: 'Mustafa Öztürk',   phone: '0542 765 88 19', notes: '',                    createdAt: '2024-08-22T10:30:00Z' },
+    { id: 'veh_003', plate: '20 GHI 789', brand: 'Ford',       model: 'Focus',      year: '2012', engine: '1.6 TDCi',     color: 'Siyah',    customerName: 'Ayşe Kara',        phone: '0533 222 11 44', notes: 'Eşi getiriyor.',      createdAt: '2024-11-05T14:00:00Z' },
+    { id: 'veh_004', plate: '20 JKL 321', brand: 'Volkswagen', model: 'Polo',       year: '2017', engine: '1.4 TDI',      color: 'Kırmızı',  customerName: 'Fatma Şen',        phone: '0505 876 54 32', notes: '',                    createdAt: '2025-01-18T11:00:00Z' },
+    { id: 'veh_005', plate: '20 MNO 654', brand: 'Dacia',      model: 'Duster',     year: '2020', engine: '1.5 dCi 4x4',  color: 'Mavi',     customerName: 'Hüseyin Aydın',    phone: '0544 123 67 89', notes: 'Offroad kullanım.',   createdAt: '2025-03-12T09:15:00Z' },
+    { id: 'veh_006', plate: '20 PRS 987', brand: 'Hyundai',    model: 'i20',        year: '2021', engine: '1.4 MPI',       color: 'Gümüş',    customerName: 'Zeynep Korkmaz',   phone: '0532 987 65 43', notes: '',                    createdAt: '2025-05-20T13:45:00Z' },
+    { id: 'veh_007', plate: '20 TUV 147', brand: 'Peugeot',    model: '301',        year: '2016', engine: '1.6 HDi',       color: 'Beyaz',    customerName: 'Osman Yılmaz',     phone: '0543 111 22 88', notes: 'Ticari araç.',        createdAt: '2024-10-08T08:30:00Z' },
+    { id: 'veh_008', plate: '20 XYZ 258', brand: 'Honda',      model: 'Civic',      year: '2014', engine: '1.6 i-DTEC',   color: 'Antrasit', customerName: 'İbrahim Kılıç',    phone: '0531 456 78 90', notes: '',                    createdAt: '2025-02-14T10:00:00Z' },
+    { id: 'veh_009', plate: '34 ABT 741', brand: 'Toyota',     model: 'Corolla',    year: '2018', engine: '1.6 Valvematic',color: 'Beyaz',    customerName: 'Mehmet Turan',     phone: '0536 654 32 10', notes: 'İstanbul plakası.',   createdAt: '2025-06-25T15:20:00Z' },
+    { id: 'veh_010', plate: '20 KLM 369', brand: 'Opel',       model: 'Astra',      year: '2013', engine: '1.3 CDTi',     color: 'Lacivert', customerName: 'Selim Doğan',      phone: '0538 741 85 96', notes: '',                    createdAt: '2025-07-10T12:00:00Z' },
+    { id: 'veh_011', plate: '20 AAA 001', brand: 'Renault',    model: 'Symbol',     year: '2016', engine: '1.5 dCi',      color: 'Beyaz',    customerName: 'Ali Çetin',        phone: '0535 100 11 22', notes: '',                    createdAt: '2024-07-01T09:00:00Z' },
+    { id: 'veh_012', plate: '20 BBB 002', brand: 'Fiat',       model: 'Linea',      year: '2014', engine: '1.3 Multijet', color: 'Gümüş',    customerName: 'Veli Kaya',        phone: '0532 200 22 33', notes: '',                    createdAt: '2024-07-05T09:00:00Z' },
+    { id: 'veh_013', plate: '20 CCC 003', brand: 'Ford',       model: 'Fiesta',     year: '2017', engine: '1.5 TDCi',     color: 'Kırmızı',  customerName: 'Hüseyin Demir',    phone: '0542 300 33 44', notes: '',                    createdAt: '2024-07-10T09:00:00Z' },
+    { id: 'veh_014', plate: '20 DDD 004', brand: 'Volkswagen', model: 'Golf',       year: '2015', engine: '1.6 TDI',      color: 'Siyah',    customerName: 'Meryem Çelik',     phone: '0505 400 44 55', notes: '',                    createdAt: '2024-07-15T09:00:00Z' },
+    { id: 'veh_015', plate: '20 EEE 005', brand: 'Toyota',     model: 'Yaris',      year: '2019', engine: '1.0 VVT-i',    color: 'Beyaz',    customerName: 'Kemal Şahin',      phone: '0544 500 55 66', notes: '',                    createdAt: '2024-07-20T09:00:00Z' },
+    { id: 'veh_016', plate: '20 FFF 006', brand: 'Hyundai',    model: 'i10',        year: '2020', engine: '1.2 MPI',       color: 'Mavi',     customerName: 'Elif Polat',       phone: '0532 600 66 77', notes: '',                    createdAt: '2024-08-01T09:00:00Z' },
+    { id: 'veh_017', plate: '20 GGG 007', brand: 'Kia',        model: 'Picanto',    year: '2018', engine: '1.0 T-GDI',    color: 'Sarı',     customerName: 'Selin Arslan',     phone: '0535 700 77 88', notes: '',                    createdAt: '2024-08-05T09:00:00Z' },
+    { id: 'veh_018', plate: '20 HHH 008', brand: 'Nissan',     model: 'Micra',      year: '2016', engine: '1.5 dCi',      color: 'Gri',      customerName: 'Emre Yılmaz',      phone: '0542 800 88 99', notes: '',                    createdAt: '2024-08-10T09:00:00Z' },
+    { id: 'veh_019', plate: '20 III 009', brand: 'Skoda',      model: 'Fabia',      year: '2017', engine: '1.0 TSI',      color: 'Beyaz',    customerName: 'Gül Öztürk',       phone: '0505 900 99 00', notes: '',                    createdAt: '2024-08-15T09:00:00Z' },
+    { id: 'veh_020', plate: '20 JJJ 010', brand: 'Seat',       model: 'Ibiza',      year: '2018', engine: '1.0 EcoTSI',   color: 'Kırmızı',  customerName: 'Tarık Doğan',      phone: '0544 010 10 10', notes: '',                    createdAt: '2024-08-20T09:00:00Z' },
+    { id: 'veh_021', plate: '20 KKK 011', brand: 'Renault',    model: 'Megane',     year: '2016', engine: '1.5 dCi',      color: 'Gri',      customerName: 'Nur Aksoy',        phone: '0535 011 11 11', notes: '',                    createdAt: '2024-09-01T09:00:00Z' },
+    { id: 'veh_022', plate: '20 LLL 012', brand: 'Fiat',       model: '500',        year: '2020', engine: '1.0 Hybrid',   color: 'Beyaz',    customerName: 'Berk Güneş',       phone: '0532 012 12 12', notes: '',                    createdAt: '2024-09-05T09:00:00Z' },
+    { id: 'veh_023', plate: '20 MMM 013', brand: 'Ford',       model: 'Ecosport',   year: '2019', engine: '1.5 TDCi',     color: 'Lacivert', customerName: 'Serap Tunç',       phone: '0542 013 13 13', notes: '',                    createdAt: '2024-09-10T09:00:00Z' },
+    { id: 'veh_024', plate: '20 NNN 014', brand: 'Volkswagen', model: 'Passat',     year: '2014', engine: '2.0 TDI',      color: 'Antrasit', customerName: 'Orhan Koçak',      phone: '0505 014 14 14', notes: '',                    createdAt: '2024-09-15T09:00:00Z' },
+    { id: 'veh_025', plate: '20 OOO 015', brand: 'Toyota',     model: 'Auris',      year: '2016', engine: '1.6 Valvematic',color: 'Gümüş',   customerName: 'Fatih Avcı',       phone: '0544 015 15 15', notes: '',                    createdAt: '2024-09-20T09:00:00Z' },
+    { id: 'veh_026', plate: '20 PPP 016', brand: 'Hyundai',    model: 'Tucson',     year: '2018', engine: '1.6 CRDi',     color: 'Beyaz',    customerName: 'Melek Karahan',    phone: '0532 016 16 16', notes: '',                    createdAt: '2024-10-01T09:00:00Z' },
+    { id: 'veh_027', plate: '20 QQQ 017', brand: 'Kia',        model: 'Sportage',   year: '2017', engine: '2.0 CRDi',     color: 'Siyah',    customerName: 'Cengiz Kılıç',     phone: '0535 017 17 17', notes: '',                    createdAt: '2024-10-05T09:00:00Z' },
+    { id: 'veh_028', plate: '20 RRR 018', brand: 'Nissan',     model: 'Qashqai',    year: '2019', engine: '1.5 dCi',      color: 'Kırmızı',  customerName: 'Tuba Duman',       phone: '0542 018 18 18', notes: '',                    createdAt: '2024-10-10T09:00:00Z' },
+    { id: 'veh_029', plate: '20 SSS 019', brand: 'Skoda',      model: 'Octavia',    year: '2016', engine: '2.0 TDI',      color: 'Gri',      customerName: 'Yusuf Uçar',       phone: '0505 019 19 19', notes: '',                    createdAt: '2024-10-15T09:00:00Z' },
+    { id: 'veh_030', plate: '20 TTT 020', brand: 'Seat',       model: 'Leon',       year: '2017', engine: '1.6 TDI',      color: 'Mavi',     customerName: 'Zehra Şimşek',     phone: '0544 020 20 20', notes: '',                    createdAt: '2024-10-20T09:00:00Z' },
+    { id: 'veh_031', plate: '20 UUU 021', brand: 'Peugeot',    model: '208',        year: '2018', engine: '1.5 BlueHDi',  color: 'Beyaz',    customerName: 'Barış Aydın',      phone: '0535 021 21 21', notes: '',                    createdAt: '2024-11-01T09:00:00Z' },
+    { id: 'veh_032', plate: '20 VVV 022', brand: 'Citroën',    model: 'C3',         year: '2019', engine: '1.5 BlueHDi',  color: 'Gümüş',    customerName: 'Hande Çakır',      phone: '0532 022 22 22', notes: '',                    createdAt: '2024-11-05T09:00:00Z' },
+    { id: 'veh_033', plate: '20 WWW 023', brand: 'Opel',       model: 'Corsa',      year: '2017', engine: '1.3 CDTi',     color: 'Siyah',    customerName: 'Ufuk Özcan',       phone: '0542 023 23 23', notes: '',                    createdAt: '2024-11-10T09:00:00Z' },
+    { id: 'veh_034', plate: '20 XXX 024', brand: 'Renault',    model: 'Fluence',    year: '2015', engine: '1.5 dCi',      color: 'Lacivert', customerName: 'Derya Bozkurt',    phone: '0505 024 24 24', notes: '',                    createdAt: '2024-11-15T09:00:00Z' },
+    { id: 'veh_035', plate: '20 YYY 025', brand: 'Fiat',       model: 'Doblo',      year: '2016', engine: '1.3 Multijet', color: 'Beyaz',    customerName: 'Serhat Yalçın',    phone: '0544 025 25 25', notes: 'Ticari araç.',        createdAt: '2024-11-20T09:00:00Z' },
+    { id: 'veh_036', plate: '20 ZZZ 026', brand: 'Ford',       model: 'Transit',    year: '2017', engine: '2.0 TDCi',     color: 'Beyaz',    customerName: 'Adnan Taş',        phone: '0535 026 26 26', notes: 'Ticari araç.',        createdAt: '2024-12-01T09:00:00Z' },
+    { id: 'veh_037', plate: '20 AA1 027', brand: 'Volkswagen', model: 'Caddy',      year: '2018', engine: '2.0 TDI',      color: 'Gri',      customerName: 'Rüya Güler',       phone: '0532 027 27 27', notes: '',                    createdAt: '2024-12-05T09:00:00Z' },
+    { id: 'veh_038', plate: '20 BB2 028', brand: 'Toyota',     model: 'HiLux',      year: '2019', engine: '2.4 D-4D',     color: 'Gümüş',    customerName: 'Savaş Erdoğan',    phone: '0542 028 28 28', notes: 'Pikap.',              createdAt: '2024-12-10T09:00:00Z' },
+    { id: 'veh_039', plate: '20 CC3 029', brand: 'Hyundai',    model: 'Elantra',    year: '2016', engine: '1.6 CRDi',     color: 'Beyaz',    customerName: 'Tolga Sarı',       phone: '0505 029 29 29', notes: '',                    createdAt: '2024-12-15T09:00:00Z' },
+    { id: 'veh_040', plate: '20 DD4 030', brand: 'Kia',        model: 'Ceed',       year: '2017', engine: '1.6 CRDi',     color: 'Kırmızı',  customerName: 'Nilüfer Kaplan',   phone: '0544 030 30 30', notes: '',                    createdAt: '2024-12-20T09:00:00Z' },
+    { id: 'veh_041', plate: '20 EE5 031', brand: 'Dacia',      model: 'Logan',      year: '2015', engine: '1.5 dCi',      color: 'Beyaz',    customerName: 'Coşkun Çetin',     phone: '0535 031 31 31', notes: '',                    createdAt: '2025-01-01T09:00:00Z' },
+    { id: 'veh_042', plate: '20 FF6 032', brand: 'Renault',    model: 'Kangoo',     year: '2016', engine: '1.5 dCi',      color: 'Gri',      customerName: 'Dilek Yılmaz',     phone: '0532 032 32 32', notes: 'Ticari araç.',        createdAt: '2025-01-05T09:00:00Z' },
+    { id: 'veh_043', plate: '20 GG7 033', brand: 'Fiat',       model: 'Scudo',      year: '2018', engine: '2.0 HDi',      color: 'Beyaz',    customerName: 'Güray Öztürk',     phone: '0542 033 33 33', notes: '',                    createdAt: '2025-01-10T09:00:00Z' },
+    { id: 'veh_044', plate: '20 HH8 034', brand: 'Mercedes',   model: 'C180',       year: '2014', engine: '1.6 CGI',      color: 'Siyah',    customerName: 'Handan Kara',      phone: '0505 034 34 34', notes: 'Zengin müşteri.',     createdAt: '2025-01-15T09:00:00Z' },
+    { id: 'veh_045', plate: '20 II9 035', brand: 'BMW',        model: '320d',       year: '2015', engine: '2.0 d',        color: 'Lacivert', customerName: 'İlhan Şen',        phone: '0544 035 35 35', notes: '',                    createdAt: '2025-01-20T09:00:00Z' },
+    { id: 'veh_046', plate: '20 JJ0 036', brand: 'Audi',       model: 'A3',         year: '2016', engine: '2.0 TDI',      color: 'Antrasit', customerName: 'Jale Aydın',       phone: '0535 036 36 36', notes: '',                    createdAt: '2025-01-25T09:00:00Z' },
+    { id: 'veh_047', plate: '34 CC7 047', brand: 'Renault',    model: 'Latitude',   year: '2013', engine: '2.0 dCi',      color: 'Gümüş',    customerName: 'Kenan Korkmaz',    phone: '0532 047 47 47', notes: 'İstanbul plakası.',   createdAt: '2025-02-01T09:00:00Z' },
+    { id: 'veh_048', plate: '20 KK1 038', brand: 'Ford',       model: 'Mondeo',     year: '2015', engine: '2.0 TDCi',     color: 'Gri',      customerName: 'Lale Polat',       phone: '0542 038 38 38', notes: '',                    createdAt: '2025-02-05T09:00:00Z' },
+    { id: 'veh_049', plate: '20 LL2 039', brand: 'Volkswagen', model: 'Jetta',      year: '2016', engine: '1.6 TDI',      color: 'Beyaz',    customerName: 'Musa Arslan',      phone: '0505 039 39 39', notes: '',                    createdAt: '2025-02-10T09:00:00Z' },
+    { id: 'veh_050', plate: '20 MM3 040', brand: 'Hyundai',    model: 'ix35',       year: '2014', engine: '2.0 CRDi',     color: 'Kırmızı',  customerName: 'Nalan Aksoy',      phone: '0544 040 40 40', notes: '',                    createdAt: '2025-02-15T09:00:00Z' },
+    { id: 'veh_051', plate: '20 NN4 041', brand: 'Kia',        model: 'Sorento',    year: '2017', engine: '2.2 CRDi',     color: 'Siyah',    customerName: 'Oğuzhan Güneş',   phone: '0535 041 41 41', notes: '',                    createdAt: '2025-02-20T09:00:00Z' },
+    { id: 'veh_052', plate: '20 OO5 042', brand: 'Nissan',     model: 'X-Trail',    year: '2018', engine: '1.6 dCi',      color: 'Beyaz',    customerName: 'Pınar Tunç',       phone: '0532 042 42 42', notes: '',                    createdAt: '2025-02-25T09:00:00Z' },
+    { id: 'veh_053', plate: '20 PP6 043', brand: 'Skoda',      model: 'Superb',     year: '2016', engine: '2.0 TDI',      color: 'Lacivert', customerName: 'Recep Koçak',      phone: '0542 043 43 43', notes: '',                    createdAt: '2025-03-01T09:00:00Z' },
+    { id: 'veh_054', plate: '20 QQ7 044', brand: 'Seat',       model: 'Ateca',      year: '2019', engine: '2.0 TDI',      color: 'Gümüş',    customerName: 'Sibel Avcı',       phone: '0505 044 44 44', notes: '',                    createdAt: '2025-03-05T09:00:00Z' },
+    { id: 'veh_055', plate: '20 RR8 045', brand: 'Peugeot',    model: '3008',       year: '2018', engine: '1.5 BlueHDi',  color: 'Mavi',     customerName: 'Taner Karahan',    phone: '0544 045 45 45', notes: '',                    createdAt: '2025-03-10T09:00:00Z' },
+    { id: 'veh_056', plate: '20 SS9 046', brand: 'Citroën',    model: 'C4',         year: '2017', engine: '1.6 BlueHDi',  color: 'Beyaz',    customerName: 'Ülkü Kılıç',       phone: '0535 046 46 46', notes: '',                    createdAt: '2025-03-15T09:00:00Z' },
+    { id: 'veh_057', plate: '20 TT0 047', brand: 'Opel',       model: 'Insignia',   year: '2016', engine: '2.0 CDTi',     color: 'Antrasit', customerName: 'Vecdi Duman',      phone: '0532 047 00 47', notes: '',                    createdAt: '2025-03-20T09:00:00Z' },
+    { id: 'veh_058', plate: '20 UU1 048', brand: 'Renault',    model: 'Scenic',     year: '2015', engine: '1.5 dCi',      color: 'Gri',      customerName: 'Yasemin Uçar',     phone: '0542 048 48 48', notes: '',                    createdAt: '2025-03-25T09:00:00Z' },
+    { id: 'veh_059', plate: '20 VV2 049', brand: 'Fiat',       model: 'Punto',      year: '2013', engine: '1.3 Multijet', color: 'Kırmızı',  customerName: 'Zafer Şimşek',     phone: '0505 049 49 49', notes: '',                    createdAt: '2025-04-01T09:00:00Z' },
+    { id: 'veh_060', plate: '20 WW3 050', brand: 'Ford',       model: 'Connect',    year: '2018', engine: '1.5 TDCi',     color: 'Beyaz',    customerName: 'Ayhan Aydın',      phone: '0544 050 50 50', notes: 'Ticari araç.',        createdAt: '2025-04-05T09:00:00Z' },
+    { id: 'veh_061', plate: '20 XX4 051', brand: 'Volkswagen', model: 'Tiguan',     year: '2017', engine: '2.0 TDI',      color: 'Siyah',    customerName: 'Bülent Çakır',     phone: '0535 051 51 51', notes: '',                    createdAt: '2025-04-10T09:00:00Z' },
+    { id: 'veh_062', plate: '20 YY5 052', brand: 'Toyota',     model: 'RAV4',       year: '2018', engine: '2.0 D-4D',     color: 'Gümüş',    customerName: 'Candan Özcan',     phone: '0532 052 52 52', notes: '',                    createdAt: '2025-04-15T09:00:00Z' },
+    { id: 'veh_063', plate: '20 ZZ6 053', brand: 'Hyundai',    model: 'Santa Fe',   year: '2016', engine: '2.2 CRDi',     color: 'Lacivert', customerName: 'Doğan Bozkurt',    phone: '0542 053 53 53', notes: '',                    createdAt: '2025-04-20T09:00:00Z' },
+    { id: 'veh_064', plate: '20 A11 054', brand: 'Kia',        model: 'Stinger',    year: '2019', engine: '2.2 CRDi',     color: 'Kırmızı',  customerName: 'Esra Yalçın',      phone: '0505 054 54 54', notes: '',                    createdAt: '2025-04-25T09:00:00Z' },
+    { id: 'veh_065', plate: '20 B22 055', brand: 'Nissan',     model: 'Juke',       year: '2017', engine: '1.5 dCi',      color: 'Turuncu',  customerName: 'Ferhat Taş',       phone: '0544 055 55 55', notes: '',                    createdAt: '2025-05-01T09:00:00Z' },
+    { id: 'veh_066', plate: '20 C33 056', brand: 'Dacia',      model: 'Sandero',    year: '2018', engine: '1.5 dCi',      color: 'Beyaz',    customerName: 'Gökhan Güler',     phone: '0535 056 56 56', notes: '',                    createdAt: '2025-05-05T09:00:00Z' },
+    { id: 'veh_067', plate: '20 D44 057', brand: 'Renault',    model: 'Captur',     year: '2019', engine: '1.5 dCi',      color: 'Mavi',     customerName: 'Hatice Erdoğan',   phone: '0532 057 57 57', notes: '',                    createdAt: '2025-05-10T09:00:00Z' },
+    { id: 'veh_068', plate: '20 E55 058', brand: 'Fiat',       model: 'Tipo',       year: '2017', engine: '1.3 Multijet', color: 'Gri',      customerName: 'İsmail Sarı',      phone: '0542 058 58 58', notes: '',                    createdAt: '2025-05-15T09:00:00Z' },
+    { id: 'veh_069', plate: '20 F66 059', brand: 'Ford',       model: 'Puma',       year: '2020', engine: '1.0 EcoBoost', color: 'Gümüş',    customerName: 'Jülide Kaplan',    phone: '0505 059 59 59', notes: '',                    createdAt: '2025-05-20T09:00:00Z' },
+    { id: 'veh_070', plate: '20 G77 060', brand: 'Volkswagen', model: 'T-Roc',      year: '2019', engine: '1.5 TSI',      color: 'Beyaz',    customerName: 'Kamil Çetin',      phone: '0544 060 60 60', notes: '',                    createdAt: '2025-05-25T09:00:00Z' },
+    { id: 'veh_071', plate: '20 H88 061', brand: 'Toyota',     model: 'C-HR',       year: '2018', engine: '1.8 Hybrid',   color: 'Siyah',    customerName: 'Lüfer Yılmaz',     phone: '0535 061 61 61', notes: 'Hibrit araç.',        createdAt: '2025-06-01T09:00:00Z' },
+    { id: 'veh_072', plate: '20 I99 062', brand: 'Hyundai',    model: 'Kona',       year: '2019', engine: '1.6 CRDi',     color: 'Kırmızı',  customerName: 'Maide Öztürk',     phone: '0532 062 62 62', notes: '',                    createdAt: '2025-06-05T09:00:00Z' },
+    { id: 'veh_073', plate: '20 J10 063', brand: 'Kia',        model: 'Niro',       year: '2020', engine: '1.6 GDI Hybrid',color: 'Beyaz',   customerName: 'Necati Kara',      phone: '0542 063 63 63', notes: 'Hibrit araç.',        createdAt: '2025-06-10T09:00:00Z' },
+    { id: 'veh_074', plate: '20 K20 064', brand: 'Skoda',      model: 'Kamiq',      year: '2020', engine: '1.0 TSI',      color: 'Lacivert', customerName: 'Olga Şen',         phone: '0505 064 64 64', notes: '',                    createdAt: '2025-06-15T09:00:00Z' },
+    { id: 'veh_075', plate: '20 L30 065', brand: 'Peugeot',    model: '2008',       year: '2020', engine: '1.2 PureTech',  color: 'Gri',      customerName: 'Pelin Aydın',      phone: '0544 065 65 65', notes: '',                    createdAt: '2025-06-20T09:00:00Z' },
+    { id: 'veh_076', plate: '20 M40 066', brand: 'Citroën',    model: 'C5 Aircross',year: '2019', engine: '1.5 BlueHDi',  color: 'Gümüş',    customerName: 'Rıdvan Polat',     phone: '0535 066 66 66', notes: '',                    createdAt: '2025-06-25T09:00:00Z' },
+    { id: 'veh_077', plate: '20 N50 067', brand: 'Opel',       model: 'Mokka',      year: '2017', engine: '1.6 CDTi',     color: 'Mavi',     customerName: 'Sema Arslan',      phone: '0532 067 67 67', notes: '',                    createdAt: '2025-07-01T09:00:00Z' },
+    { id: 'veh_078', plate: '20 O60 068', brand: 'Dacia',      model: 'Spring',     year: '2022', engine: 'Elektrik',     color: 'Yeşil',    customerName: 'Tülin Aksoy',      phone: '0542 068 68 68', notes: 'Elektrikli araç.',    createdAt: '2025-07-05T09:00:00Z' },
+    { id: 'veh_079', plate: '20 P70 069', brand: 'Renault',    model: 'Zoe',        year: '2021', engine: 'Elektrik',     color: 'Beyaz',    customerName: 'Uğur Güneş',       phone: '0505 069 69 69', notes: 'Elektrikli araç.',    createdAt: '2025-07-10T09:00:00Z' },
+    { id: 'veh_080', plate: '20 Q80 070', brand: 'Ford',       model: 'Kuga',       year: '2018', engine: '2.0 TDCi',     color: 'Antrasit', customerName: 'Vildan Tunç',      phone: '0544 070 70 70', notes: '',                    createdAt: '2025-07-15T09:00:00Z' },
+    { id: 'veh_081', plate: '20 R90 071', brand: 'Volkswagen', model: 'Touareg',    year: '2016', engine: '3.0 TDI',      color: 'Siyah',    customerName: 'Yiğit Koçak',     phone: '0535 071 71 71', notes: '',                    createdAt: '2025-07-20T09:00:00Z' },
+    { id: 'veh_082', plate: '20 S01 072', brand: 'Toyota',     model: 'Land Cruiser',year:'2015', engine: '3.0 D-4D',     color: 'Beyaz',    customerName: 'Zekai Avcı',      phone: '0532 072 72 72', notes: '',                    createdAt: '2025-07-25T09:00:00Z' },
+    { id: 'veh_083', plate: '20 T02 073', brand: 'Hyundai',    model: 'Tucson NX4', year: '2022', engine: '1.6 T-GDI',    color: 'Kırmızı',  customerName: 'Asuman Karahan',   phone: '0542 073 73 73', notes: '',                    createdAt: '2025-08-01T09:00:00Z' },
+    { id: 'veh_084', plate: '20 U03 074', brand: 'Kia',        model: 'EV6',        year: '2022', engine: 'Elektrik',     color: 'Gri',      customerName: 'Bekir Kılıç',      phone: '0505 074 74 74', notes: 'Elektrikli araç.',    createdAt: '2025-08-05T09:00:00Z' },
+    { id: 'veh_085', plate: '20 V04 075', brand: 'Mercedes',   model: 'E200',       year: '2017', engine: '2.0 CGI',      color: 'Gümüş',    customerName: 'Ceyda Duman',      phone: '0544 075 75 75', notes: '',                    createdAt: '2025-08-10T09:00:00Z' },
+    { id: 'veh_086', plate: '20 W05 076', brand: 'BMW',        model: '520d',       year: '2016', engine: '2.0 d',        color: 'Lacivert', customerName: 'Doğukan Uçar',     phone: '0535 076 76 76', notes: '',                    createdAt: '2025-08-15T09:00:00Z' },
+    { id: 'veh_087', plate: '20 X06 077', brand: 'Audi',       model: 'A4',         year: '2017', engine: '2.0 TDI',      color: 'Beyaz',    customerName: 'Emel Şimşek',      phone: '0532 077 77 77', notes: '',                    createdAt: '2025-08-20T09:00:00Z' },
+    { id: 'veh_088', plate: '20 Y07 078', brand: 'Volvo',      model: 'XC60',       year: '2018', engine: 'D4',           color: 'Antrasit', customerName: 'Ferit Aydın',      phone: '0542 078 78 78', notes: '',                    createdAt: '2025-08-25T09:00:00Z' },
+    { id: 'veh_089', plate: '20 Z08 079', brand: 'Mazda',      model: 'CX-5',       year: '2019', engine: '2.2 SkyActiv', color: 'Kırmızı',  customerName: 'Gözde Erdoğan',    phone: '0505 079 79 79', notes: '',                    createdAt: '2025-09-01T09:00:00Z' },
+    { id: 'veh_090', plate: '20 A09 080', brand: 'Mitsubishi', model: 'Outlander',  year: '2018', engine: '2.0 PHEV',     color: 'Gri',      customerName: 'Hakan Sarı',       phone: '0544 080 80 80', notes: 'Plug-in hibrit.',     createdAt: '2025-09-05T09:00:00Z' },
+    { id: 'veh_091', plate: '20 B10 081', brand: 'Subaru',     model: 'Forester',   year: '2017', engine: '2.0i',         color: 'Beyaz',    customerName: 'İpek Kaplan',      phone: '0535 081 81 81', notes: '',                    createdAt: '2025-09-10T09:00:00Z' },
+    { id: 'veh_092', plate: '20 C11 082', brand: 'Suzuki',     model: 'Vitara',     year: '2019', engine: '1.4 BoosterJet',color: 'Mavi',    customerName: 'Jale Bozkurt',     phone: '0532 082 82 82', notes: '',                    createdAt: '2025-09-15T09:00:00Z' },
+    { id: 'veh_093', plate: '20 D12 083', brand: 'Jeep',       model: 'Renegade',   year: '2018', engine: '1.6 Multijet', color: 'Turuncu',  customerName: 'Kemal Yalçın',     phone: '0542 083 83 83', notes: '',                    createdAt: '2025-09-20T09:00:00Z' },
+    { id: 'veh_094', plate: '20 E13 084', brand: 'Land Rover', model: 'Discovery',  year: '2016', engine: '2.0 TD4',      color: 'Siyah',    customerName: 'Leyla Taş',        phone: '0505 084 84 84', notes: '',                    createdAt: '2025-09-25T09:00:00Z' },
+    { id: 'veh_095', plate: '20 F14 085', brand: 'Volvo',      model: 'V60',        year: '2019', engine: 'D3',           color: 'Gümüş',    customerName: 'Murat Güler',      phone: '0544 085 85 85', notes: '',                    createdAt: '2025-10-01T09:00:00Z' },
+    { id: 'veh_096', plate: '20 G15 086', brand: 'Renault',    model: 'Talisman',   year: '2017', engine: '1.5 dCi',      color: 'Lacivert', customerName: 'Nihat Çetin',      phone: '0535 086 86 86', notes: '',                    createdAt: '2025-10-05T09:00:00Z' },
+    { id: 'veh_097', plate: '20 H16 087', brand: 'Peugeot',    model: '508',        year: '2018', engine: '1.5 BlueHDi',  color: 'Beyaz',    customerName: 'Oya Yılmaz',       phone: '0532 087 87 87', notes: '',                    createdAt: '2025-10-10T09:00:00Z' },
+    { id: 'veh_098', plate: '20 I17 088', brand: 'Citroën',    model: 'C5 X',       year: '2022', engine: '1.6 Hybrid',   color: 'Gri',      customerName: 'Polat Öztürk',     phone: '0542 088 88 88', notes: 'Plug-in hibrit.',     createdAt: '2025-10-15T09:00:00Z' },
+    { id: 'veh_099', plate: '20 J18 089', brand: 'Opel',       model: 'Grandland',  year: '2020', engine: '1.5 CDTI',     color: 'Kırmızı',  customerName: 'Rüstem Kara',      phone: '0505 089 89 89', notes: '',                    createdAt: '2025-10-20T09:00:00Z' },
+    { id: 'veh_100', plate: '20 K19 090', brand: 'Skoda',      model: 'Enyaq',      year: '2022', engine: 'Elektrik',     color: 'Yeşil',    customerName: 'Suna Şen',         phone: '0544 090 90 90', notes: 'Elektrikli araç.',    createdAt: '2025-10-25T09:00:00Z' },
+    { id: 'veh_101', plate: '20 L21 091', brand: 'Ford',       model: 'Explorer',   year: '2020', engine: '3.0 PHEV',     color: 'Siyah',    customerName: 'Tayfun Aydın',     phone: '0535 091 91 91', notes: '',                    createdAt: '2025-11-01T09:00:00Z' },
+    { id: 'veh_102', plate: '20 M22 092', brand: 'Volkswagen', model: 'ID.4',       year: '2022', engine: 'Elektrik',     color: 'Beyaz',    customerName: 'Ufuk Polat',       phone: '0532 092 92 92', notes: 'Elektrikli araç.',    createdAt: '2025-11-05T09:00:00Z' },
+    { id: 'veh_103', plate: '20 N23 093', brand: 'Toyota',     model: 'bZ4X',       year: '2023', engine: 'Elektrik',     color: 'Mavi',     customerName: 'Vahide Arslan',    phone: '0542 093 93 93', notes: 'Elektrikli araç.',    createdAt: '2025-11-10T09:00:00Z' },
+    { id: 'veh_104', plate: '20 O24 094', brand: 'Kia',        model: 'Seltos',     year: '2021', engine: '1.5 CRDi',     color: 'Lacivert', customerName: 'Yaşar Aksoy',      phone: '0505 094 94 94', notes: '',                    createdAt: '2025-11-15T09:00:00Z' },
+    { id: 'veh_105', plate: '20 P25 095', brand: 'Hyundai',    model: 'Bayon',      year: '2022', engine: '1.0 T-GDI',    color: 'Gümüş',    customerName: 'Zeynep Güneş',    phone: '0544 095 95 95', notes: '',                    createdAt: '2025-11-20T09:00:00Z' },
+    { id: 'veh_106', plate: '20 Q26 096', brand: 'Dacia',      model: 'Jogger',     year: '2022', engine: '1.0 TCe',      color: 'Gri',      customerName: 'Adem Tunç',        phone: '0535 096 96 96', notes: '',                    createdAt: '2025-11-25T09:00:00Z' },
+    { id: 'veh_107', plate: '20 R27 097', brand: 'Renault',    model: 'Arkana',     year: '2021', engine: '1.3 TCe',      color: 'Kırmızı',  customerName: 'Belma Koçak',      phone: '0532 097 97 97', notes: '',                    createdAt: '2025-12-01T09:00:00Z' },
+    { id: 'veh_108', plate: '20 S28 098', brand: 'Fiat',       model: '500X',       year: '2019', engine: '1.3 GSE',      color: 'Beyaz',    customerName: 'Cumhur Avcı',      phone: '0542 098 98 98', notes: '',                    createdAt: '2025-12-05T09:00:00Z' },
+    { id: 'veh_109', plate: '20 T29 099', brand: 'Alfa Romeo', model: 'Giulietta',  year: '2016', engine: '1.6 JTDm',     color: 'Kırmızı',  customerName: 'Didem Karahan',    phone: '0505 099 99 99', notes: '',                    createdAt: '2025-12-10T09:00:00Z' },
+    { id: 'veh_110', plate: '20 U30 100', brand: 'Jeep',       model: 'Compass',    year: '2020', engine: '1.3 GSE 4xe',  color: 'Lacivert', customerName: 'Ersin Kılıç',      phone: '0544 100 10 10', notes: 'PHEV araç.',          createdAt: '2025-12-15T09:00:00Z' },
+    { id: 'veh_111', plate: '20 V31 101', brand: 'Mercedes',   model: 'A180',       year: '2019', engine: '1.3 CGI',      color: 'Antrasit', customerName: 'Figen Duman',      phone: '0535 101 11 01', notes: '',                    createdAt: '2026-01-05T09:00:00Z' },
+    { id: 'veh_112', plate: '20 W32 102', brand: 'BMW',        model: '118i',       year: '2019', engine: '1.5 TwinPower',color: 'Beyaz',    customerName: 'Gökalp Uçar',     phone: '0532 102 12 02', notes: '',                    createdAt: '2026-01-10T09:00:00Z' },
+    { id: 'veh_113', plate: '20 X33 103', brand: 'Audi',       model: 'Q3',         year: '2020', engine: '2.0 TDI',      color: 'Gri',      customerName: 'Hilal Şimşek',     phone: '0542 103 13 03', notes: '',                    createdAt: '2026-01-15T09:00:00Z' },
+    { id: 'veh_114', plate: '06 ABK 200', brand: 'Renault',    model: 'Trafic',     year: '2018', engine: '2.0 dCi',      color: 'Beyaz',    customerName: 'İsmet Aydın',      phone: '0312 200 20 20', notes: 'Ankara plakası.',     createdAt: '2026-01-20T09:00:00Z' },
+    { id: 'veh_115', plate: '20 Y34 105', brand: 'Fiat',       model: 'Ducato',     year: '2017', engine: '2.3 Multijet', color: 'Beyaz',    customerName: 'Jülide Erdoğan',   phone: '0544 105 15 05', notes: 'Minibüs.',            createdAt: '2026-01-25T09:00:00Z' },
+    { id: 'veh_116', plate: '20 Z35 106', brand: 'Ford',       model: 'Galaxy',     year: '2016', engine: '2.0 TDCi',     color: 'Gri',      customerName: 'Kamil Sarı',       phone: '0535 106 16 06', notes: 'Aile arabası.',       createdAt: '2026-02-01T09:00:00Z' },
+    { id: 'veh_117', plate: '20 A36 107', brand: 'Volkswagen', model: 'Multivan',   year: '2017', engine: '2.0 TDI',      color: 'Siyah',    customerName: 'Leyla Kaplan',     phone: '0532 107 17 07', notes: '',                    createdAt: '2026-02-05T09:00:00Z' },
+    { id: 'veh_118', plate: '20 B37 108', brand: 'Toyota',     model: 'Proace',     year: '2019', engine: '2.0 D-4D',     color: 'Beyaz',    customerName: 'Memduh Bozkurt',   phone: '0542 108 18 08', notes: 'Ticari araç.',        createdAt: '2026-02-10T09:00:00Z' },
+    { id: 'veh_119', plate: '20 C38 109', brand: 'Hyundai',    model: 'H-1',        year: '2016', engine: '2.5 CRDi',     color: 'Gri',      customerName: 'Nur Yalçın',       phone: '0505 109 19 09', notes: 'Minibüs.',            createdAt: '2026-02-15T09:00:00Z' },
+    { id: 'veh_120', plate: '20 D39 110', brand: 'Opel',       model: 'Vivaro',     year: '2018', engine: '1.6 CDTi',     color: 'Beyaz',    customerName: 'Oğuz Taş',         phone: '0544 110 20 10', notes: 'Ticari araç.',        createdAt: '2026-02-20T09:00:00Z' },
+    { id: 'veh_121', plate: '20 E40 111', brand: 'Mercedes',   model: 'Sprinter',   year: '2017', engine: '2.1 CDI',      color: 'Beyaz',    customerName: 'Pınar Güler',      phone: '0535 111 21 11', notes: 'Servis aracı.',       createdAt: '2026-03-01T09:00:00Z' },
+    { id: 'veh_122', plate: '20 F41 112', brand: 'Renault',    model: 'Master',     year: '2019', engine: '2.3 dCi',      color: 'Beyaz',    customerName: 'Rıfat Çetin',      phone: '0532 112 22 12', notes: 'Ticari araç.',        createdAt: '2026-03-05T09:00:00Z' },
+    { id: 'veh_123', plate: '20 G42 113', brand: 'Volkswagen', model: 'Crafter',    year: '2018', engine: '2.0 TDI',      color: 'Gri',      customerName: 'Selin Yılmaz',     phone: '0542 113 23 13', notes: '',                    createdAt: '2026-03-10T09:00:00Z' },
+    { id: 'veh_124', plate: '20 H43 114', brand: 'Fiat',       model: 'Talento',    year: '2017', engine: '1.6 Multijet', color: 'Beyaz',    customerName: 'Taner Öztürk',     phone: '0505 114 24 14', notes: '',                    createdAt: '2026-03-15T09:00:00Z' },
+    { id: 'veh_125', plate: '20 I44 115', brand: 'Ford',       model: 'Transit Custom',year:'2020',engine: '2.0 EcoBlue', color: 'Beyaz',    customerName: 'Ufuk Kara',        phone: '0544 115 25 15', notes: 'Ticari araç.',        createdAt: '2026-03-20T09:00:00Z' },
+    { id: 'veh_126', plate: '20 J45 116', brand: 'Citroën',    model: 'Berlingo',   year: '2019', engine: '1.5 BlueHDi',  color: 'Gri',      customerName: 'Vildan Şen',       phone: '0535 116 26 16', notes: '',                    createdAt: '2026-03-25T09:00:00Z' },
+    { id: 'veh_127', plate: '20 K46 117', brand: 'Peugeot',    model: 'Partner',    year: '2018', engine: '1.6 BlueHDi',  color: 'Beyaz',    customerName: 'Yıldız Aydın',     phone: '0532 117 27 17', notes: 'Ticari araç.',        createdAt: '2026-04-01T09:00:00Z' },
+    { id: 'veh_128', plate: '20 L47 118', brand: 'Renault',    model: 'Trafic',     year: '2020', engine: '2.0 dCi',      color: 'Lacivert', customerName: 'Zeki Polat',        phone: '0542 118 28 18', notes: '',                    createdAt: '2026-04-05T09:00:00Z' }
   ];
 
-  // Yardımcı: günler önce tarih üret
   const daysAgo = (n) => {
     const d = new Date();
     d.setDate(d.getDate() - n);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
 
-  // Servis kayıtları - son 4 ay dağıtılmış, gerçekçi
+  const allStuIds = students.map(s => s.id);
+  const pickStudents = (...idxs) => idxs.map(i => allStuIds[i]);
+
   const services = [
-    // BU AY - aktif dönem
-    {
-      id: 'svc_001', vehicleId: 'veh_001', date: daysAgo(2), km: '145000',
-      description: 'Periyodik bakım: motor yağı, yağ filtresi, hava filtresi, polen filtresi değişimi. Fren kontrolü yapıldı.',
-      parts: [
-        { name: 'Motor yağı 5W-30 (5L)', qty: 1, buyPrice: 580, sellPrice: 750 },
-        { name: 'Yağ filtresi', qty: 1, buyPrice: 85, sellPrice: 130 },
-        { name: 'Hava filtresi', qty: 1, buyPrice: 95, sellPrice: 160 },
-        { name: 'Polen filtresi', qty: 1, buyPrice: 75, sellPrice: 120 }
-      ],
-      labor: 400, nextService: '10.000 km sonra veya 6 ay',
-      notes: 'Müşteriye fren balatalarının %40 kaldığı söylendi, sonraki bakımda değişecek.',
-      studentIds: ['stu_001', 'stu_002'], createdAt: new Date().toISOString()
-    },
-    {
-      id: 'svc_002', vehicleId: 'veh_005', date: daysAgo(5), km: '68500',
-      description: 'Ön fren balata ve disk değişimi. Fren hidroliği yenilendi.',
-      parts: [
-        { name: 'Ön fren balatası (takım)', qty: 1, buyPrice: 420, sellPrice: 650 },
-        { name: 'Ön fren diski (çift)', qty: 1, buyPrice: 850, sellPrice: 1250 },
-        { name: 'Fren hidroliği DOT4 (1L)', qty: 1, buyPrice: 95, sellPrice: 150 }
-      ],
-      labor: 550, nextService: '30.000 km',
-      notes: '',
-      studentIds: ['stu_003', 'stu_004', 'stu_001'], createdAt: new Date().toISOString()
-    },
-    {
-      id: 'svc_003', vehicleId: 'veh_002', date: daysAgo(8), km: '87200',
-      description: 'Akü değişimi, aküyü test cihazında ölçüldü ölü çıktı.',
-      parts: [
-        { name: 'Akü 72 Ah Mutlu', qty: 1, buyPrice: 2100, sellPrice: 2650 }
-      ],
-      labor: 150, nextService: '',
-      notes: 'Eski akü geri alındı (hurda).',
-      studentIds: ['stu_002'], createdAt: new Date().toISOString()
-    },
-    {
-      id: 'svc_004', vehicleId: 'veh_006', date: daysAgo(10), km: '42000',
-      description: 'Periyodik bakım + buji değişimi.',
-      parts: [
-        { name: 'Motor yağı 5W-30 (4L)', qty: 1, buyPrice: 480, sellPrice: 620 },
-        { name: 'Yağ filtresi', qty: 1, buyPrice: 80, sellPrice: 125 },
-        { name: 'Buji (4 adet)', qty: 4, buyPrice: 95, sellPrice: 150 }
-      ],
-      labor: 350, nextService: '15.000 km',
-      notes: '',
-      studentIds: ['stu_005', 'stu_006'], createdAt: new Date().toISOString()
-    },
-    {
-      id: 'svc_005', vehicleId: 'veh_007', date: daysAgo(14), km: '285000',
-      description: 'Triger seti ve devirdaim değişimi. Motor yağı+filtre. Kasnaklar temizlendi.',
-      parts: [
-        { name: 'Triger seti (kayış+gergi)', qty: 1, buyPrice: 1850, sellPrice: 2600 },
-        { name: 'Devirdaim pompası', qty: 1, buyPrice: 1250, sellPrice: 1750 },
-        { name: 'Motor yağı 10W-40 (5L)', qty: 1, buyPrice: 520, sellPrice: 680 },
-        { name: 'Yağ filtresi', qty: 1, buyPrice: 90, sellPrice: 135 },
-        { name: 'Antifriz (2L)', qty: 1, buyPrice: 180, sellPrice: 260 }
-      ],
-      labor: 1800, nextService: '80.000 km sonra',
-      notes: 'Ticari kullanım, km yüksek ama motor iyi durumda.',
-      studentIds: ['stu_001', 'stu_003', 'stu_005'], createdAt: new Date().toISOString()
-    },
+    // BU AY
+    { id:'svc_001', vehicleId:'veh_001', date:daysAgo(2),  km:'145000', description:'Periyodik bakım: motor yağı, yağ filtresi, hava filtresi, polen filtresi. Fren kontrolü.', parts:[{name:'Motor yağı 5W-30 (5L)',qty:1,buyPrice:580,sellPrice:750},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Hava filtresi',qty:1,buyPrice:95,sellPrice:160},{name:'Polen filtresi',qty:1,buyPrice:75,sellPrice:120}], labor:400, notes:'Fren balatası %40 kaldı.', studentIds:pickStudents(0,1) },
+    { id:'svc_002', vehicleId:'veh_005', date:daysAgo(3),  km:'68500',  description:'Ön fren balata ve disk değişimi. Fren hidroliği yenilendi.', parts:[{name:'Ön fren balatası',qty:1,buyPrice:420,sellPrice:650},{name:'Ön fren diski (çift)',qty:1,buyPrice:850,sellPrice:1250},{name:'Fren hidroliği DOT4',qty:1,buyPrice:95,sellPrice:150}], labor:550, notes:'', studentIds:pickStudents(2,3,0) },
+    { id:'svc_003', vehicleId:'veh_002', date:daysAgo(5),  km:'87200',  description:'Akü değişimi. Test cihazında ölü çıktı.', parts:[{name:'Akü 72Ah Mutlu',qty:1,buyPrice:2100,sellPrice:2650}], labor:150, notes:'Eski akü geri alındı.', studentIds:pickStudents(1) },
+    { id:'svc_004', vehicleId:'veh_006', date:daysAgo(7),  km:'42000',  description:'Periyodik bakım + buji değişimi.', parts:[{name:'Motor yağı 5W-30 (4L)',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:80,sellPrice:125},{name:'Buji',qty:4,buyPrice:95,sellPrice:150}], labor:350, notes:'', studentIds:pickStudents(4,5) },
+    { id:'svc_005', vehicleId:'veh_007', date:daysAgo(9),  km:'285000', description:'Triger seti ve devirdaim değişimi. Motor yağı+filtre.', parts:[{name:'Triger seti',qty:1,buyPrice:1850,sellPrice:2600},{name:'Devirdaim pompası',qty:1,buyPrice:1250,sellPrice:1750},{name:'Motor yağı 10W-40',qty:1,buyPrice:520,sellPrice:680},{name:'Yağ filtresi',qty:1,buyPrice:90,sellPrice:135}], labor:1800, notes:'Ticari araç.', studentIds:pickStudents(0,2,4) },
+    { id:'svc_006', vehicleId:'veh_011', date:daysAgo(11), km:'112000', description:'Fren balatası ön/arka değişimi ve disk kontrol.', parts:[{name:'Ön balata',qty:1,buyPrice:380,sellPrice:580},{name:'Arka balata',qty:1,buyPrice:320,sellPrice:490}], labor:500, notes:'', studentIds:pickStudents(7,8) },
+    { id:'svc_007', vehicleId:'veh_012', date:daysAgo(12), km:'148000', description:'Şanzıman yağı değişimi ve debriyaj kontrolü.', parts:[{name:'Şanzıman yağı (2L)',qty:2,buyPrice:280,sellPrice:420}], labor:450, notes:'', studentIds:pickStudents(9,10) },
+    { id:'svc_008', vehicleId:'veh_013', date:daysAgo(14), km:'95000',  description:'Klima bakımı, gaz dolumu ve filtre değişimi.', parts:[{name:'Klima gazı R134a',qty:1,buyPrice:380,sellPrice:550},{name:'Polen filtresi',qty:1,buyPrice:80,sellPrice:130}], labor:250, notes:'', studentIds:pickStudents(11,12) },
+    { id:'svc_009', vehicleId:'veh_014', date:daysAgo(15), km:'180000', description:'EGR valfi temizliği, motor arıza lambası söndürüldü.', parts:[{name:'EGR temizlik spreyi',qty:1,buyPrice:120,sellPrice:200}], labor:800, notes:'', studentIds:pickStudents(3,5) },
+    { id:'svc_010', vehicleId:'veh_015', date:daysAgo(16), km:'62000',  description:'Periyodik bakım ve kış lastikten yaz lastiğine geçiş.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:80,sellPrice:125}], labor:400, notes:'', studentIds:pickStudents(13,14) },
+    { id:'svc_011', vehicleId:'veh_016', date:daysAgo(17), km:'34000',  description:'Fren disk ve balata seti, rot-rotil değişimi.', parts:[{name:'Ön fren seti',qty:1,buyPrice:900,sellPrice:1350},{name:'Rot-rotil (takım)',qty:1,buyPrice:650,sellPrice:980}], labor:700, notes:'', studentIds:pickStudents(0,15,16) },
+    { id:'svc_012', vehicleId:'veh_017', date:daysAgo(18), km:'78000',  description:'Marş motoru değişimi.', parts:[{name:'Marş motoru',qty:1,buyPrice:1600,sellPrice:2250}], labor:600, notes:'', studentIds:pickStudents(17) },
 
     // GEÇEN AY
-    {
-      id: 'svc_006', vehicleId: 'veh_001', date: daysAgo(38), km: '141000',
-      description: 'Debriyaj seti değişimi. Şaft ve dişli kontrolü.',
-      parts: [
-        { name: 'Debriyaj seti (3 parça)', qty: 1, buyPrice: 2400, sellPrice: 3300 },
-        { name: 'Debriyaj hidroliği', qty: 1, buyPrice: 85, sellPrice: 130 }
-      ],
-      labor: 1500, nextService: '',
-      notes: 'Debriyaj tamamen bitmişti.',
-      studentIds: ['stu_002', 'stu_004'], createdAt: '2025-03-10T10:00:00Z'
-    },
-    {
-      id: 'svc_007', vehicleId: 'veh_003', date: daysAgo(42), km: '198000',
-      description: 'Periyodik bakım ve arka amortisör değişimi.',
-      parts: [
-        { name: 'Motor yağı 5W-30 (4L)', qty: 1, buyPrice: 470, sellPrice: 610 },
-        { name: 'Yağ filtresi', qty: 1, buyPrice: 85, sellPrice: 130 },
-        { name: 'Arka amortisör (çift)', qty: 1, buyPrice: 1400, sellPrice: 1950 }
-      ],
-      labor: 650, nextService: '10.000 km',
-      notes: '',
-      studentIds: ['stu_001', 'stu_006'], createdAt: '2025-03-06T09:00:00Z'
-    },
-    {
-      id: 'svc_008', vehicleId: 'veh_004', date: daysAgo(48), km: '92000',
-      description: 'Klima bakımı, gaz dolumu ve polen filtresi değişimi.',
-      parts: [
-        { name: 'Klima gazı R134a', qty: 1, buyPrice: 380, sellPrice: 550 },
-        { name: 'Polen filtresi', qty: 1, buyPrice: 80, sellPrice: 130 }
-      ],
-      labor: 250, nextService: 'Yaz öncesi tekrar',
-      notes: 'Klima zayıf çalışıyordu, şimdi iyi.',
-      studentIds: ['stu_003'], createdAt: '2025-02-28T14:30:00Z'
-    },
-    {
-      id: 'svc_009', vehicleId: 'veh_008', date: daysAgo(52), km: '156000',
-      description: 'Motor arıza lambası yandı. EGR valfi tıkanıklığı, temizlik yapıldı.',
-      parts: [
-        { name: 'EGR temizlik spreyi', qty: 1, buyPrice: 120, sellPrice: 200 }
-      ],
-      labor: 800, nextService: '',
-      notes: 'Valfi yenilemek yerine temizlik yeterli geldi.',
-      studentIds: ['stu_002', 'stu_005'], createdAt: '2025-02-24T11:00:00Z'
-    },
-    {
-      id: 'svc_010', vehicleId: 'veh_010', date: daysAgo(58), km: '167000',
-      description: 'Marş motoru arızalıydı, değiştirildi.',
-      parts: [
-        { name: 'Marş motoru (revizyonlu)', qty: 1, buyPrice: 1600, sellPrice: 2250 }
-      ],
-      labor: 600, nextService: '',
-      notes: '',
-      studentIds: ['stu_004', 'stu_006'], createdAt: '2025-02-18T15:00:00Z'
-    },
+    { id:'svc_013', vehicleId:'veh_001', date:daysAgo(33), km:'141000', description:'Debriyaj seti değişimi.', parts:[{name:'Debriyaj seti',qty:1,buyPrice:2400,sellPrice:3300},{name:'Debriyaj hidroliği',qty:1,buyPrice:85,sellPrice:130}], labor:1500, notes:'', studentIds:pickStudents(1,3) },
+    { id:'svc_014', vehicleId:'veh_003', date:daysAgo(35), km:'198000', description:'Periyodik bakım + arka amortisör değişimi.', parts:[{name:'Motor yağı',qty:1,buyPrice:470,sellPrice:610},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Arka amortisör (çift)',qty:1,buyPrice:1400,sellPrice:1950}], labor:650, notes:'', studentIds:pickStudents(0,5) },
+    { id:'svc_015', vehicleId:'veh_018', date:daysAgo(36), km:'205000', description:'Radyatör değişimi ve antifriz yenileme.', parts:[{name:'Radyatör',qty:1,buyPrice:1800,sellPrice:2600},{name:'Antifriz (5L)',qty:1,buyPrice:420,sellPrice:620}], labor:900, notes:'', studentIds:pickStudents(6,7) },
+    { id:'svc_016', vehicleId:'veh_019', date:daysAgo(38), km:'73000',  description:'Lastik rotasyonu, balans ve rot ayarı.', parts:[], labor:450, notes:'', studentIds:pickStudents(8,9) },
+    { id:'svc_017', vehicleId:'veh_020', date:daysAgo(40), km:'89500',  description:'Alternatör revizyon + akü değişimi.', parts:[{name:'Akü 60Ah',qty:1,buyPrice:1850,sellPrice:2400},{name:'Alternatör revizyon',qty:1,buyPrice:950,sellPrice:1450}], labor:700, notes:'', studentIds:pickStudents(10,11) },
+    { id:'svc_018', vehicleId:'veh_021', date:daysAgo(42), km:'134000', description:'Motor yağı sızıntısı: conta takımı değişimi.', parts:[{name:'Motor conta takımı',qty:1,buyPrice:1200,sellPrice:1800}], labor:1200, notes:'', studentIds:pickStudents(12,13) },
+    { id:'svc_019', vehicleId:'veh_022', date:daysAgo(43), km:'45000',  description:'Periyodik bakım ve hava filtresi değişimi.', parts:[{name:'Motor yağı 0W-20',qty:1,buyPrice:620,sellPrice:800},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Hava filtresi',qty:1,buyPrice:90,sellPrice:150}], labor:350, notes:'', studentIds:pickStudents(14,15) },
+    { id:'svc_020', vehicleId:'veh_023', date:daysAgo(45), km:'118000', description:'DPF filtresi temizliği ve yazılım güncellemesi.', parts:[{name:'DPF temizlik kiti',qty:1,buyPrice:580,sellPrice:850}], labor:1100, notes:'', studentIds:pickStudents(16,17) },
+    { id:'svc_021', vehicleId:'veh_024', date:daysAgo(46), km:'220000', description:'Enjektör temizliği ve yakıt filtresi değişimi.', parts:[{name:'Enjektör temizleyici',qty:1,buyPrice:280,sellPrice:420},{name:'Yakıt filtresi',qty:1,buyPrice:180,sellPrice:280}], labor:900, notes:'', studentIds:pickStudents(18,19) },
+    { id:'svc_022', vehicleId:'veh_025', date:daysAgo(48), km:'67000',  description:'Fren sistemi genel kontrol ve arka balata değişimi.', parts:[{name:'Arka balata',qty:1,buyPrice:310,sellPrice:480}], labor:400, notes:'', studentIds:pickStudents(20,21) },
+    { id:'svc_023', vehicleId:'veh_026', date:daysAgo(50), km:'95000',  description:'Silecek motoru + silecek süpürgesi değişimi.', parts:[{name:'Silecek motoru',qty:1,buyPrice:750,sellPrice:1100},{name:'Silecek süpürgesi (çift)',qty:1,buyPrice:180,sellPrice:280}], labor:250, notes:'', studentIds:pickStudents(22,23) },
+    { id:'svc_024', vehicleId:'veh_027', date:daysAgo(52), km:'142000', description:'Triger kayışı ve gergi rulmanı değişimi.', parts:[{name:'Triger kayışı',qty:1,buyPrice:620,sellPrice:950},{name:'Gergi rulmanı',qty:1,buyPrice:380,sellPrice:580}], labor:1200, notes:'', studentIds:pickStudents(24,25) },
+    { id:'svc_025', vehicleId:'veh_028', date:daysAgo(54), km:'78000',  description:'Klima kompresörü değişimi.', parts:[{name:'Klima kompresörü',qty:1,buyPrice:4500,sellPrice:6200}], labor:1500, notes:'', studentIds:pickStudents(26,27) },
+    { id:'svc_026', vehicleId:'veh_029', date:daysAgo(55), km:'185000', description:'Şanzıman revizyonu.', parts:[{name:'Şanzıman revizyon kit',qty:1,buyPrice:3200,sellPrice:4800}], labor:3500, notes:'', studentIds:pickStudents(0,2,4) },
 
     // 2 AY ÖNCE
-    {
-      id: 'svc_011', vehicleId: 'veh_002', date: daysAgo(68), km: '82000',
-      description: 'Periyodik bakım: yağ, filtreler, ön takım kontrolü.',
-      parts: [
-        { name: 'Motor yağı 5W-30 (4L)', qty: 1, buyPrice: 470, sellPrice: 610 },
-        { name: 'Yağ filtresi', qty: 1, buyPrice: 80, sellPrice: 125 },
-        { name: 'Hava filtresi', qty: 1, buyPrice: 90, sellPrice: 150 },
-        { name: 'Yakıt filtresi', qty: 1, buyPrice: 180, sellPrice: 270 }
-      ],
-      labor: 400, nextService: '10.000 km',
-      notes: '',
-      studentIds: ['stu_001', 'stu_003'], createdAt: '2025-02-08T10:00:00Z'
-    },
-    {
-      id: 'svc_012', vehicleId: 'veh_009', date: daysAgo(72), km: '58000',
-      description: 'Eksoz bağlantısında kaçak vardı, conta değişti ve kelepçe sıkıldı.',
-      parts: [
-        { name: 'Eksoz conta', qty: 1, buyPrice: 75, sellPrice: 130 },
-        { name: 'Eksoz kelepçesi', qty: 2, buyPrice: 35, sellPrice: 60 }
-      ],
-      labor: 200, nextService: '',
-      notes: '',
-      studentIds: ['stu_005'], createdAt: '2025-02-04T09:30:00Z'
-    },
-    {
-      id: 'svc_013', vehicleId: 'veh_005', date: daysAgo(78), km: '65000',
-      description: 'Dört lastik rotasyonu, balans ve rot ayarı.',
-      parts: [],
-      labor: 450, nextService: '',
-      notes: 'Ön lastikler arkaya, arka lastikler öne.',
-      studentIds: ['stu_002', 'stu_004'], createdAt: '2025-01-29T13:00:00Z'
-    },
-    {
-      id: 'svc_014', vehicleId: 'veh_006', date: daysAgo(82), km: '38500',
-      description: 'Akü şarj problemi. Alternatör regülatörü değişti.',
-      parts: [
-        { name: 'Alternatör regülatörü', qty: 1, buyPrice: 580, sellPrice: 850 }
-      ],
-      labor: 400, nextService: '',
-      notes: '',
-      studentIds: ['stu_001', 'stu_006'], createdAt: '2025-01-25T11:30:00Z'
-    },
+    { id:'svc_027', vehicleId:'veh_004', date:daysAgo(62), km:'92000',  description:'Klima bakımı gaz dolumu.', parts:[{name:'Klima gazı R134a',qty:1,buyPrice:380,sellPrice:550},{name:'Polen filtresi',qty:1,buyPrice:80,sellPrice:130}], labor:250, notes:'', studentIds:pickStudents(1,3) },
+    { id:'svc_028', vehicleId:'veh_008', date:daysAgo(63), km:'156000', description:'Motor arıza lambası — EGR tıkanıklığı temizlendi.', parts:[{name:'EGR temizlik spreyi',qty:1,buyPrice:120,sellPrice:200}], labor:800, notes:'', studentIds:pickStudents(4,5) },
+    { id:'svc_029', vehicleId:'veh_010', date:daysAgo(65), km:'167000', description:'Marş motoru arızası, değiştirildi.', parts:[{name:'Marş motoru (revizyonlu)',qty:1,buyPrice:1600,sellPrice:2250}], labor:600, notes:'', studentIds:pickStudents(6,7) },
+    { id:'svc_030', vehicleId:'veh_030', date:daysAgo(66), km:'101000', description:'Periyodik bakım + buji + hava filtresi.', parts:[{name:'Motor yağı 5W-40',qty:1,buyPrice:510,sellPrice:660},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Buji seti',qty:1,buyPrice:420,sellPrice:640},{name:'Hava filtresi',qty:1,buyPrice:95,sellPrice:160}], labor:450, notes:'', studentIds:pickStudents(8,9,10) },
+    { id:'svc_031', vehicleId:'veh_031', date:daysAgo(68), km:'88000',  description:'Rot-rotil ve viraj mafsalı değişimi.', parts:[{name:'Rot-rotil seti',qty:1,buyPrice:680,sellPrice:1020},{name:'Viraj mafsalı (çift)',qty:1,buyPrice:820,sellPrice:1250}], labor:900, notes:'', studentIds:pickStudents(11,12) },
+    { id:'svc_032', vehicleId:'veh_032', date:daysAgo(70), km:'55000',  description:'İlkbahar lastiği takımı ve balans.', parts:[], labor:350, notes:'', studentIds:pickStudents(13,14) },
+    { id:'svc_033', vehicleId:'veh_033', date:daysAgo(71), km:'178000', description:'Antifriz değişimi ve radyatör temizliği.', parts:[{name:'Antifriz (5L)',qty:1,buyPrice:420,sellPrice:620}], labor:400, notes:'', studentIds:pickStudents(15,16) },
+    { id:'svc_034', vehicleId:'veh_034', date:daysAgo(73), km:'130000', description:'Debriyaj seti değişimi.', parts:[{name:'Debriyaj seti',qty:1,buyPrice:2200,sellPrice:3100}], labor:1500, notes:'', studentIds:pickStudents(17,18) },
+    { id:'svc_035', vehicleId:'veh_035', date:daysAgo(75), km:'210000', description:'Fren genel revizyon — ön/arka balata ve ön diskler.', parts:[{name:'Ön balata',qty:1,buyPrice:380,sellPrice:580},{name:'Arka balata',qty:1,buyPrice:310,sellPrice:480},{name:'Ön fren diski (çift)',qty:1,buyPrice:850,sellPrice:1250}], labor:800, notes:'Ticari araç.', studentIds:pickStudents(19,20) },
+    { id:'svc_036', vehicleId:'veh_036', date:daysAgo(77), km:'320000', description:'Turbo değişimi — orijinal arızalandı.', parts:[{name:'Turbo (yenileme)',qty:1,buyPrice:8500,sellPrice:12000}], labor:2500, notes:'', studentIds:pickStudents(21,22,23) },
+    { id:'svc_037', vehicleId:'veh_037', date:daysAgo(78), km:'145000', description:'Periyodik bakım komple + enjektör temizliği.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Hava filtresi',qty:1,buyPrice:90,sellPrice:150},{name:'Yakıt filtresi',qty:1,buyPrice:160,sellPrice:240},{name:'Polen filtresi',qty:1,buyPrice:75,sellPrice:120},{name:'Enjektör temizleyici',qty:1,buyPrice:280,sellPrice:420}], labor:600, notes:'', studentIds:pickStudents(24,25) },
+    { id:'svc_038', vehicleId:'veh_038', date:daysAgo(80), km:'92000',  description:'4x4 diferansiyel yağı değişimi.', parts:[{name:'Diferansiyel yağı (2L)',qty:2,buyPrice:350,sellPrice:520}], labor:500, notes:'', studentIds:pickStudents(26,27) },
 
     // 3 AY ÖNCE
-    {
-      id: 'svc_015', vehicleId: 'veh_007', date: daysAgo(95), km: '278000',
-      description: 'Debriyaj değişimi ve volant taşlaması.',
-      parts: [
-        { name: 'Debriyaj seti', qty: 1, buyPrice: 2600, sellPrice: 3500 },
-        { name: 'Volant (revize)', qty: 1, buyPrice: 1200, sellPrice: 1800 }
-      ],
-      labor: 1800, nextService: '',
-      notes: 'Ticari araç, yük taşıyor, debriyaj sık yanıyor.',
-      studentIds: ['stu_003', 'stu_005', 'stu_002'], createdAt: '2025-01-12T14:00:00Z'
-    },
-    {
-      id: 'svc_016', vehicleId: 'veh_001', date: daysAgo(100), km: '138500',
-      description: 'Kış lastiği montajı ve balans.',
-      parts: [],
-      labor: 350, nextService: 'İlkbahar lastik değişimi',
-      notes: 'Müşterinin lastikleri depoda duruyordu.',
-      studentIds: ['stu_004'], createdAt: '2025-01-07T10:00:00Z'
-    },
-    {
-      id: 'svc_017', vehicleId: 'veh_003', date: daysAgo(108), km: '193000',
-      description: 'Motor sesi şikayeti. Egzantrik triger kayışı ve gergi rulmanı değişti.',
-      parts: [
-        { name: 'Triger kayışı', qty: 1, buyPrice: 620, sellPrice: 950 },
-        { name: 'Gergi rulmanı', qty: 1, buyPrice: 380, sellPrice: 580 }
-      ],
-      labor: 1200, nextService: '80.000 km',
-      notes: '',
-      studentIds: ['stu_001', 'stu_003'], createdAt: '2024-12-30T09:00:00Z'
-    },
+    { id:'svc_039', vehicleId:'veh_002', date:daysAgo(90), km:'82000',  description:'Periyodik bakım: yağ, filtreler komple.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:470,sellPrice:610},{name:'Yağ filtresi',qty:1,buyPrice:80,sellPrice:125},{name:'Hava filtresi',qty:1,buyPrice:90,sellPrice:150},{name:'Yakıt filtresi',qty:1,buyPrice:180,sellPrice:270}], labor:400, notes:'', studentIds:pickStudents(0,2) },
+    { id:'svc_040', vehicleId:'veh_009', date:daysAgo(92), km:'58000',  description:'Eksoz conta ve kelepçe değişimi.', parts:[{name:'Eksoz conta',qty:1,buyPrice:75,sellPrice:130},{name:'Eksoz kelepçesi',qty:2,buyPrice:35,sellPrice:60}], labor:200, notes:'', studentIds:pickStudents(4) },
+    { id:'svc_041', vehicleId:'veh_039', date:daysAgo(93), km:'95000',  description:'Otomatik şanzıman yağı değişimi.', parts:[{name:'ATF yağı (6L)',qty:6,buyPrice:220,sellPrice:340}], labor:600, notes:'', studentIds:pickStudents(6,7) },
+    { id:'svc_042', vehicleId:'veh_040', date:daysAgo(95), km:'112000', description:'Ön süspansiyon tampon ve mıcır değişimi.', parts:[{name:'Ön tampon (çift)',qty:1,buyPrice:480,sellPrice:720},{name:'Yay mıcırı (çift)',qty:1,buyPrice:560,sellPrice:840}], labor:700, notes:'', studentIds:pickStudents(8,9) },
+    { id:'svc_043', vehicleId:'veh_041', date:daysAgo(97), km:'168000', description:'Triger zinciri ve gergi değişimi.', parts:[{name:'Triger zinciri seti',qty:1,buyPrice:2200,sellPrice:3200}], labor:2000, notes:'', studentIds:pickStudents(10,11) },
+    { id:'svc_044', vehicleId:'veh_042', date:daysAgo(98), km:'185000', description:'Klima kompresörü revizyon.', parts:[{name:'Klima kompresörü revizyon',qty:1,buyPrice:2800,sellPrice:4200}], labor:1200, notes:'', studentIds:pickStudents(12,13) },
+    { id:'svc_045', vehicleId:'veh_043', date:daysAgo(100),km:'75000',  description:'Devirdaim pompası ve termostat değişimi.', parts:[{name:'Devirdaim pompası',qty:1,buyPrice:1250,sellPrice:1750},{name:'Termostat',qty:1,buyPrice:380,sellPrice:560}], labor:800, notes:'', studentIds:pickStudents(14,15) },
+    { id:'svc_046', vehicleId:'veh_007', date:daysAgo(102),km:'278000', description:'Debriyaj değişimi ve volant taşlaması.', parts:[{name:'Debriyaj seti',qty:1,buyPrice:2600,sellPrice:3500},{name:'Volant (revize)',qty:1,buyPrice:1200,sellPrice:1800}], labor:1800, notes:'Ticari araç.', studentIds:pickStudents(2,4,16) },
+    { id:'svc_047', vehicleId:'veh_001', date:daysAgo(105),km:'138500', description:'Kış lastiği montajı ve balans.', parts:[], labor:350, notes:'', studentIds:pickStudents(3) },
+    { id:'svc_048', vehicleId:'veh_044', date:daysAgo(107),km:'142000', description:'Direksiyon kutusu değişimi.', parts:[{name:'Direksiyon kutusu',qty:1,buyPrice:5500,sellPrice:8000}], labor:2000, notes:'', studentIds:pickStudents(17,18,19) },
+    { id:'svc_049', vehicleId:'veh_045', date:daysAgo(110),km:'186000', description:'Diferansiyel genel revizyon.', parts:[{name:'Diferansiyel revizyon kit',qty:1,buyPrice:3800,sellPrice:5500}], labor:3000, notes:'', studentIds:pickStudents(20,21) },
+    { id:'svc_050', vehicleId:'veh_046', date:daysAgo(112),km:'98000',  description:'İşçilik: yazılım arıza tespiti ve ECU güncelleme.', parts:[], labor:1200, notes:'', studentIds:pickStudents(22,23) },
 
     // 4 AY ÖNCE
-    {
-      id: 'svc_018', vehicleId: 'veh_008', date: daysAgo(120), km: '148000',
-      description: 'Fren sisteminde hava problemi. Tüm sistem havası alındı, hidrolik yenilendi.',
-      parts: [
-        { name: 'Fren hidroliği DOT4 (1L)', qty: 2, buyPrice: 95, sellPrice: 150 }
-      ],
-      labor: 300, nextService: '',
-      notes: '',
-      studentIds: ['stu_002', 'stu_006'], createdAt: '2024-12-18T13:00:00Z'
-    },
-    {
-      id: 'svc_019', vehicleId: 'veh_004', date: daysAgo(128), km: '85500',
-      description: 'Ön cam silecek motoru değişimi.',
-      parts: [
-        { name: 'Silecek motoru', qty: 1, buyPrice: 750, sellPrice: 1100 },
-        { name: 'Silecek süpürgesi (çift)', qty: 1, buyPrice: 180, sellPrice: 280 }
-      ],
-      labor: 250, nextService: '',
-      notes: '',
-      studentIds: ['stu_005'], createdAt: '2024-12-10T10:30:00Z'
-    },
-    {
-      id: 'svc_020', vehicleId: 'veh_010', date: daysAgo(135), km: '161000',
-      description: 'Periyodik bakım, yağ ve tüm filtreler.',
-      parts: [
-        { name: 'Motor yağı 10W-40 (4L)', qty: 1, buyPrice: 440, sellPrice: 580 },
-        { name: 'Yağ filtresi', qty: 1, buyPrice: 80, sellPrice: 125 },
-        { name: 'Hava filtresi', qty: 1, buyPrice: 85, sellPrice: 140 },
-        { name: 'Yakıt filtresi', qty: 1, buyPrice: 160, sellPrice: 240 }
-      ],
-      labor: 400, nextService: '10.000 km',
-      notes: '',
-      studentIds: ['stu_001', 'stu_004'], createdAt: '2024-12-03T11:00:00Z'
-    }
+    { id:'svc_051', vehicleId:'veh_003', date:daysAgo(120),km:'193000', description:'Motor sesi şikayeti — triger kayışı ve gergi rulmanı değişimi.', parts:[{name:'Triger kayışı',qty:1,buyPrice:620,sellPrice:950},{name:'Gergi rulmanı',qty:1,buyPrice:380,sellPrice:580}], labor:1200, notes:'', studentIds:pickStudents(0,2) },
+    { id:'svc_052', vehicleId:'veh_008', date:daysAgo(122),km:'148000', description:'Fren sisteminde hava, hidrolik yenileme.', parts:[{name:'Fren hidroliği DOT4',qty:2,buyPrice:95,sellPrice:150}], labor:300, notes:'', studentIds:pickStudents(5,6) },
+    { id:'svc_053', vehicleId:'veh_047', date:daysAgo(124),km:'220000', description:'Enjektör takımı değişimi (4 enjektör).', parts:[{name:'Enjektör (x4)',qty:4,buyPrice:1800,sellPrice:2600}], labor:2500, notes:'', studentIds:pickStudents(7,8,9) },
+    { id:'svc_054', vehicleId:'veh_048', date:daysAgo(126),km:'178000', description:'Periyodik bakım + ön takım kontrolü.', parts:[{name:'Motor yağı 5W-40',qty:1,buyPrice:510,sellPrice:660},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Hava filtresi',qty:1,buyPrice:90,sellPrice:150}], labor:500, notes:'', studentIds:pickStudents(10,11) },
+    { id:'svc_055', vehicleId:'veh_049', date:daysAgo(128),km:'135000', description:'Şanzıman yağı değişimi ve vites kolu değişimi.', parts:[{name:'Şanzıman yağı (2L)',qty:2,buyPrice:280,sellPrice:420},{name:'Vites kolu',qty:1,buyPrice:650,sellPrice:980}], labor:800, notes:'', studentIds:pickStudents(12,13) },
+    { id:'svc_056', vehicleId:'veh_050', date:daysAgo(130),km:'88000',  description:'Klima bakımı ve filtreler.', parts:[{name:'Klima gazı R1234yf',qty:1,buyPrice:950,sellPrice:1350},{name:'Polen filtresi',qty:1,buyPrice:100,sellPrice:160}], labor:400, notes:'', studentIds:pickStudents(14,15) },
+    { id:'svc_057', vehicleId:'veh_051', date:daysAgo(132),km:'195000', description:'Turbo yağlama borusu tıkanıklığı ve temizlik.', parts:[{name:'Turbo yağ borusu',qty:1,buyPrice:480,sellPrice:720}], labor:1100, notes:'', studentIds:pickStudents(16,17) },
+    { id:'svc_058', vehicleId:'veh_052', date:daysAgo(134),km:'72000',  description:'Dört lastik değişimi + balans.', parts:[{name:'Lastik 215/65R16 (x4)',qty:4,buyPrice:1200,sellPrice:1700}], labor:500, notes:'', studentIds:pickStudents(18,19) },
+    { id:'svc_059', vehicleId:'veh_053', date:daysAgo(136),km:'248000', description:'Ön köprü komple revizyonu.', parts:[{name:'Ön köprü revizyon kit',qty:1,buyPrice:4200,sellPrice:6000}], labor:3500, notes:'', studentIds:pickStudents(20,21,22) },
+    { id:'svc_060', vehicleId:'veh_054', date:daysAgo(138),km:'56000',  description:'Periyodik bakım — tüm filtreler komple.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Hava filtresi',qty:1,buyPrice:90,sellPrice:150},{name:'Polen filtresi',qty:1,buyPrice:75,sellPrice:120},{name:'Yakıt filtresi',qty:1,buyPrice:160,sellPrice:240}], labor:450, notes:'', studentIds:pickStudents(23,24) },
+
+    // 5 AY ÖNCE
+    { id:'svc_061', vehicleId:'veh_004', date:daysAgo(150),km:'85500',  description:'Silecek motoru + silecek süpürgesi.', parts:[{name:'Silecek motoru',qty:1,buyPrice:750,sellPrice:1100},{name:'Silecek süpürgesi',qty:1,buyPrice:180,sellPrice:280}], labor:250, notes:'', studentIds:pickStudents(0,1) },
+    { id:'svc_062', vehicleId:'veh_010', date:daysAgo(152),km:'161000', description:'Periyodik bakım komple.', parts:[{name:'Motor yağı 10W-40',qty:1,buyPrice:440,sellPrice:580},{name:'Yağ filtresi',qty:1,buyPrice:80,sellPrice:125},{name:'Hava filtresi',qty:1,buyPrice:85,sellPrice:140},{name:'Yakıt filtresi',qty:1,buyPrice:160,sellPrice:240}], labor:400, notes:'', studentIds:pickStudents(3,4) },
+    { id:'svc_063', vehicleId:'veh_055', date:daysAgo(154),km:'43000',  description:'DSG şanzıman bakımı (yağ + filtre).', parts:[{name:'DSG yağ seti',qty:1,buyPrice:1800,sellPrice:2600}], labor:900, notes:'', studentIds:pickStudents(5,6) },
+    { id:'svc_064', vehicleId:'veh_056', date:daysAgo(156),km:'121000', description:'Debriyaj seti + baskı + disk.', parts:[{name:'Debriyaj komple seti',qty:1,buyPrice:2800,sellPrice:4000}], labor:1600, notes:'', studentIds:pickStudents(7,8) },
+    { id:'svc_065', vehicleId:'veh_057', date:daysAgo(158),km:'198000', description:'Arka diferansiyel yağ sızıntısı — conta değişimi.', parts:[{name:'Diferansiyel conta seti',qty:1,buyPrice:380,sellPrice:580}], labor:900, notes:'', studentIds:pickStudents(9,10) },
+    { id:'svc_066', vehicleId:'veh_058', date:daysAgo(160),km:'145000', description:'Fren balatası ön/arka ve hidrolik yenileme.', parts:[{name:'Ön balata',qty:1,buyPrice:380,sellPrice:580},{name:'Arka balata',qty:1,buyPrice:310,sellPrice:480},{name:'Fren hidroliği',qty:1,buyPrice:95,sellPrice:150}], labor:600, notes:'', studentIds:pickStudents(11,12) },
+    { id:'svc_067', vehicleId:'veh_059', date:daysAgo(162),km:'185000', description:'Motor conta sızıntısı — silindir kapağı conta değişimi.', parts:[{name:'Silindir kapağı conta',qty:1,buyPrice:1500,sellPrice:2200}], labor:2500, notes:'', studentIds:pickStudents(13,14,15) },
+    { id:'svc_068', vehicleId:'veh_060', date:daysAgo(164),km:'112000', description:'Periyodik bakım + enjektör temizliği.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Enjektör temizleyici',qty:1,buyPrice:280,sellPrice:420}], labor:550, notes:'', studentIds:pickStudents(16,17) },
+    { id:'svc_069', vehicleId:'veh_061', date:daysAgo(166),km:'76000',  description:'DSG çift kavrama değişimi.', parts:[{name:'DSG çift kavrama seti',qty:1,buyPrice:6500,sellPrice:9500}], labor:3000, notes:'', studentIds:pickStudents(18,19,20) },
+    { id:'svc_070', vehicleId:'veh_062', date:daysAgo(168),km:'98000',  description:'4WD aktarma kutusu yağ değişimi.', parts:[{name:'Transfer kutusu yağı (2L)',qty:2,buyPrice:380,sellPrice:560}], labor:600, notes:'', studentIds:pickStudents(21,22) },
+
+    // 6 AY ÖNCE
+    { id:'svc_071', vehicleId:'veh_006', date:daysAgo(182),km:'38500',  description:'Akü şarj problemi — alternatör regülatörü.', parts:[{name:'Alternatör regülatörü',qty:1,buyPrice:580,sellPrice:850}], labor:400, notes:'', studentIds:pickStudents(0,5) },
+    { id:'svc_072', vehicleId:'veh_005', date:daysAgo(184),km:'65000',  description:'Lastik rotasyonu ve rot ayarı.', parts:[], labor:450, notes:'', studentIds:pickStudents(1,2) },
+    { id:'svc_073', vehicleId:'veh_063', date:daysAgo(186),km:'218000', description:'Otomatik şanzıman revizyonu.', parts:[{name:'Şanzıman revizyon kit',qty:1,buyPrice:5800,sellPrice:8500}], labor:5000, notes:'', studentIds:pickStudents(3,4,5) },
+    { id:'svc_074', vehicleId:'veh_064', date:daysAgo(188),km:'58000',  description:'Klima sistem arızası — kondansör değişimi.', parts:[{name:'Kondansör',qty:1,buyPrice:2800,sellPrice:4000}], labor:1200, notes:'', studentIds:pickStudents(6,7) },
+    { id:'svc_075', vehicleId:'veh_065', date:daysAgo(190),km:'89000',  description:'Periyodik bakım + 4 lastik değişimi.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:80,sellPrice:125},{name:'Lastik 195/65R15 (x4)',qty:4,buyPrice:980,sellPrice:1400}], labor:600, notes:'', studentIds:pickStudents(8,9) },
+    { id:'svc_076', vehicleId:'veh_066', date:daysAgo(192),km:'67000',  description:'Yağ pompası değişimi.', parts:[{name:'Yağ pompası',qty:1,buyPrice:1800,sellPrice:2600}], labor:1500, notes:'', studentIds:pickStudents(10,11) },
+    { id:'svc_077', vehicleId:'veh_067', date:daysAgo(194),km:'42000',  description:'Periyodik bakım ve hava filtresi.', parts:[{name:'Motor yağı 5W-40',qty:1,buyPrice:510,sellPrice:660},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Hava filtresi',qty:1,buyPrice:90,sellPrice:150}], labor:350, notes:'', studentIds:pickStudents(12,13) },
+    { id:'svc_078', vehicleId:'veh_068', date:daysAgo(196),km:'115000', description:'Debriyaj ve baskı plakası değişimi.', parts:[{name:'Debriyaj seti',qty:1,buyPrice:2000,sellPrice:2900}], labor:1400, notes:'', studentIds:pickStudents(14,15) },
+    { id:'svc_079', vehicleId:'veh_069', date:daysAgo(198),km:'32000',  description:'Periyodik bakım ve garanti kapsamı kontrol.', parts:[{name:'Motor yağı 0W-20',qty:1,buyPrice:620,sellPrice:800},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130}], labor:350, notes:'', studentIds:pickStudents(16,17) },
+    { id:'svc_080', vehicleId:'veh_070', date:daysAgo(200),km:'28000',  description:'İlk muayene bakımı. Tüm sistemler kontrol.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130}], labor:300, notes:'', studentIds:pickStudents(18,19) },
+
+    // 7 AY ÖNCE
+    { id:'svc_081', vehicleId:'veh_001', date:daysAgo(215),km:'134000', description:'Periyodik bakım.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Hava filtresi',qty:1,buyPrice:90,sellPrice:150}], labor:400, notes:'', studentIds:pickStudents(0,1) },
+    { id:'svc_082', vehicleId:'veh_071', date:daysAgo(217),km:'54000',  description:'Hibrit sistem kontrol ve yazılım güncelleme.', parts:[], labor:1200, notes:'', studentIds:pickStudents(2,3) },
+    { id:'svc_083', vehicleId:'veh_072', date:daysAgo(219),km:'68000',  description:'Arka fren diski ve balata değişimi.', parts:[{name:'Arka fren diski (çift)',qty:1,buyPrice:750,sellPrice:1100},{name:'Arka balata',qty:1,buyPrice:310,sellPrice:480}], labor:600, notes:'', studentIds:pickStudents(4,5) },
+    { id:'svc_084', vehicleId:'veh_073', date:daysAgo(221),km:'42000',  description:'Hibrit akü bakım ve sistem check.', parts:[], labor:900, notes:'', studentIds:pickStudents(6,7) },
+    { id:'svc_085', vehicleId:'veh_074', date:daysAgo(223),km:'38000',  description:'Periyodik bakım.', parts:[{name:'Motor yağı 0W-30',qty:1,buyPrice:560,sellPrice:720},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130}], labor:350, notes:'', studentIds:pickStudents(8,9) },
+    { id:'svc_086', vehicleId:'veh_075', date:daysAgo(225),km:'24000',  description:'Periyodik bakım ve lastik basınç sensörü.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'TPMS sensörü',qty:1,buyPrice:380,sellPrice:580}], labor:350, notes:'', studentIds:pickStudents(10,11) },
+    { id:'svc_087', vehicleId:'veh_076', date:daysAgo(228),km:'62000',  description:'Periyodik bakım komple.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Hava filtresi',qty:1,buyPrice:90,sellPrice:150},{name:'Yakıt filtresi',qty:1,buyPrice:160,sellPrice:240}], labor:500, notes:'', studentIds:pickStudents(12,13) },
+    { id:'svc_088', vehicleId:'veh_077', date:daysAgo(230),km:'88000',  description:'Direksiyon kayışı değişimi.', parts:[{name:'Direksiyon kayışı',qty:1,buyPrice:420,sellPrice:640}], labor:500, notes:'', studentIds:pickStudents(14,15) },
+    { id:'svc_089', vehicleId:'veh_078', date:daysAgo(232),km:'18000',  description:'Elektrikli araç — 12V akü değişimi ve yazılım güncelleme.', parts:[{name:'12V Akü 45Ah',qty:1,buyPrice:1200,sellPrice:1750}], labor:600, notes:'', studentIds:pickStudents(16,17) },
+    { id:'svc_090', vehicleId:'veh_079', date:daysAgo(234),km:'22000',  description:'Elektrikli araç — şarj portu temizliği ve kontrol.', parts:[], labor:400, notes:'', studentIds:pickStudents(18,19) },
+
+    // 8 AY ÖNCE
+    { id:'svc_091', vehicleId:'veh_003', date:daysAgo(248),km:'188000', description:'Ön amortisör değişimi çifti.', parts:[{name:'Ön amortisör (çift)',qty:1,buyPrice:1800,sellPrice:2600}], labor:900, notes:'', studentIds:pickStudents(0,2) },
+    { id:'svc_092', vehicleId:'veh_002', date:daysAgo(250),km:'78000',  description:'Periyodik bakım.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:470,sellPrice:610},{name:'Yağ filtresi',qty:1,buyPrice:80,sellPrice:125}], labor:350, notes:'', studentIds:pickStudents(3,4) },
+    { id:'svc_093', vehicleId:'veh_080', date:daysAgo(252),km:'135000', description:'Transfer kutusu ve 4WD arızası.', parts:[{name:'Transfer kutusu yağı (3L)',qty:3,buyPrice:380,sellPrice:560},{name:'Transfer kutusu sensörü',qty:1,buyPrice:850,sellPrice:1250}], labor:1800, notes:'', studentIds:pickStudents(5,6,7) },
+    { id:'svc_094', vehicleId:'veh_081', date:daysAgo(254),km:'195000', description:'Fren sistemi ve süspansiyon genel revizyon.', parts:[{name:'Ön balata',qty:1,buyPrice:450,sellPrice:680},{name:'Arka balata',qty:1,buyPrice:380,sellPrice:570},{name:'Ön amortisör (çift)',qty:1,buyPrice:2200,sellPrice:3200}], labor:1500, notes:'', studentIds:pickStudents(8,9,10) },
+    { id:'svc_095', vehicleId:'veh_082', date:daysAgo(256),km:'168000', description:'Motor yağı sızıntısı ve conta değişimi.', parts:[{name:'Motor conta takımı',qty:1,buyPrice:1500,sellPrice:2200}], labor:2000, notes:'', studentIds:pickStudents(11,12) },
+    { id:'svc_096', vehicleId:'veh_083', date:daysAgo(258),km:'28000',  description:'İlk muayene bakımı ve lastik basınç kontrolü.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:550,sellPrice:710},{name:'Yağ filtresi',qty:1,buyPrice:90,sellPrice:140}], labor:300, notes:'', studentIds:pickStudents(13,14) },
+    { id:'svc_097', vehicleId:'veh_084', date:daysAgo(260),km:'15000',  description:'Elektrikli araç — fren sistemi kontrol ve kalibrasyon.', parts:[], labor:500, notes:'', studentIds:pickStudents(15,16) },
+    { id:'svc_098', vehicleId:'veh_085', date:daysAgo(262),km:'145000', description:'Periyodik bakım + ateşleme sistemi kontrolü.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:520,sellPrice:670},{name:'Yağ filtresi',qty:1,buyPrice:90,sellPrice:140},{name:'Buji seti',qty:1,buyPrice:680,sellPrice:1020}], labor:600, notes:'', studentIds:pickStudents(17,18) },
+    { id:'svc_099', vehicleId:'veh_086', date:daysAgo(264),km:'188000', description:'Dizel yakıt sistemi komple servisi.', parts:[{name:'Yüksek basınç pompası',qty:1,buyPrice:7500,sellPrice:10800},{name:'Yakıt filtresi',qty:1,buyPrice:200,sellPrice:310}], labor:2500, notes:'', studentIds:pickStudents(19,20,21) },
+    { id:'svc_100', vehicleId:'veh_087', date:daysAgo(266),km:'122000', description:'Periyodik bakım komple + hava süspansiyon kontrol.', parts:[{name:'Motor yağı 5W-40 (6L)',qty:1,buyPrice:680,sellPrice:880},{name:'Yağ filtresi',qty:1,buyPrice:90,sellPrice:140},{name:'Hava filtresi',qty:1,buyPrice:120,sellPrice:190}], labor:700, notes:'', studentIds:pickStudents(22,23) },
+
+    // 9 AY ÖNCE
+    { id:'svc_101', vehicleId:'veh_004', date:daysAgo(278),km:'82000',  description:'Periyodik bakım.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:470,sellPrice:610},{name:'Yağ filtresi',qty:1,buyPrice:80,sellPrice:125},{name:'Hava filtresi',qty:1,buyPrice:90,sellPrice:150}], labor:400, notes:'', studentIds:pickStudents(0,1) },
+    { id:'svc_102', vehicleId:'veh_088', date:daysAgo(280),km:'98000',  description:'Fren sistemi genel ve lastik değişimi.', parts:[{name:'Ön balata',qty:1,buyPrice:480,sellPrice:720},{name:'Lastik 245/45R18 (x4)',qty:4,buyPrice:1800,sellPrice:2600}], labor:800, notes:'', studentIds:pickStudents(2,3) },
+    { id:'svc_103', vehicleId:'veh_089', date:daysAgo(282),km:'72000',  description:'Periyodik bakım + ateşleme.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Buji seti',qty:1,buyPrice:520,sellPrice:780}], labor:500, notes:'', studentIds:pickStudents(4,5) },
+    { id:'svc_104', vehicleId:'veh_090', date:daysAgo(285),km:'55000',  description:'PHEV şarj sistemi arızası — şarjör modül değişimi.', parts:[{name:'Şarjör modülü',qty:1,buyPrice:8500,sellPrice:12500}], labor:2000, notes:'', studentIds:pickStudents(6,7,8) },
+    { id:'svc_105', vehicleId:'veh_091', date:daysAgo(288),km:'145000', description:'AWD transfer kutusu servisi.', parts:[{name:'Transfer yağı (2L)',qty:2,buyPrice:380,sellPrice:560}], labor:700, notes:'', studentIds:pickStudents(9,10) },
+    { id:'svc_106', vehicleId:'veh_092', date:daysAgo(290),km:'62000',  description:'Allgrip 4x4 sistem kontrolü ve periyodik bakım.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130}], labor:450, notes:'', studentIds:pickStudents(11,12) },
+    { id:'svc_107', vehicleId:'veh_093', date:daysAgo(292),km:'85000',  description:'Fren balatası ve klima bakımı.', parts:[{name:'Ön balata',qty:1,buyPrice:380,sellPrice:580},{name:'Klima gazı R134a',qty:1,buyPrice:380,sellPrice:550}], labor:500, notes:'', studentIds:pickStudents(13,14) },
+    { id:'svc_108', vehicleId:'veh_094', date:daysAgo(295),km:'168000', description:'Hava süspansiyon kompresorü değişimi.', parts:[{name:'Hava kompresörü',qty:1,buyPrice:4500,sellPrice:6500}], labor:1800, notes:'', studentIds:pickStudents(15,16,17) },
+    { id:'svc_109', vehicleId:'veh_095', date:daysAgo(298),km:'112000', description:'Periyodik bakım komple.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:520,sellPrice:670},{name:'Yağ filtresi',qty:1,buyPrice:90,sellPrice:140},{name:'Hava filtresi',qty:1,buyPrice:110,sellPrice:175},{name:'Polen filtresi',qty:1,buyPrice:90,sellPrice:145}], labor:550, notes:'', studentIds:pickStudents(18,19) },
+    { id:'svc_110', vehicleId:'veh_096', date:daysAgo(300),km:'198000', description:'Debriyaj komple değişimi.', parts:[{name:'Debriyaj seti',qty:1,buyPrice:2400,sellPrice:3400}], labor:1600, notes:'', studentIds:pickStudents(20,21) },
+
+    // 10-12 AY ÖNCE
+    { id:'svc_111', vehicleId:'veh_007', date:daysAgo(315),km:'265000', description:'Periyodik bakım + antifriz.', parts:[{name:'Motor yağı 10W-40',qty:1,buyPrice:440,sellPrice:580},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Antifriz (2L)',qty:1,buyPrice:180,sellPrice:260}], labor:450, notes:'', studentIds:pickStudents(0,3) },
+    { id:'svc_112', vehicleId:'veh_097', date:daysAgo(320),km:'85000',  description:'Ön süspansiyon tamir — salıncak ve rot değişimi.', parts:[{name:'Ön salıncak (çift)',qty:1,buyPrice:1400,sellPrice:2050},{name:'Rot (çift)',qty:1,buyPrice:580,sellPrice:870}], labor:1200, notes:'', studentIds:pickStudents(4,5,6) },
+    { id:'svc_113', vehicleId:'veh_098', date:daysAgo(325),km:'38000',  description:'Plug-in hibrit — yüksek voltaj akü kontrol.', parts:[], labor:1500, notes:'', studentIds:pickStudents(7,8) },
+    { id:'svc_114', vehicleId:'veh_099', date:daysAgo(330),km:'68000',  description:'Periyodik bakım ve DPF temizliği.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'DPF temizlik',qty:1,buyPrice:580,sellPrice:850}], labor:700, notes:'', studentIds:pickStudents(9,10) },
+    { id:'svc_115', vehicleId:'veh_100', date:daysAgo(335),km:'12000',  description:'Elektrikli araç — yazılım güncelleme ve fren kalibrasyonu.', parts:[], labor:800, notes:'', studentIds:pickStudents(11,12) },
+    { id:'svc_116', vehicleId:'veh_001', date:daysAgo(340),km:'131000', description:'Triger kayışı değişimi preventif.', parts:[{name:'Triger kayışı',qty:1,buyPrice:580,sellPrice:900},{name:'Gergi rulmanı',qty:1,buyPrice:380,sellPrice:580}], labor:1000, notes:'', studentIds:pickStudents(13,14) },
+    { id:'svc_117', vehicleId:'veh_010', date:daysAgo(345),km:'155000', description:'Radiyal lasler değişimi + balans + rot.', parts:[{name:'Lastik 195/65R15 (x4)',qty:4,buyPrice:980,sellPrice:1400}], labor:550, notes:'', studentIds:pickStudents(15,16) },
+    { id:'svc_118', vehicleId:'veh_005', date:daysAgo(350),km:'59000',  description:'Periyodik bakım komple.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:480,sellPrice:620},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Hava filtresi',qty:1,buyPrice:90,sellPrice:150},{name:'Yakıt filtresi',qty:1,buyPrice:160,sellPrice:240}], labor:500, notes:'', studentIds:pickStudents(17,18) },
+    { id:'svc_119', vehicleId:'veh_002', date:daysAgo(355),km:'74000',  description:'Debriyaj hidrolik silindiri değişimi.', parts:[{name:'Debriyaj merkez silindiri',qty:1,buyPrice:680,sellPrice:1020}], labor:500, notes:'', studentIds:pickStudents(19,20) },
+    { id:'svc_120', vehicleId:'veh_003', date:daysAgo(360),km:'181000', description:'Periyodik bakım + enjektör temizliği.', parts:[{name:'Motor yağı 5W-30',qty:1,buyPrice:470,sellPrice:610},{name:'Yağ filtresi',qty:1,buyPrice:85,sellPrice:130},{name:'Enjektör temizleyici',qty:1,buyPrice:280,sellPrice:420}], labor:550, notes:'', studentIds:pickStudents(21,22) }
   ];
 
   const teachers = [
@@ -4183,17 +4234,9 @@ function seedTestData() {
     { id: 'tch_003', name: 'Hülya Arslan', branch: 'Şasi ve Fren', active: true, createdAt: '2025-09-01T08:00:00Z' }
   ];
 
-  // Servislere öğretmen ata
-  const teacherAssignments = {
-    svc_001: 'tch_001', svc_002: 'tch_003', svc_003: 'tch_002',
-    svc_004: 'tch_001', svc_005: 'tch_001', svc_006: 'tch_001',
-    svc_007: 'tch_003', svc_008: 'tch_002', svc_009: 'tch_002',
-    svc_010: 'tch_002', svc_011: 'tch_001', svc_012: 'tch_003',
-    svc_013: 'tch_003', svc_014: 'tch_002', svc_015: 'tch_001',
-    svc_016: 'tch_003', svc_017: 'tch_001', svc_018: 'tch_003',
-    svc_019: 'tch_002', svc_020: 'tch_001'
-  };
-  services.forEach(s => { const tid = teacherAssignments[s.id]; s.teacherIds = tid ? [tid] : []; });
+  // Servislere öğretmen ata — 1/2/3 döngüsü
+  const tids = ['tch_001', 'tch_002', 'tch_003'];
+  services.forEach((s, i) => { s.teacherIds = [tids[i % 3]]; });
 
   return {
     vehicles,
