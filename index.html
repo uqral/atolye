@@ -1546,15 +1546,23 @@
             <input type="text" id="veh-color" placeholder="Beyaz">
           </div>
         </div>
-        <div class="form-row form-row-2">
+        <div class="form-row form-row-3">
           <div class="form-field">
             <label>Müşteri Adı</label>
             <input type="text" id="veh-customer" placeholder="Ahmet Yılmaz">
           </div>
           <div class="form-field">
+            <label>TC No</label>
+            <input type="text" id="veh-tc" placeholder="12345678901" maxlength="11">
+          </div>
+          <div class="form-field">
             <label>Telefon</label>
             <input type="text" id="veh-phone" placeholder="0555 123 45 67">
           </div>
+        </div>
+        <div class="form-field">
+          <label>Adres</label>
+          <input type="text" id="veh-address" placeholder="Mahalle, ilçe, şehir">
         </div>
         <div class="form-field">
           <label>Notlar</label>
@@ -1608,12 +1616,13 @@
           <table class="parts-table" id="parts-table">
             <thead>
               <tr>
-                <th style="width: 28%;">Parça adı</th>
-                <th style="width: 10%;">Adet</th>
-                <th style="width: 14%;">Alış (₺)</th>
-                <th style="width: 14%;">Satış (₺)</th>
-                <th style="width: 14%;">İşçilik (₺)</th>
-                <th style="width: 14%;">Toplam</th>
+                <th style="width: 24%;">Parça / İşçilik adı</th>
+                <th style="width: 14%;">Marka</th>
+                <th style="width: 8%;">Adet</th>
+                <th style="width: 12%;">Alış (₺)</th>
+                <th style="width: 12%;">Satış (₺)</th>
+                <th style="width: 12%;">İşçilik (₺)</th>
+                <th style="width: 12%;">Toplam</th>
                 <th style="width: 6%;"></th>
               </tr>
             </thead>
@@ -1633,6 +1642,10 @@
               <input type="date" id="srv-next-date" style="flex: 1;">
               <button type="button" class="btn btn-sm" onclick="setNextDatePlusOneYear()">+1 Yıl</button>
             </div>
+          </div>
+          <div class="form-field">
+            <label>Sonraki bakım km</label>
+            <input type="number" id="srv-next-km" placeholder="130000">
           </div>
         </div>
 
@@ -2693,7 +2706,7 @@ function renderVehicles() {
 function openVehicleModal() {
   editingVehicleId = null;
   document.getElementById('vehicle-modal-title').textContent = 'Yeni Araç';
-  ['veh-plate','veh-brand','veh-model','veh-year','veh-engine','veh-color','veh-customer','veh-phone','veh-notes']
+  ['veh-plate','veh-brand','veh-model','veh-year','veh-engine','veh-color','veh-customer','veh-tc','veh-phone','veh-address','veh-notes']
     .forEach(id => document.getElementById(id).value = '');
   openModal('vehicle-modal');
   setTimeout(() => document.getElementById('veh-plate').focus(), 50);
@@ -2711,7 +2724,9 @@ function editVehicle(id) {
   document.getElementById('veh-engine').value = v.engine || '';
   document.getElementById('veh-color').value = v.color || '';
   document.getElementById('veh-customer').value = v.customerName || '';
+  document.getElementById('veh-tc').value = v.customerTC || '';
   document.getElementById('veh-phone').value = v.phone || '';
+  document.getElementById('veh-address').value = v.address || '';
   document.getElementById('veh-notes').value = v.notes || '';
   openModal('vehicle-modal');
 }
@@ -2728,7 +2743,9 @@ async function saveVehicle() {
     engine: document.getElementById('veh-engine').value.trim(),
     color: document.getElementById('veh-color').value.trim(),
     customerName: document.getElementById('veh-customer').value.trim(),
+    customerTC: document.getElementById('veh-tc').value.trim(),
     phone: document.getElementById('veh-phone').value.trim(),
+    address: document.getElementById('veh-address').value.trim(),
     notes: document.getElementById('veh-notes').value.trim()
   };
 
@@ -2954,6 +2971,7 @@ function openServiceModal(preselectedVehicleId) {
 
   document.getElementById('srv-date').value = todayStr();
   document.getElementById('srv-km').value = '';
+  document.getElementById('srv-next-km').value = '';
   document.getElementById('srv-description').value = '';
   document.getElementById('srv-labor').value = state.settings.defaultLabor || '';
   document.getElementById('srv-next-date').value = '';
@@ -2980,6 +2998,7 @@ function editService(id) {
 
   document.getElementById('srv-date').value = s.date || todayStr();
   document.getElementById('srv-km').value = s.km || '';
+  document.getElementById('srv-next-km').value = s.nextServiceKm || '';
   document.getElementById('srv-description').value = s.description || '';
   document.getElementById('srv-labor').value = s.labor || 0;
   document.getElementById('srv-next-date').value = s.nextServiceDate || '';
@@ -3032,7 +3051,8 @@ function addPartRow(part) {
   const tbody = document.getElementById('parts-tbody');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="p-name" placeholder="Parça adı" value="${escapeHtml(part?.name || '')}"></td>
+    <td><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}"></td>
+    <td><input type="text" class="p-brand" placeholder="Marka" value="${escapeHtml(part?.brand || '')}"></td>
     <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty || ''}" step="1" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
@@ -3049,12 +3069,13 @@ function collectParts() {
   const parts = [];
   rows.forEach(tr => {
     const name = tr.querySelector('.p-name').value.trim();
+    const brand = tr.querySelector('.p-brand').value.trim();
     const qty = Number(tr.querySelector('.p-qty').value) || 0;
     const buyPrice = Number(tr.querySelector('.p-buy').value) || 0;
     const sellPrice = Number(tr.querySelector('.p-sell').value) || 0;
     const labor = Number(tr.querySelector('.p-labor').value) || 0;
     if (name || qty || buyPrice || sellPrice || labor) {
-      parts.push({ name, qty, buyPrice, sellPrice, labor });
+      parts.push({ name, brand, qty, buyPrice, sellPrice, labor });
     }
   });
   return parts;
@@ -3101,6 +3122,7 @@ async function saveService() {
     vehicleId,
     date,
     km: document.getElementById('srv-km').value,
+    nextServiceKm: document.getElementById('srv-next-km').value || '',
     description,
     parts: collectParts(),
     labor: Number(document.getElementById('srv-labor').value) || 0,
