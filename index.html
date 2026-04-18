@@ -1829,7 +1829,7 @@ let fsaFolderName = '';
 
 // Google Drive
 const GDRIVE_CLIENT_ID = '345440162397-3trq336baf2buh5sk0as5pbs1p5m49sc.apps.googleusercontent.com';
-const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file email profile openid';
 const GDRIVE_REDIRECT_URI = 'https://uqral.github.io/atolye/';
 let _gdriveSyncing = false;
 
@@ -3966,7 +3966,7 @@ function renderSettings() {
       driveEl.innerHTML = `
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
           <span style="font-size:13px; color:var(--success);">● Bağlı:</span>
-          <strong style="font-size:13px;">${user.email}</strong>
+          <strong style="font-size:13px;">${user.email || 'Google Hesabı'}</strong>
           <button class="btn btn-sm btn-danger" onclick="gdriveDisconnect()">Bağlantıyı Kes</button>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
