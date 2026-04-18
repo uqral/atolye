@@ -3863,14 +3863,13 @@ function importData(file) {
 function clearAllData() {
   showConfirm('TÜM VERİLER SİLİNECEK. Bu işlem geri alınamaz. Devam etmeden önce yedek aldınız mı?', () => {
     showConfirm('Son uyarı: Gerçekten tüm verileri silmek istiyor musunuz?', async () => {
-      state = {
-        vehicles: [], services: [], students: [], teachers: [], invoices: [],
-        settings: { workshopName: 'Atölye', defaultLabor: 0, lastBackup: null }
-      };
+      state = seedTestData();
       await saveState();
-      document.getElementById('brand-name').textContent = 'Atölye';
-      renderSettings();
-      showToast('Tüm veriler silindi', 'success');
+      migrateServiceData();
+      document.getElementById('brand-name').textContent = state.settings.workshopName || 'Atölye';
+      renderDashboard();
+      goto('dashboard');
+      showToast('Veriler sıfırlandı ve örnek veriler yüklendi', 'success');
     }, 'Son uyarı!', 'Evet, Sil');
   }, 'Dikkat!', 'Devam Et');
 }
