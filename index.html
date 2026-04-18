@@ -3861,17 +3861,15 @@ function importData(file) {
 }
 
 function clearAllData() {
-  showConfirm('TÜM VERİLER SİLİNECEK. Bu işlem geri alınamaz. Devam etmeden önce yedek aldınız mı?', () => {
-    showConfirm('Son uyarı: Gerçekten tüm verileri silmek istiyor musunuz?', async () => {
-      state = seedTestData();
-      await saveState();
-      migrateServiceData();
-      document.getElementById('brand-name').textContent = state.settings.workshopName || 'Atölye';
-      renderDashboard();
-      goto('dashboard');
-      showToast('Veriler sıfırlandı ve örnek veriler yüklendi', 'success');
-    }, 'Son uyarı!', 'Evet, Sil');
-  }, 'Dikkat!', 'Devam Et');
+  showConfirm('TÜM VERİLER SİLİNECEK ve örnek veriler yüklenecek. Bu işlem geri alınamaz. Emin misiniz?', async () => {
+    const seed = seedTestData();
+    state = { invoices: [], ...seed };
+    await saveState();
+    migrateServiceData();
+    document.getElementById('brand-name').textContent = state.settings.workshopName || 'Atölye';
+    goto('dashboard');
+    showToast('Veriler sıfırlandı, örnek veriler yüklendi', 'success');
+  }, 'Dikkat!', 'Evet, Sil');
 }
 
 // ============ CONFIRM HELPER ============
