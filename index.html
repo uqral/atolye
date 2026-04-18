@@ -1657,13 +1657,12 @@
           <table class="parts-table" id="parts-table">
             <thead>
               <tr>
-                <th style="width: 24%;">Parça / İşçilik adı</th>
-                <th style="width: 14%;">Marka</th>
-                <th style="width: 8%;">Adet</th>
-                <th style="width: 12%;">Alış (₺)</th>
-                <th style="width: 12%;">Satış (₺)</th>
-                <th style="width: 12%;">İşçilik (₺)</th>
-                <th style="width: 12%;">Toplam</th>
+                <th style="width: 32%;">Parça / İşçilik adı</th>
+                <th style="width: 10%;">Adet</th>
+                <th style="width: 14%;">Alış (₺)</th>
+                <th style="width: 14%;">Satış (₺)</th>
+                <th style="width: 14%;">İşçilik (₺)</th>
+                <th style="width: 10%;">Toplam</th>
                 <th style="width: 6%;"></th>
               </tr>
             </thead>
@@ -3142,7 +3141,6 @@ function addPartRow(part) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}"></td>
-    <td><input type="text" class="p-brand" placeholder="Marka" value="${escapeHtml(part?.brand || '')}"></td>
     <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty ?? 1}" step="1" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
@@ -3159,13 +3157,12 @@ function collectParts() {
   const parts = [];
   rows.forEach(tr => {
     const name = tr.querySelector('.p-name').value.trim();
-    const brand = tr.querySelector('.p-brand').value.trim();
     const qty = Number(tr.querySelector('.p-qty').value) || 0;
     const buyPrice = Number(tr.querySelector('.p-buy').value) || 0;
     const sellPrice = Number(tr.querySelector('.p-sell').value) || 0;
     const labor = Number(tr.querySelector('.p-labor').value) || 0;
     if (name || qty || buyPrice || sellPrice || labor) {
-      parts.push({ name, brand, qty, buyPrice, sellPrice, labor });
+      parts.push({ name, qty, buyPrice, sellPrice, labor });
     }
   });
   return parts;
