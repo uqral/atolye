@@ -1125,6 +1125,22 @@
 @media (max-width: 600px) {
   .invoice-meta { grid-template-columns: 1fr; }
 }
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: var(--text-muted);
+  min-width: 160px;
+  text-align: center;
+}
 </style>
 </head>
 <body>
@@ -1256,7 +1272,7 @@
 
       <div class="search-box">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" class="search-input" id="vehicle-search" placeholder="Plaka, marka, model veya müşteri adı ile ara..." oninput="renderVehicles()">
+        <input type="text" class="search-input" id="vehicle-search" placeholder="Plaka, marka, model veya müşteri adı ile ara..." oninput="pageState.vehicles=1; renderVehicles()">
       </div>
 
       <div class="section">
@@ -1286,7 +1302,7 @@
 
       <div class="search-box">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" class="search-input" id="service-search" placeholder="Plaka veya yapılan işleme göre ara..." oninput="renderServices()">
+        <input type="text" class="search-input" id="service-search" placeholder="Plaka veya yapılan işleme göre ara..." oninput="pageState.services=1; renderServices()">
       </div>
 
       <div class="section">
@@ -1308,6 +1324,11 @@
       </div>
 
       <div class="period-bar" data-period-bar="students"></div>
+
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" class="search-input" id="student-search" placeholder="Ad soyad veya sınıf ile ara..." oninput="pageState.students=1; renderStudents()">
+      </div>
 
       <div class="section">
         <div id="students-list"></div>
@@ -1784,6 +1805,9 @@ let editingStudentId = null;
 let editingTeacherId = null;
 let currentVehicleDetailId = null;
 
+const PAGE_SIZE = 25;
+let pageState = { vehicles: 1, services: 1, students: 1, invoices: 1 };
+
 // Global period filter state — her sayfaya uygulanır
 let periodFilter = {
   type: 'month',     // day | week | month | quarter | halfyear | year | all | custom
@@ -1942,6 +1966,7 @@ function renderPeriodBar(pageKey) {
 
 // Aktif olan sayfayı yeniden render eder
 function refreshCurrentPage() {
+  Object.keys(pageState).forEach(k => pageState[k] = 1);
   const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue', 'invoices'];
   for (const p of pages) {
     const el = document.getElementById('page-' + p);
@@ -2582,10 +2607,16 @@ function renderVehicles() {
     return;
   }
 
+  const totalVehicles = list.length;
+  const totalPagesV = Math.max(1, Math.ceil(totalVehicles / PAGE_SIZE));
+  pageState.vehicles = Math.min(pageState.vehicles, totalPagesV);
+  const pageV = pageState.vehicles;
+  const pageListV = list.slice((pageV - 1) * PAGE_SIZE, pageV * PAGE_SIZE);
+
   let html = `<table class="table"><thead><tr>
     <th>Plaka</th><th>Araç</th><th>Yıl</th><th>Müşteri</th><th>Telefon</th><th>${isAllPeriod ? 'Servis' : 'Dönem servisi'}</th><th style="width:90px"></th>
   </tr></thead><tbody>`;
-  list.forEach(v => {
+  pageListV.forEach(v => {
     const allSvcs = state.services.filter(s => s.vehicleId === v.id);
     const periodSvcs = allSvcs.filter(s => isInPeriod(s.date));
     const svcCount = isAllPeriod ? allSvcs.length : periodSvcs.length;
@@ -2606,6 +2637,13 @@ function renderVehicles() {
     </tr>`;
   });
   html += `</tbody></table>`;
+  if (totalPagesV > 1) {
+    html += `<div class="pagination-bar">
+      <button class="btn btn-sm" onclick="pageState.vehicles=${pageV - 1}; renderVehicles()" ${pageV <= 1 ? 'disabled' : ''}>‹ Önceki</button>
+      <span class="pagination-info">Sayfa ${pageV} / ${totalPagesV} · ${totalVehicles} araç</span>
+      <button class="btn btn-sm" onclick="pageState.vehicles=${pageV + 1}; renderVehicles()" ${pageV >= totalPagesV ? 'disabled' : ''}>Sonraki ›</button>
+    </div>`;
+  }
   host.innerHTML = html;
 }
 
@@ -2771,9 +2809,15 @@ function renderServices() {
     return;
   }
 
+  const totalSvcs = list.length;
+  const totalPagesS = Math.max(1, Math.ceil(totalSvcs / PAGE_SIZE));
+  pageState.services = Math.min(pageState.services, totalPagesS);
+  const pageS = pageState.services;
+  const pageListS = list.slice((pageS - 1) * PAGE_SIZE, pageS * PAGE_SIZE);
+
   let html = `
     <div style="padding: 12px 16px; background: var(--surface-alt); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-      <div style="font-size: 12px; color: var(--text-muted);"><strong style="color: var(--text); font-size: 13px;">${list.length} kayıt</strong> · ${getPeriodLabel()}</div>
+      <div style="font-size: 12px; color: var(--text-muted);"><strong style="color: var(--text); font-size: 13px;">${totalSvcs} kayıt</strong> · ${getPeriodLabel()}</div>
       <div style="font-size: 12px; color: var(--text-muted);">
         Toplam: <strong class="money" style="color: var(--accent); font-size: 13px;">₺${fmtMoney(totalRevenue)}</strong>
         · İşçilik: <strong class="money">₺${fmtMoney(totalLabor)}</strong>
@@ -2783,7 +2827,7 @@ function renderServices() {
     <table class="table"><thead><tr>
       <th>Tarih</th><th>Plaka</th><th>Araç</th><th>İşlem</th><th>Öğrenci</th><th>Tutar</th><th></th>
     </tr></thead><tbody>`;
-  list.forEach(s => {
+  pageListS.forEach(s => {
     const studentNames = (s.studentIds || [])
       .map(sid => state.students.find(st => st.id === sid))
       .filter(Boolean)
@@ -2800,6 +2844,13 @@ function renderServices() {
     </tr>`;
   });
   html += `</tbody></table>`;
+  if (totalPagesS > 1) {
+    html += `<div class="pagination-bar">
+      <button class="btn btn-sm" onclick="pageState.services=${pageS - 1}; renderServices()" ${pageS <= 1 ? 'disabled' : ''}>‹ Önceki</button>
+      <span class="pagination-info">Sayfa ${pageS} / ${totalPagesS} · ${totalSvcs} kayıt</span>
+      <button class="btn btn-sm" onclick="pageState.services=${pageS + 1}; renderServices()" ${pageS >= totalPagesS ? 'disabled' : ''}>Sonraki ›</button>
+    </div>`;
+  }
   host.innerHTML = html;
 }
 
@@ -3202,11 +3253,17 @@ function renderInvoices() {
     return;
   }
 
+  const totalInvs = periodInvoices.length;
+  const totalPagesI = Math.max(1, Math.ceil(totalInvs / PAGE_SIZE));
+  pageState.invoices = Math.min(pageState.invoices, totalPagesI);
+  const pageI = pageState.invoices;
+  const pageListI = periodInvoices.slice((pageI - 1) * PAGE_SIZE, pageI * PAGE_SIZE);
+
   let html = `<table class="table"><thead><tr>
     <th>Fatura No</th><th>Tarih</th><th>Araç</th><th>Müşteri</th><th style="text-align:right">Tutar</th><th style="width:100px"></th>
   </tr></thead><tbody>`;
 
-  periodInvoices.forEach(inv => {
+  pageListI.forEach(inv => {
     const plate = inv.vehicle?.plate || '—';
     const vehicleLabel = [inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '—';
     html += `<tr>
@@ -3225,6 +3282,13 @@ function renderInvoices() {
   });
 
   html += `</tbody></table>`;
+  if (totalPagesI > 1) {
+    html += `<div class="pagination-bar">
+      <button class="btn btn-sm" onclick="pageState.invoices=${pageI - 1}; renderInvoices()" ${pageI <= 1 ? 'disabled' : ''}>‹ Önceki</button>
+      <span class="pagination-info">Sayfa ${pageI} / ${totalPagesI} · ${totalInvs} fatura</span>
+      <button class="btn btn-sm" onclick="pageState.invoices=${pageI + 1}; renderInvoices()" ${pageI >= totalPagesI ? 'disabled' : ''}>Sonraki ›</button>
+    </div>`;
+  }
   host.innerHTML = html;
 }
 
@@ -3483,6 +3547,8 @@ function renderStudents() {
     return;
   }
 
+  const q = (document.getElementById('student-search')?.value || '').toLowerCase().trim();
+
   // Dönem servisleri
   const periodSvcs = state.services.filter(s => isInPeriod(s.date));
   const periodLabor = periodSvcs.reduce((a, s) => a + (Number(s.labor) || 0), 0);
@@ -3494,10 +3560,24 @@ function renderStudents() {
   periodSvcs.forEach(s => (s.studentIds || []).forEach(id => activeIds.add(id)));
   const perPersonShare = activeIds.size > 0 ? periodNet / activeIds.size : 0;
 
-  const sorted = [...state.students].sort((a, b) => {
+  const sorted = [...state.students].filter(s => {
+    if (!q) return true;
+    return (s.name || '').toLowerCase().includes(q) || (s.class || '').toLowerCase().includes(q);
+  }).sort((a, b) => {
     if (a.active !== b.active) return a.active ? -1 : 1;
     return a.name.localeCompare(b.name, 'tr');
   });
+
+  if (sorted.length === 0) {
+    host.innerHTML = `<div class="empty"><h3>Öğrenci bulunamadı</h3><p>Arama kriterinize uyan öğrenci yok.</p></div>`;
+    return;
+  }
+
+  const totalStu = sorted.length;
+  const totalPagesStu = Math.max(1, Math.ceil(totalStu / PAGE_SIZE));
+  pageState.students = Math.min(pageState.students, totalPagesStu);
+  const pageStu = pageState.students;
+  const pageListStu = sorted.slice((pageStu - 1) * PAGE_SIZE, pageStu * PAGE_SIZE);
 
   let html = `
     <div style="padding: 12px 16px; background: var(--surface-alt); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
@@ -3512,7 +3592,7 @@ function renderStudents() {
     <table class="table"><thead><tr>
       <th>Ad Soyad</th><th>Sınıf</th><th>Durum</th><th>Dönem işi</th><th>Toplam iş</th><th>Dönem payı</th><th style="width:90px"></th>
     </tr></thead><tbody>`;
-  sorted.forEach(s => {
+  pageListStu.forEach(s => {
     const periodCount = periodSvcs.filter(svc => (svc.studentIds || []).includes(s.id)).length;
     const totalCount = state.services.filter(svc => (svc.studentIds || []).includes(s.id)).length;
     const share = periodCount > 0 ? perPersonShare : 0;
@@ -3532,6 +3612,13 @@ function renderStudents() {
     </tr>`;
   });
   html += `</tbody></table>`;
+  if (totalPagesStu > 1) {
+    html += `<div class="pagination-bar">
+      <button class="btn btn-sm" onclick="pageState.students=${pageStu - 1}; renderStudents()" ${pageStu <= 1 ? 'disabled' : ''}>‹ Önceki</button>
+      <span class="pagination-info">Sayfa ${pageStu} / ${totalPagesStu} · ${totalStu} öğrenci</span>
+      <button class="btn btn-sm" onclick="pageState.students=${pageStu + 1}; renderStudents()" ${pageStu >= totalPagesStu ? 'disabled' : ''}>Sonraki ›</button>
+    </div>`;
+  }
   host.innerHTML = html;
 }
 
