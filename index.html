@@ -2438,12 +2438,13 @@ function renderRevenue() {
     .map(s => {
       const count = studentStats[s.id]?.count || 0;
       const share = count > 0 ? count * unitValueR : 0;
-      return `<tr>
+      return `<tr class="clickable" onclick="showStudentDetail('${s.id}')">
         <td><strong>${escapeHtml(s.name)}</strong></td>
         <td>${escapeHtml(s.class || '—')}</td>
         <td>${s.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</td>
         <td>${count}</td>
         <td class="money">${share > 0 ? '<strong style="color: var(--success)">₺' + fmtMoney(share) + '</strong>' : '<span style="color: var(--text-light)">—</span>'}</td>
+        <td style="color: var(--text-muted)">›</td>
       </tr>`;
     }).join('');
 
@@ -2488,7 +2489,7 @@ function renderRevenue() {
       </div>
       <table class="table">
         <thead><tr>
-          <th>Ad Soyad</th><th>Sınıf</th><th>Durum</th><th>Dönem iş sayısı</th><th>Hak ettiği pay</th>
+          <th>Ad Soyad</th><th>Sınıf</th><th>Durum</th><th>Dönem iş sayısı</th><th>Hak ettiği pay</th><th></th>
         </tr></thead>
         <tbody>${studentRows}</tbody>
       </table>
