@@ -1478,6 +1478,15 @@
 
       <div class="section">
         <div class="section-header">
+          <div class="section-title">Google Drive Senkronizasyonu</div>
+        </div>
+        <div class="section-body">
+          <div id="gdrive-status"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
           <div class="section-title">Klasör Yedekleme</div>
         </div>
         <div class="section-body">
@@ -1809,12 +1818,20 @@ let state = {
     workshopName: 'Atölye',
     defaultLabor: 0,
     lastBackup: null,
-    lastFolderBackup: null
+    lastFolderBackup: null,
+    lastDriveSync: null,
+    gdriveAutoSync: false
   }
 };
 
 let fsaHandle = null;
 let fsaFolderName = '';
+
+// Google Drive
+const GDRIVE_CLIENT_ID = '345440162397-3trq336baf2buh5sk0as5pbs1p5m49sc.apps.googleusercontent.com';
+const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const GDRIVE_REDIRECT_URI = 'https://uqral.github.io/atolye/';
+let _gdriveSyncing = false;
 
 let editingVehicleId = null;
 let editingServiceId = null;
@@ -2040,6 +2057,9 @@ function dbSet(key, value) {
 async function saveState() {
   try {
     await dbSet('state', state);
+    if (state.settings.gdriveAutoSync && !_gdriveSyncing && gdriveGetToken() && navigator.onLine) {
+      gdriveSave();
+    }
   } catch (e) {
     showToast('Kayıt hatası: ' + e.message, 'danger');
   }
@@ -2057,7 +2077,10 @@ async function loadState() {
       settings: Object.assign({
         workshopName: 'Atölye',
         defaultLabor: 0,
-        lastBackup: null
+        lastBackup: null,
+        lastFolderBackup: null,
+        lastDriveSync: null,
+        gdriveAutoSync: false
       }, s.settings || {})
     };
   }
@@ -3933,6 +3956,46 @@ function renderSettings() {
       ? `Son yedek: ${new Date(state.settings.lastBackup).toLocaleString('tr-TR')}`
       : 'Son yedek: henüz alınmadı';
 
+  const driveEl = document.getElementById('gdrive-status');
+  if (driveEl) {
+    const token = gdriveGetToken();
+    const user = gdriveGetUser();
+    const autoSync = state.settings.gdriveAutoSync;
+    const lastSync = state.settings.lastDriveSync;
+    if (token && user) {
+      driveEl.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+          <span style="font-size:13px; color:var(--success);">● Bağlı:</span>
+          <strong style="font-size:13px;">${user.email}</strong>
+          <button class="btn btn-sm btn-danger" onclick="gdriveDisconnect()">Bağlantıyı Kes</button>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+          <button class="btn" onclick="gdriveSave()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+            Drive'a Kaydet
+          </button>
+          <button class="btn" onclick="gdriveLoad()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 16 12 20 16 16"/><line x1="12" y1="20" x2="12" y2="4"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+            Drive'dan Yükle
+          </button>
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+          <input type="checkbox" ${autoSync ? 'checked' : ''} onchange="gdriveToggleAutoSync(this.checked)">
+          Kayıt anında otomatik sync (internet gerektirir)
+        </label>
+        <p class="help-text">${lastSync ? 'Son sync: ' + new Date(lastSync).toLocaleString('tr-TR') : 'Henüz sync yapılmadı'}</p>
+      `;
+    } else {
+      driveEl.innerHTML = `
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">Google hesabınızla bağlanarak verilerinizi Drive'a otomatik yedekleyin.</p>
+        <button class="btn" onclick="gdriveConnect()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.94 11A8.994 8.994 0 1112 21.06"/><polyline points="16 16 20 20 24 16"/></svg>
+          Google ile Bağlan
+        </button>
+      `;
+    }
+  }
+
   const fsaEl = document.getElementById('fsa-status');
   if (fsaEl) {
     if (!('showDirectoryPicker' in window)) {
@@ -4073,6 +4136,157 @@ function wipeAllData() {
     goto('dashboard');
     showToast('Tüm veriler silindi', 'success');
   }, 'Dikkat!', 'Evet, Sil');
+}
+
+// ============ GOOGLE DRIVE ============
+
+function gdriveGetToken() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('gdrive_token') || 'null');
+    if (!stored) return null;
+    if (Date.now() > stored.expires_at) { localStorage.removeItem('gdrive_token'); return null; }
+    return stored.token;
+  } catch { return null; }
+}
+
+function gdriveGetUser() {
+  try { return JSON.parse(localStorage.getItem('gdrive_user') || 'null'); } catch { return null; }
+}
+
+function gdriveConnect() {
+  const st = btoa(Math.random().toString(36));
+  localStorage.setItem('gdrive_oauth_state', st);
+  const params = new URLSearchParams({
+    client_id: GDRIVE_CLIENT_ID,
+    redirect_uri: GDRIVE_REDIRECT_URI,
+    response_type: 'token',
+    scope: GDRIVE_SCOPE,
+    state: st,
+    include_granted_scopes: 'true'
+  });
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+function gdriveDisconnect() {
+  localStorage.removeItem('gdrive_token');
+  localStorage.removeItem('gdrive_user');
+  localStorage.removeItem('gdrive_file_id');
+  renderSettings();
+  showToast('Google Drive bağlantısı kesildi', 'success');
+}
+
+async function gdriveHandleCallback() {
+  const hash = window.location.hash.substring(1);
+  if (!hash.includes('access_token')) return;
+  const params = new URLSearchParams(hash);
+  const token = params.get('access_token');
+  const expiresIn = parseInt(params.get('expires_in') || '3600');
+  if (!token) return;
+  localStorage.setItem('gdrive_token', JSON.stringify({
+    token,
+    expires_at: Date.now() + (expiresIn - 60) * 1000
+  }));
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+  try {
+    const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const user = await resp.json();
+    localStorage.setItem('gdrive_user', JSON.stringify({ email: user.email, name: user.name }));
+  } catch {}
+}
+
+async function gdriveFindOrCreateFile(token) {
+  const cachedId = localStorage.getItem('gdrive_file_id');
+  if (cachedId) {
+    try {
+      const r = await fetch(`https://www.googleapis.com/drive/v3/files/${cachedId}?fields=id`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (r.ok) return cachedId;
+    } catch {}
+    localStorage.removeItem('gdrive_file_id');
+  }
+  const searchResp = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=name%3D'atolye-data.json'+and+trashed%3Dfalse&fields=files(id)`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const { files } = await searchResp.json();
+  if (files && files.length > 0) {
+    localStorage.setItem('gdrive_file_id', files[0].id);
+    return files[0].id;
+  }
+  const createResp = await fetch('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'atolye-data.json', mimeType: 'application/json' })
+  });
+  const created = await createResp.json();
+  localStorage.setItem('gdrive_file_id', created.id);
+  return created.id;
+}
+
+async function gdriveSave() {
+  const token = gdriveGetToken();
+  if (!token) { showToast('Google Drive bağlantısı yok. Yeniden bağlanın.', 'danger'); return; }
+  _gdriveSyncing = true;
+  try {
+    const payload = JSON.stringify({ exportedAt: new Date().toISOString(), version: 1, data: state }, null, 2);
+    const fileId = await gdriveFindOrCreateFile(token);
+    const resp = await fetch(
+      `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+      { method: 'PATCH', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: payload }
+    );
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    state.settings.lastDriveSync = new Date().toISOString();
+    await saveState();
+    renderSettings();
+    showToast('Drive\'a kaydedildi', 'success');
+  } catch (e) {
+    showToast('Drive kaydı başarısız: ' + e.message, 'danger');
+  } finally {
+    _gdriveSyncing = false;
+  }
+}
+
+async function gdriveLoad() {
+  const token = gdriveGetToken();
+  if (!token) { showToast('Google Drive bağlantısı yok. Yeniden bağlanın.', 'danger'); return; }
+  showConfirm('Drive\'daki veri mevcut verilerin üzerine yazılacak. Devam edilsin mi?', async () => {
+    try {
+      const fileId = await gdriveFindOrCreateFile(token);
+      const resp = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const payload = await resp.json();
+      if (!payload.data) throw new Error('Geçersiz veri formatı');
+      state = {
+        vehicles: payload.data.vehicles || [],
+        services: payload.data.services || [],
+        students: payload.data.students || [],
+        teachers: payload.data.teachers || [],
+        invoices: payload.data.invoices || [],
+        settings: Object.assign({
+          workshopName: 'Atölye', defaultLabor: 0, lastBackup: null,
+          lastFolderBackup: null, lastDriveSync: null, gdriveAutoSync: false
+        }, payload.data.settings || {})
+      };
+      await saveState();
+      document.getElementById('brand-name').textContent = state.settings.workshopName;
+      renderSettings();
+      showToast('Drive\'dan yüklendi', 'success');
+    } catch (e) {
+      showToast('Drive yüklemesi başarısız: ' + e.message, 'danger');
+    }
+  }, 'Drive\'dan Yükle', 'Devam Et');
+}
+
+async function gdriveToggleAutoSync(checked) {
+  state.settings.gdriveAutoSync = checked;
+  await saveState();
+  showToast(checked ? 'Otomatik sync açıldı' : 'Otomatik sync kapatıldı', 'success');
 }
 
 async function selectBackupFolder() {
@@ -4528,6 +4742,7 @@ document.addEventListener('click', (e) => {
 
 async function init() {
   try {
+    await gdriveHandleCallback();
     await openDB();
     await loadState();
     // İlk açılışta boşsa test verisi yükle
