@@ -4352,7 +4352,7 @@ init();
 // HTTPS veya localhost gerekir — file:// üzerinde çalışmaz
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
   const swCode = `
-    const CACHE_NAME = 'atolye-cache-v2';
+    const CACHE_NAME = 'atolye-cache-v3';
     const APP_URL = self.registration.scope;
 
     self.addEventListener('install', e => {
