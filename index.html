@@ -1469,7 +1469,8 @@
               Yedekten Geri Yükle
             </button>
             <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(this.files[0])">
-            <button class="btn btn-danger" onclick="clearAllData()">Tüm Verileri Sil</button>
+            <button class="btn" onclick="clearAllData()">Örnek Verileri Yükle</button>
+            <button class="btn btn-danger" onclick="wipeAllData()">Verileri Temizle</button>
           </div>
           <p class="help-text" id="last-backup-info">Son yedek: henüz alınmadı</p>
         </div>
@@ -3869,14 +3870,23 @@ function importData(file) {
 }
 
 function clearAllData() {
-  showConfirm('TÜM VERİLER SİLİNECEK ve örnek veriler yüklenecek. Bu işlem geri alınamaz. Emin misiniz?', async () => {
-    const seed = seedTestData();
-    state = { invoices: [], ...seed };
+  showConfirm('Mevcut tüm veriler silinip örnek veriler yüklenecek. Emin misiniz?', async () => {
+    state = { invoices: [], ...seedTestData() };
     await saveState();
     migrateServiceData();
     document.getElementById('brand-name').textContent = state.settings.workshopName || 'Atölye';
     goto('dashboard');
-    showToast('Veriler sıfırlandı, örnek veriler yüklendi', 'success');
+    showToast('Örnek veriler yüklendi', 'success');
+  }, 'Örnek Verileri Yükle', 'Evet, Yükle');
+}
+
+function wipeAllData() {
+  showConfirm('TÜM VERİLER SİLİNECEK. Bu işlem geri alınamaz. Emin misiniz?', async () => {
+    state = { vehicles: [], services: [], students: [], teachers: [], invoices: [], settings: { workshopName: 'Atölye', defaultLabor: 0, lastBackup: null } };
+    await saveState();
+    document.getElementById('brand-name').textContent = 'Atölye';
+    goto('dashboard');
+    showToast('Tüm veriler silindi', 'success');
   }, 'Dikkat!', 'Evet, Sil');
 }
 
