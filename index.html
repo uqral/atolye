@@ -3143,7 +3143,7 @@ function addPartRow(part) {
   tr.innerHTML = `
     <td><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}"></td>
     <td><input type="text" class="p-brand" placeholder="Marka" value="${escapeHtml(part?.brand || '')}"></td>
-    <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty || ''}" step="1" oninput="updateServiceSummary()"></td>
+    <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty ?? 1}" step="1" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-labor" placeholder="0" value="${part?.labor || ''}" step="1" oninput="updateServiceSummary()"></td>
