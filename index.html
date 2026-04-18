@@ -1424,6 +1424,47 @@
 
       <div class="section">
         <div class="section-header">
+          <div class="section-title">Gelir dağılımı ayarları</div>
+        </div>
+        <div class="section-body">
+          <div class="form-grid">
+            <div class="form-row form-row-2">
+              <div class="form-field">
+                <label>Öğretmen payı (%)</label>
+                <input type="number" id="setting-teacher-share" placeholder="70" min="0" max="100" step="1">
+                <p class="help-text">Toplam işçilikten öğretmenlere ayrılan oran</p>
+              </div>
+              <div class="form-field">
+                <label>Öğrenci payı (%)</label>
+                <input type="number" id="setting-student-share" placeholder="30" min="0" max="100" step="1">
+                <p class="help-text">Toplamı %100 olmalı</p>
+              </div>
+            </div>
+            <div class="form-row form-row-3">
+              <div class="form-field">
+                <label>Faaliyet oranı (%)</label>
+                <input type="number" id="setting-faaliyet-rate" placeholder="10" min="0" max="100" step="0.1">
+                <p class="help-text">Faturaya eklenen faaliyet payı</p>
+              </div>
+              <div class="form-field">
+                <label>Döner Sermaye (₺)</label>
+                <input type="number" id="setting-doner-sermaye" placeholder="0" min="0" step="1">
+                <p class="help-text">Faturaya eklenen sabit ücret</p>
+              </div>
+              <div class="form-field">
+                <label>KDV oranı (%)</label>
+                <input type="number" id="setting-kdv-rate" placeholder="20" min="0" max="100" step="1">
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-primary" onclick="saveSettings()">Kaydet</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
           <div class="section-title">Uygulama olarak kullanma</div>
         </div>
         <div class="section-body">
@@ -1833,7 +1874,12 @@ let state = {
     lastBackup: null,
     lastFolderBackup: null,
     lastDriveSync: null,
-    gdriveAutoSync: false
+    gdriveAutoSync: false,
+    faaliyetRate: 10,
+    donerSermaye: 0,
+    kdvRate: 20,
+    teacherShare: 70,
+    studentShare: 30
   }
 };
 
@@ -2093,7 +2139,12 @@ async function loadState() {
         lastBackup: null,
         lastFolderBackup: null,
         lastDriveSync: null,
-        gdriveAutoSync: false
+        gdriveAutoSync: false,
+        faaliyetRate: 10,
+        donerSermaye: 0,
+        kdvRate: 20,
+        teacherShare: 70,
+        studentShare: 30
       }, s.settings || {})
     };
   }
@@ -2417,6 +2468,9 @@ function renderRevenue() {
   }
 
   // Finansal akış
+  const teacherSharePct = (state.settings.teacherShare ?? 70) / 100;
+  const studentSharePct = (state.settings.studentShare ?? 30) / 100;
+
   const totalRevenue = periodSvcs.reduce((a, s) => a + serviceTotal(s), 0);
   const totalPartsSell = periodSvcs.reduce((a, s) => a + servicePartsSum(s), 0);
   const totalPartsBuy = periodSvcs.reduce((a, s) => {
@@ -2424,19 +2478,33 @@ function renderRevenue() {
   }, 0);
   const totalLabor = periodSvcs.reduce((a, s) => a + (Number(s.labor) || 0), 0);
   const partsProfit = totalPartsSell - totalPartsBuy;
-  const netDistributable = totalLabor + partsProfit;
 
-  // Öğrenci katılımları
+  // Pay hesabı: per service, işçilik bazlı
+  const teacherStats = {};
   const studentStats = {};
   periodSvcs.forEach(s => {
-    (s.studentIds || []).forEach(id => {
-      if (!studentStats[id]) studentStats[id] = { count: 0 };
-      studentStats[id].count++;
-    });
+    const labor = Number(s.labor) || 0;
+    const teachers = s.teacherIds || [];
+    const students = s.studentIds || [];
+    if (labor > 0 && teachers.length > 0) {
+      const share = labor * teacherSharePct / teachers.length;
+      teachers.forEach(id => {
+        if (!teacherStats[id]) teacherStats[id] = { pay: 0, count: 0 };
+        teacherStats[id].pay += share;
+        teacherStats[id].count++;
+      });
+    }
+    if (labor > 0 && students.length > 0) {
+      const share = labor * studentSharePct / students.length;
+      students.forEach(id => {
+        if (!studentStats[id]) studentStats[id] = { pay: 0, count: 0 };
+        studentStats[id].pay += share;
+        studentStats[id].count++;
+      });
+    }
   });
-  const activeStudentIds = Object.keys(studentStats);
-  const totalWorkUnitsR = Object.values(studentStats).reduce((a, s) => a + s.count, 0);
-  const unitValueR = totalWorkUnitsR > 0 ? netDistributable / totalWorkUnitsR : 0;
+  const totalTeacherPay = Object.values(teacherStats).reduce((a, t) => a + t.pay, 0);
+  const totalStudentPay = Object.values(studentStats).reduce((a, s) => a + s.pay, 0);
 
   // İşlem tipleri (açıklamanın ilk kelimesinden yaklaşık tahmin)
   const workTypes = {};
@@ -2480,22 +2548,34 @@ function renderRevenue() {
     .sort((a, b) => b[1].total - a[1].total)
     .slice(0, 5);
 
+  // Öğretmen listesi render
+  const teacherRows = [...state.teachers]
+    .sort((a, b) => (teacherStats[b.id]?.pay || 0) - (teacherStats[a.id]?.pay || 0))
+    .map(t => {
+      const stat = teacherStats[t.id];
+      const pay = stat?.pay || 0;
+      const count = stat?.count || 0;
+      return `<tr>
+        <td><strong>${escapeHtml(t.name)}</strong></td>
+        <td>${escapeHtml(t.branch || '—')}</td>
+        <td>${count}</td>
+        <td class="money">${pay > 0 ? '<strong style="color: var(--success)">₺' + fmtMoney(pay) + '</strong>' : '<span style="color: var(--text-light)">—</span>'}</td>
+      </tr>`;
+    }).join('');
+
   // Öğrenci listesi render
   const studentRows = [...state.students]
-    .sort((a, b) => {
-      const ca = studentStats[a.id]?.count || 0;
-      const cb = studentStats[b.id]?.count || 0;
-      return cb - ca;
-    })
+    .sort((a, b) => (studentStats[b.id]?.pay || 0) - (studentStats[a.id]?.pay || 0))
     .map(s => {
-      const count = studentStats[s.id]?.count || 0;
-      const share = count > 0 ? count * unitValueR : 0;
+      const stat = studentStats[s.id];
+      const pay = stat?.pay || 0;
+      const count = stat?.count || 0;
       return `<tr class="clickable" onclick="showStudentDetail('${s.id}')">
         <td><strong>${escapeHtml(s.name)}</strong></td>
         <td>${escapeHtml(s.class || '—')}</td>
         <td>${s.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</td>
         <td>${count}</td>
-        <td class="money">${share > 0 ? '<strong style="color: var(--success)">₺' + fmtMoney(share) + '</strong>' : '<span style="color: var(--text-light)">—</span>'}</td>
+        <td class="money">${pay > 0 ? '<strong style="color: var(--success)">₺' + fmtMoney(pay) + '</strong>' : '<span style="color: var(--text-light)">—</span>'}</td>
         <td style="color: var(--text-muted)">›</td>
       </tr>`;
     }).join('');
@@ -2520,31 +2600,41 @@ function renderRevenue() {
       <div class="flow-card highlight">
         <div class="stat-label">İşçilik geliri</div>
         <div class="stat-value money stat-accent">₺${fmtMoney(totalLabor)}</div>
-        <div class="stat-sub">Tamamen dağıtılabilir</div>
+        <div class="stat-sub">Pay dağıtım tabanı</div>
       </div>
       <div class="flow-card net">
-        <div class="stat-label">Net dağıtılabilir</div>
-        <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(netDistributable)}</div>
-        <div class="stat-sub">İşçilik + Parça kârı</div>
+        <div class="stat-label">Öğretmen payı (%${state.settings.teacherShare ?? 70})</div>
+        <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(totalTeacherPay)}</div>
+        <div class="stat-sub">${Object.keys(teacherStats).length} öğretmen</div>
       </div>
       <div class="flow-card net">
-        <div class="stat-label">İş başı birim</div>
-        <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(unitValueR)}</div>
-        <div class="stat-sub">${totalWorkUnitsR} toplam iş birimi</div>
+        <div class="stat-label">Öğrenci payı (%${state.settings.studentShare ?? 30})</div>
+        <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(totalStudentPay)}</div>
+        <div class="stat-sub">${Object.keys(studentStats).length} öğrenci</div>
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">Öğrenci pay dağılımı</div>
-        <span style="font-size: 11px; color: var(--text-muted);">Dönem içi katılımlar — iş sayısına orantılı</span>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Öğretmen pay dağılımı</div>
+          <span style="font-size: 11px; color: var(--text-muted);">İşçilik × %${state.settings.teacherShare ?? 70} — servise eşit bölüşüm</span>
+        </div>
+        <table class="table">
+          <thead><tr><th>Ad Soyad</th><th>Branş</th><th>Servis</th><th>Pay</th></tr></thead>
+          <tbody>${teacherRows || '<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">Bu dönemde öğretmen atanmış servis yok</td></tr>'}</tbody>
+        </table>
       </div>
-      <table class="table">
-        <thead><tr>
-          <th>Ad Soyad</th><th>Sınıf</th><th>Durum</th><th>Dönem iş sayısı</th><th>Hak ettiği pay</th><th></th>
-        </tr></thead>
-        <tbody>${studentRows}</tbody>
-      </table>
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Öğrenci pay dağılımı</div>
+          <span style="font-size: 11px; color: var(--text-muted);">İşçilik × %${state.settings.studentShare ?? 30} — servise eşit bölüşüm</span>
+        </div>
+        <table class="table">
+          <thead><tr><th>Ad Soyad</th><th>Sınıf</th><th>Durum</th><th>Servis</th><th>Pay</th><th></th></tr></thead>
+          <tbody>${studentRows}</tbody>
+        </table>
+      </div>
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
@@ -3973,6 +4063,11 @@ function renderStudentDetail() {
 function renderSettings() {
   document.getElementById('setting-workshop-name').value = state.settings.workshopName || '';
   document.getElementById('setting-default-labor').value = state.settings.defaultLabor || '';
+  document.getElementById('setting-faaliyet-rate').value = state.settings.faaliyetRate ?? 10;
+  document.getElementById('setting-doner-sermaye').value = state.settings.donerSermaye ?? 0;
+  document.getElementById('setting-kdv-rate').value = state.settings.kdvRate ?? 20;
+  document.getElementById('setting-teacher-share').value = state.settings.teacherShare ?? 70;
+  document.getElementById('setting-student-share').value = state.settings.studentShare ?? 30;
   document.getElementById('last-backup-info').textContent =
     state.settings.lastBackup
       ? `Son yedek: ${new Date(state.settings.lastBackup).toLocaleString('tr-TR')}`
@@ -4066,6 +4161,14 @@ function renderSettings() {
 async function saveSettings() {
   state.settings.workshopName = document.getElementById('setting-workshop-name').value.trim() || 'Atölye';
   state.settings.defaultLabor = Number(document.getElementById('setting-default-labor').value) || 0;
+  state.settings.faaliyetRate = Number(document.getElementById('setting-faaliyet-rate').value) || 0;
+  state.settings.donerSermaye = Number(document.getElementById('setting-doner-sermaye').value) || 0;
+  state.settings.kdvRate = Number(document.getElementById('setting-kdv-rate').value) || 0;
+  const tShare = Number(document.getElementById('setting-teacher-share').value) || 70;
+  const sShare = Number(document.getElementById('setting-student-share').value) || 30;
+  if (tShare + sShare !== 100) { showToast('Öğretmen + öğrenci payı toplamı %100 olmalı', 'danger'); return; }
+  state.settings.teacherShare = tShare;
+  state.settings.studentShare = sShare;
   await saveState();
   document.getElementById('brand-name').textContent = state.settings.workshopName;
   showToast('Ayarlar kaydedildi', 'success');
