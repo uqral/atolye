@@ -2382,7 +2382,8 @@ function renderRevenue() {
     });
   });
   const activeStudentIds = Object.keys(studentStats);
-  const perPersonShare = activeStudentIds.length > 0 ? netDistributable / activeStudentIds.length : 0;
+  const totalWorkUnitsR = Object.values(studentStats).reduce((a, s) => a + s.count, 0);
+  const unitValueR = totalWorkUnitsR > 0 ? netDistributable / totalWorkUnitsR : 0;
 
   // İşlem tipleri (açıklamanın ilk kelimesinden yaklaşık tahmin)
   const workTypes = {};
@@ -2435,7 +2436,7 @@ function renderRevenue() {
     })
     .map(s => {
       const count = studentStats[s.id]?.count || 0;
-      const share = count > 0 ? perPersonShare : 0;
+      const share = count > 0 ? count * unitValueR : 0;
       return `<tr>
         <td><strong>${escapeHtml(s.name)}</strong></td>
         <td>${escapeHtml(s.class || '—')}</td>
@@ -2473,16 +2474,16 @@ function renderRevenue() {
         <div class="stat-sub">İşçilik + Parça kârı</div>
       </div>
       <div class="flow-card net">
-        <div class="stat-label">Kişi başı pay</div>
-        <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(perPersonShare)}</div>
-        <div class="stat-sub">${activeStudentIds.length} öğrenciye bölünüyor</div>
+        <div class="stat-label">İş başı birim</div>
+        <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(unitValueR)}</div>
+        <div class="stat-sub">${totalWorkUnitsR} toplam iş birimi</div>
       </div>
     </div>
 
     <div class="section">
       <div class="section-header">
         <div class="section-title">Öğrenci pay dağılımı</div>
-        <span style="font-size: 11px; color: var(--text-muted);">Dönem içi katılımlar — eşit bölüşüm</span>
+        <span style="font-size: 11px; color: var(--text-muted);">Dönem içi katılımlar — iş sayısına orantılı</span>
       </div>
       <table class="table">
         <thead><tr>
@@ -3556,10 +3557,16 @@ function renderStudents() {
   const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
   const periodNet = periodLabor + periodProfit;
 
-  // Dönem içinde en az bir işe katılan öğrenci sayısı
+  // Dönem içinde katılım sayıları (orantılı dağıtım)
   const activeIds = new Set();
-  periodSvcs.forEach(s => (s.studentIds || []).forEach(id => activeIds.add(id)));
-  const perPersonShare = activeIds.size > 0 ? periodNet / activeIds.size : 0;
+  let totalWorkUnits = 0;
+  const studentWorkCount = {};
+  periodSvcs.forEach(s => (s.studentIds || []).forEach(id => {
+    activeIds.add(id);
+    totalWorkUnits++;
+    studentWorkCount[id] = (studentWorkCount[id] || 0) + 1;
+  }));
+  const unitValue = totalWorkUnits > 0 ? periodNet / totalWorkUnits : 0;
 
   const sorted = [...state.students].filter(s => {
     if (!q) return true;
@@ -3587,16 +3594,16 @@ function renderStudents() {
       </div>
       <div style="font-size: 12px; color: var(--text-muted);">
         Dağıtılabilir net: <strong class="money" style="color: var(--accent); font-size: 13px;">₺${fmtMoney(periodNet)}</strong>
-        · Kişi başı pay: <strong class="money" style="color: var(--success); font-size: 13px;">₺${fmtMoney(perPersonShare)}</strong>
+        · İş başı birim: <strong class="money" style="color: var(--success); font-size: 13px;">₺${fmtMoney(unitValue)}</strong>
       </div>
     </div>
     <table class="table"><thead><tr>
       <th>Ad Soyad</th><th>Sınıf</th><th>Durum</th><th>Dönem işi</th><th>Toplam iş</th><th>Dönem payı</th><th style="width:90px"></th>
     </tr></thead><tbody>`;
   pageListStu.forEach(s => {
-    const periodCount = periodSvcs.filter(svc => (svc.studentIds || []).includes(s.id)).length;
+    const periodCount = studentWorkCount[s.id] || 0;
     const totalCount = state.services.filter(svc => (svc.studentIds || []).includes(s.id)).length;
-    const share = periodCount > 0 ? perPersonShare : 0;
+    const share = periodCount > 0 ? periodCount * unitValue : 0;
     html += `<tr class="clickable" onclick="showStudentDetail('${s.id}')">
       <td><strong>${escapeHtml(s.name)}</strong></td>
       <td>${escapeHtml(s.class || '—')}</td>
