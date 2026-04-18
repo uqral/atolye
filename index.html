@@ -2194,6 +2194,7 @@ function goto(page) {
   if (page === 'revenue') renderRevenue();
   if (page === 'invoices') renderInvoices();
   if (page === 'settings') renderSettings();
+  localStorage.setItem('atolye_last_page', page);
   window.scrollTo(0, 0);
 }
 
@@ -4274,7 +4275,8 @@ async function init() {
     migrateTeacherData();
     migrateServiceData();
     document.getElementById('brand-name').textContent = (state.settings.workshopName || 'Atölye');
-    renderDashboard();
+    const lastPage = localStorage.getItem('atolye_last_page') || 'dashboard';
+    goto(lastPage);
   } catch (e) {
     showToast('Veritabanı açılamadı: ' + e.message, 'danger');
   }
