@@ -2579,6 +2579,8 @@ function renderRevenue() {
       </tr>`;
     }).join('');
 
+  const donerSermaye = state.settings.donerSermaye || 0;
+
   host.innerHTML = `
     <div class="revenue-flow">
       <div class="flow-card">
@@ -2589,18 +2591,28 @@ function renderRevenue() {
       <div class="flow-card">
         <div class="stat-label">Parça satışı</div>
         <div class="stat-value money">₺${fmtMoney(totalPartsSell)}</div>
-        <div class="stat-sub">Maliyet: ₺${fmtMoney(totalPartsBuy)}</div>
+        <div class="stat-sub">${totalPartsSell > 0 ? Math.round((partsProfit / totalPartsSell) * 100) + '% marj' : '—'}</div>
+      </div>
+      <div class="flow-card">
+        <div class="stat-label">Malzeme maliyeti</div>
+        <div class="stat-value money" style="color: var(--danger);">₺${fmtMoney(totalPartsBuy)}</div>
+        <div class="stat-sub">Alış fiyatları toplamı</div>
       </div>
       <div class="flow-card highlight">
         <div class="stat-label">Parça kârı</div>
         <div class="stat-value money stat-accent">₺${fmtMoney(partsProfit)}</div>
-        <div class="stat-sub">${totalPartsSell > 0 ? Math.round((partsProfit / totalPartsSell) * 100) + '% marj' : '—'}</div>
+        <div class="stat-sub">Satış − Maliyet</div>
       </div>
       <div class="flow-card highlight">
         <div class="stat-label">İşçilik geliri</div>
         <div class="stat-value money stat-accent">₺${fmtMoney(totalLabor)}</div>
         <div class="stat-sub">Pay dağıtım tabanı</div>
       </div>
+      ${donerSermaye > 0 ? `<div class="flow-card">
+        <div class="stat-label">Döner Sermaye</div>
+        <div class="stat-value money" style="color: var(--text-muted);">₺${fmtMoney(donerSermaye)}</div>
+        <div class="stat-sub">Sabit kesinti (ayarlardan)</div>
+      </div>` : ''}
       <div class="flow-card net">
         <div class="stat-label">Öğretmen payı (%${state.settings.teacherShare ?? 70})</div>
         <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(totalTeacherPay)}</div>
