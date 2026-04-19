@@ -2801,19 +2801,9 @@ function renderRevenue() {
         <div class="stat-sub">${periodSvcs.length} servis kaydı</div>
       </div>
       <div class="flow-card">
-        <div class="stat-label">Parça satışı</div>
-        <div class="stat-value money">₺${fmtMoney(totalPartsSell)}</div>
-        <div class="stat-sub">${totalPartsSell > 0 ? Math.round((partsProfit / totalPartsSell) * 100) + '% marj' : '—'}</div>
-      </div>
-      <div class="flow-card">
         <div class="stat-label">Malzeme maliyeti (KDV hariç)</div>
         <div class="stat-value money" style="color: var(--danger);">₺${fmtMoney(totalPartsBuy)}</div>
         <div class="stat-sub">KDV dahil: ₺${fmtMoney(totalPartsBuyIncKdv)} · %${state.settings.kdvRate ?? 20} KDV</div>
-      </div>
-      <div class="flow-card highlight">
-        <div class="stat-label">Parça kârı</div>
-        <div class="stat-value money stat-accent">₺${fmtMoney(partsProfit)}</div>
-        <div class="stat-sub">Satış − Maliyet</div>
       </div>
       <div class="flow-card highlight">
         <div class="stat-label">İşçilik geliri</div>
