@@ -2107,10 +2107,22 @@ const CAR_DATA = {
   'Volvo': ['C40','S60','S90','V40','V60','V90','XC40','XC60','XC90'],
 };
 
+function allCarData() {
+  const custom = state.settings?.customCarData || {};
+  const merged = {};
+  [...Object.keys(CAR_DATA), ...Object.keys(custom)].forEach(b => {
+    const base = CAR_DATA[b] || [];
+    const ext = custom[b] || [];
+    merged[b] = [...new Set([...base, ...ext])];
+  });
+  return merged;
+}
+
 function initVehicleFormLists() {
   const brandList = document.getElementById('veh-brand-list');
   if (!brandList) return;
-  brandList.innerHTML = Object.keys(CAR_DATA).sort().map(b => `<option value="${b}">`).join('');
+  const data = allCarData();
+  brandList.innerHTML = Object.keys(data).sort().map(b => `<option value="${b}">`).join('');
 
   const yearSel = document.getElementById('veh-year');
   if (yearSel && yearSel.options.length === 0) {
@@ -2126,7 +2138,7 @@ function onBrandInput() {
   const brand = (document.getElementById('veh-brand')?.value || '').trim();
   const modelList = document.getElementById('veh-model-list');
   if (!modelList) return;
-  const models = CAR_DATA[brand] || [];
+  const models = allCarData()[brand] || [];
   modelList.innerHTML = models.map(m => `<option value="${m}">`).join('');
 }
 
@@ -3651,6 +3663,16 @@ async function saveVehicle() {
     }
     state.vehicles.push(Object.assign({ id: uid(), createdAt: new Date().toISOString() }, data));
   }
+  // Yeni marka/model varsa öğren
+  if (data.brand) {
+    const custom = state.settings.customCarData || (state.settings.customCarData = {});
+    if (!CAR_DATA[data.brand] && !custom[data.brand]) custom[data.brand] = [];
+    if (data.model) {
+      const list = custom[data.brand] || (custom[data.brand] = []);
+      if (!CAR_DATA[data.brand]?.includes(data.model) && !list.includes(data.model)) list.push(data.model);
+    }
+  }
+
   await saveState();
   closeModal('vehicle-modal');
   showToast('Araç kaydedildi', 'success');
