@@ -1666,6 +1666,16 @@
 </div>
 
 <!-- Part Modal -->
+<div class="modal-backdrop" id="pay-detail-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="pay-detail-modal-title">Pay Detayı</h3>
+      <button class="modal-close" onclick="closeModal('pay-detail-modal')">×</button>
+    </div>
+    <div class="modal-body" id="pay-detail-modal-body"></div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="part-modal">
   <div class="modal">
     <div class="modal-header">
@@ -2735,6 +2745,8 @@ function renderRevenue() {
   });
   const totalTeacherPay = Object.values(teacherStats).reduce((a, t) => a + t.pay, 0);
   const totalStudentPay = Object.values(studentStats).reduce((a, s) => a + s.pay, 0);
+  window._lastTeacherStats = teacherStats;
+  window._lastStudentStats = studentStats;
 
   // İşlem tipleri (açıklamanın ilk kelimesinden yaklaşık tahmin)
   const workTypes = {};
@@ -2839,13 +2851,13 @@ function renderRevenue() {
         <div class="stat-value money" style="color: var(--text-muted);">₺${fmtMoney(totDoner)}</div>
         <div class="stat-sub">KDV matrahı üzerinden</div>
       </div>` : ''}
-      <div class="flow-card net">
-        <div class="stat-label">Öğretmen payı (%${state.settings.teacherShare ?? 70})</div>
+      <div class="flow-card net clickable" onclick="showPayDetailPopup('teacher')" style="cursor:pointer;" title="Detay için tıklayın">
+        <div class="stat-label">Öğretmen payı (%${state.settings.teacherShare ?? 70}) <span style="font-size:10px;opacity:.6;">↗</span></div>
         <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(totalTeacherPay)}</div>
         <div class="stat-sub">${Object.keys(teacherStats).length} öğretmen</div>
       </div>
-      <div class="flow-card net">
-        <div class="stat-label">Öğrenci payı (%${state.settings.studentShare ?? 30})</div>
+      <div class="flow-card net clickable" onclick="showPayDetailPopup('student')" style="cursor:pointer;" title="Detay için tıklayın">
+        <div class="stat-label">Öğrenci payı (%${state.settings.studentShare ?? 30}) <span style="font-size:10px;opacity:.6;">↗</span></div>
         <div class="stat-value money" style="color: var(--success);">₺${fmtMoney(totalStudentPay)}</div>
         <div class="stat-sub">${Object.keys(studentStats).length} öğrenci</div>
       </div>
@@ -3092,6 +3104,38 @@ function partsSortBy(col) {
 }
 
 let _thInfoPopup = null;
+function showPayDetailPopup(type) {
+  const isTeacher = type === 'teacher';
+  const stats = isTeacher ? (window._lastTeacherStats || {}) : (window._lastStudentStats || {});
+  const people = isTeacher ? state.teachers : state.students;
+  const title = isTeacher ? 'Öğretmen Pay Detayı' : 'Öğrenci Pay Detayı';
+  const shareLabel = isTeacher
+    ? `%${state.settings.teacherShare ?? 70} işçilik payı`
+    : `%${state.settings.studentShare ?? 30} işçilik payı`;
+
+  const rows = Object.entries(stats)
+    .map(([id, s]) => {
+      const p = people.find(x => x.id === id);
+      const name = p ? p.name : id;
+      const extra = isTeacher ? (p?.branch ? `<span style="color:var(--text-muted);font-size:11px"> · ${escapeHtml(p.branch)}</span>` : '') : (p?.class ? `<span style="color:var(--text-muted);font-size:11px"> · ${escapeHtml(p.class)}</span>` : '');
+      return `<tr><td>${escapeHtml(name)}${extra}</td><td style="text-align:center;color:var(--text-muted)">${s.count}</td><td class="money" style="color:var(--success);font-weight:600">₺${fmtMoney(s.pay)}</td></tr>`;
+    })
+    .sort()
+    .join('');
+
+  const total = Object.values(stats).reduce((a, s) => a + s.pay, 0);
+
+  document.getElementById('pay-detail-modal-title').textContent = title;
+  document.getElementById('pay-detail-modal-body').innerHTML = `
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">${shareLabel}</p>
+    <table class="table">
+      <thead><tr><th>Ad Soyad</th><th style="text-align:center">Servis</th><th>Pay</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">Bu dönemde kayıt yok</td></tr>'}</tbody>
+      <tfoot><tr style="font-weight:700"><td colspan="2">TOPLAM</td><td class="money" style="color:var(--success)">₺${fmtMoney(total)}</td></tr></tfoot>
+    </table>`;
+  openModal('pay-detail-modal');
+}
+
 function showThInfoPopup(e, text) {
   if (_thInfoPopup) { _thInfoPopup.remove(); _thInfoPopup = null; return; }
   const el = document.createElement('div');
