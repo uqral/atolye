@@ -1177,6 +1177,10 @@
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 4 4 6-6"/></svg>
         Gelir Paneli
       </div>
+      <div class="nav-item" data-page="parts">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
+        Parçalar
+      </div>
       <div class="nav-item" data-page="invoices">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
         Faturalar
@@ -1390,6 +1394,23 @@
       <div id="revenue-content"></div>
     </section>
 
+    <!-- Parts Catalog -->
+    <section id="page-parts" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Parça Kataloğu</h2>
+          <p class="page-subtitle">Servis formunda otomatik fiyat doldurmak için parçaları tanımlayın</p>
+        </div>
+        <button class="btn btn-primary" onclick="openPartModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Yeni Parça
+        </button>
+      </div>
+      <div class="section">
+        <div id="parts-catalog-list"></div>
+      </div>
+    </section>
+
     <!-- Settings -->
     <section id="page-settings" class="page hidden">
       <div class="page-header">
@@ -1555,6 +1576,51 @@
       </div>
     </section>
   </main>
+</div>
+
+<!-- Part Modal -->
+<div class="modal-backdrop" id="part-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="part-modal-title">Yeni Parça</h3>
+      <button class="modal-close" onclick="closeModal('part-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row form-row-2">
+        <div class="form-field" style="grid-column: 1/-1;">
+          <label>Parça / Malzeme Adı *</label>
+          <input type="text" id="part-name" placeholder="Örn: Motor yağı 5W-40">
+        </div>
+      </div>
+      <div class="form-row form-row-3">
+        <div class="form-field">
+          <label>Kategori</label>
+          <input type="text" id="part-category" placeholder="Yağ, Filtre, Fren...">
+        </div>
+        <div class="form-field">
+          <label>Birim</label>
+          <input type="text" id="part-unit" placeholder="Litre, Adet, Set...">
+        </div>
+        <div class="form-field">
+          <label></label>
+        </div>
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-field">
+          <label>Alış Fiyatı (₺)</label>
+          <input type="number" id="part-buy-price" placeholder="0" step="0.01">
+        </div>
+        <div class="form-field">
+          <label>Satış Fiyatı (₺)</label>
+          <input type="number" id="part-sell-price" placeholder="0" step="0.01">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('part-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="savePart()">Kaydet</button>
+    </div>
+  </div>
 </div>
 
 <!-- Vehicle Modal -->
@@ -1870,6 +1936,7 @@ let state = {
   students: [],
   teachers: [],
   invoices: [],
+  parts: [],
   settings: {
     workshopName: 'Atölye',
     defaultLabor: 0,
@@ -1899,6 +1966,7 @@ let editingVehicleId = null;
 let editingServiceId = null;
 let editingStudentId = null;
 let editingTeacherId = null;
+let editingPartId = null;
 let currentVehicleDetailId = null;
 
 const PAGE_SIZE = 25;
@@ -2063,7 +2131,7 @@ function renderPeriodBar(pageKey) {
 // Aktif olan sayfayı yeniden render eder
 function refreshCurrentPage() {
   Object.keys(pageState).forEach(k => pageState[k] = 1);
-  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue', 'invoices'];
+  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue', 'invoices', 'parts'];
   for (const p of pages) {
     const el = document.getElementById('page-' + p);
     if (el && !el.classList.contains('hidden')) {
@@ -2074,6 +2142,7 @@ function refreshCurrentPage() {
       else if (p === 'teachers') renderTeachers();
       else if (p === 'revenue') renderRevenue();
       else if (p === 'invoices') renderInvoices();
+      else if (p === 'parts') renderParts();
       return;
     }
   }
@@ -2136,6 +2205,7 @@ async function loadState() {
       students: s.students || [],
       teachers: s.teachers || [],
       invoices: s.invoices || [],
+      parts: s.parts || [],
       settings: Object.assign({
         workshopName: 'Atölye',
         defaultLabor: 0,
@@ -2318,6 +2388,7 @@ function goto(page) {
   if (page === 'teachers') renderTeachers();
   if (page === 'revenue') renderRevenue();
   if (page === 'invoices') renderInvoices();
+  if (page === 'parts') renderParts();
   if (page === 'settings') renderSettings();
   localStorage.setItem('atolye_last_page', page);
   window.scrollTo(0, 0);
@@ -2888,6 +2959,129 @@ function renderRevenueTrend12() {
   host.innerHTML = html;
 }
 
+// ============ PARTS CATALOG ============
+function renderParts() {
+  const host = document.getElementById('parts-catalog-list');
+  const parts = state.parts || [];
+
+  const usageCounts = {};
+  (state.services || []).forEach(s => {
+    (s.parts || []).forEach(p => {
+      if (p.name) usageCounts[p.name.toLowerCase()] = (usageCounts[p.name.toLowerCase()] || 0) + (Number(p.qty) || 1);
+    });
+  });
+
+  if (parts.length === 0) {
+    host.innerHTML = `<div class="empty"><h3>Parça kataloğu boş</h3><p>Sık kullandığınız parçaları ekleyerek servis formunda otomatik fiyat doldurabilirsiniz.</p></div>`;
+    return;
+  }
+
+  const rows = [...parts]
+    .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+    .map(p => {
+      const margin = p.sellPrice > 0 ? Math.round((p.sellPrice - p.buyPrice) / p.sellPrice * 100) : null;
+      const usage = usageCounts[p.name.toLowerCase()] || 0;
+      return `<tr>
+        <td><strong>${escapeHtml(p.name)}</strong></td>
+        <td style="color:var(--text-muted)">${escapeHtml(p.category || '—')}</td>
+        <td style="color:var(--text-muted)">${escapeHtml(p.unit || '—')}</td>
+        <td class="money">₺${fmtMoney(p.buyPrice)}</td>
+        <td class="money">₺${fmtMoney(p.sellPrice)}</td>
+        <td>${margin !== null ? margin + '%' : '—'}</td>
+        <td style="color:var(--text-muted)">${usage > 0 ? usage + ' adet' : '—'}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm btn-icon" onclick="openPartModal('${p.id}')" title="Düzenle">✎</button>
+          <button class="btn btn-sm btn-icon btn-danger" onclick="deletePart('${p.id}')" title="Sil">×</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+  host.innerHTML = `<table class="table">
+    <thead><tr>
+      <th>Parça / Malzeme</th>
+      <th>Kategori</th>
+      <th>Birim</th>
+      <th>Alış</th>
+      <th>Satış</th>
+      <th>Marj</th>
+      <th>Toplam Kullanım</th>
+      <th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function openPartModal(id) {
+  editingPartId = id || null;
+  const part = id ? (state.parts || []).find(p => p.id === id) : null;
+  document.getElementById('part-modal-title').textContent = part ? 'Parça Düzenle' : 'Yeni Parça';
+  document.getElementById('part-name').value = part?.name || '';
+  document.getElementById('part-unit').value = part?.unit || '';
+  document.getElementById('part-buy-price').value = part?.buyPrice || '';
+  document.getElementById('part-sell-price').value = part?.sellPrice || '';
+  document.getElementById('part-category').value = part?.category || '';
+  openModal('part-modal');
+}
+
+async function savePart() {
+  const name = document.getElementById('part-name').value.trim();
+  if (!name) { showToast('Parça adı zorunlu', 'danger'); return; }
+  if (!state.parts) state.parts = [];
+  const data = {
+    name,
+    unit: document.getElementById('part-unit').value.trim(),
+    buyPrice: Number(document.getElementById('part-buy-price').value) || 0,
+    sellPrice: Number(document.getElementById('part-sell-price').value) || 0,
+    category: document.getElementById('part-category').value.trim(),
+  };
+  if (editingPartId) {
+    const idx = state.parts.findIndex(p => p.id === editingPartId);
+    if (idx !== -1) state.parts[idx] = { ...state.parts[idx], ...data };
+  } else {
+    state.parts.push({ id: uid(), ...data });
+  }
+  await saveState();
+  closeModal('part-modal');
+  showToast('Parça kaydedildi', 'success');
+  renderParts();
+  updatePartsDatalist();
+}
+
+function deletePart(id) {
+  const part = (state.parts || []).find(p => p.id === id);
+  if (!part) return;
+  confirmDo(`"${part.name}" parçasını katalogdan silmek istiyor musunuz?`, async () => {
+    state.parts = state.parts.filter(p => p.id !== id);
+    await saveState();
+    showToast('Parça silindi', 'success');
+    renderParts();
+    updatePartsDatalist();
+  });
+}
+
+function updatePartsDatalist() {
+  let dl = document.getElementById('parts-datalist');
+  if (!dl) {
+    dl = document.createElement('datalist');
+    dl.id = 'parts-datalist';
+    document.body.appendChild(dl);
+  }
+  dl.innerHTML = (state.parts || []).map(p => `<option value="${escapeHtml(p.name)}">`).join('');
+}
+
+function autoFillPartPrices(input) {
+  const name = input.value.trim();
+  if (!name) return;
+  const part = (state.parts || []).find(p => p.name.toLowerCase() === name.toLowerCase());
+  if (!part) return;
+  const tr = input.closest('tr');
+  const buyInput = tr.querySelector('.p-buy');
+  const sellInput = tr.querySelector('.p-sell');
+  if (buyInput && !Number(buyInput.value)) buyInput.value = part.buyPrice || '';
+  if (sellInput && !Number(sellInput.value)) sellInput.value = part.sellPrice || '';
+  updateServiceSummary();
+}
+
 // ============ VEHICLES ============
 function renderVehicles() {
   renderPeriodBar('vehicles');
@@ -3315,7 +3509,7 @@ function addPartRow(part) {
   const tbody = document.getElementById('parts-tbody');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}"></td>
+    <td><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}" list="parts-datalist" onchange="autoFillPartPrices(this)"></td>
     <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty ?? 1}" step="1" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
@@ -5046,6 +5240,7 @@ async function init() {
     }
     migrateTeacherData();
     migrateServiceData();
+    updatePartsDatalist();
     document.getElementById('brand-name').textContent = (state.settings.workshopName || 'Atölye');
     const lastPage = localStorage.getItem('atolye_last_page') || 'dashboard';
     goto(lastPage);
