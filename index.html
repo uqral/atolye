@@ -4034,7 +4034,7 @@ async function createInvoice(serviceId) {
     createdAt: new Date().toISOString(),
     workshopName: state.settings.workshopName || 'Atölye',
     date: s.date,
-    vehicle: v ? { plate: v.plate, brand: v.brand, model: v.model, customerName: v.customerName, phone: v.phone } : {},
+    vehicle: v ? { plate: v.plate, brand: v.brand, model: v.model, customerName: v.customerName, phone: v.phone, tc: v.customerTC || '', address: v.address || '' } : {},
     description: s.description,
     parts: JSON.parse(JSON.stringify(s.parts || [])),
     labor: s.labor || 0,
@@ -4144,7 +4144,7 @@ function showInvoiceModal(invoiceId) {
         </div>
         <div class="invoice-meta-block">
           <div class="invoice-meta-label">Müşteri</div>
-          <div class="invoice-meta-value">${escapeHtml(inv.vehicle?.customerName || '—')}${inv.vehicle?.phone ? '<br><span style="font-size:12px;color:#666;">' + escapeHtml(inv.vehicle.phone) + '</span>' : ''}</div>
+          <div class="invoice-meta-value">${escapeHtml(inv.vehicle?.customerName || '—')}${inv.vehicle?.tc ? '<br><span style="font-size:12px;color:#666;">TC: ' + escapeHtml(inv.vehicle.tc) + '</span>' : ''}${inv.vehicle?.phone ? '<br><span style="font-size:12px;color:#666;">' + escapeHtml(inv.vehicle.phone) + '</span>' : ''}${inv.vehicle?.address ? '<br><span style="font-size:12px;color:#666;">' + escapeHtml(inv.vehicle.address) + '</span>' : ''}</div>
         </div>
         <div class="invoice-meta-block">
           <div class="invoice-meta-label">Servis Tarihi</div>
