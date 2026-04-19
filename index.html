@@ -3170,15 +3170,23 @@ function selectCatalogPart(event, partId) {
   dd.style.display = 'none';
 }
 
-function addToCatalogFromRow(event) {
+async function addToCatalogFromRow(event) {
   event.preventDefault();
   const dd = event.currentTarget.closest('.part-suggestions');
   const input = dd._inputRef;
   if (!input) return;
-  _pendingPartRow = input.closest('tr');
+  const name = input.value.trim();
+  if (!name) return;
   dd.style.display = 'none';
-  openPartModal();
-  document.getElementById('part-name').value = input.value.trim();
+  if (!state.parts) state.parts = [];
+  if (state.parts.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+    showToast('Bu parça zaten katalogda var', 'warning');
+    return;
+  }
+  state.parts.push({ id: uid(), name, unit: '', buyPrice: 0, sellPrice: 0, category: '' });
+  await saveState();
+  showToast(`"${name}" kataloğa eklendi — fiyatları Parçalar sayfasından girebilirsiniz`, 'success');
+  updatePartsDatalist();
 }
 
 // ============ VEHICLES ============
