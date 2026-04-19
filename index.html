@@ -1444,16 +1444,23 @@
               <div class="form-field">
                 <label>Faaliyet oranı (%)</label>
                 <input type="number" id="setting-faaliyet-rate" placeholder="10" min="0" max="100" step="0.1">
-                <p class="help-text">Faturaya eklenen faaliyet payı</p>
+                <p class="help-text">Net maliyet üzerinden faaliyet fonu payı</p>
               </div>
               <div class="form-field">
-                <label>Döner Sermaye (₺)</label>
-                <input type="number" id="setting-doner-sermaye" placeholder="0" min="0" step="1">
-                <p class="help-text">Faturaya eklenen sabit ücret</p>
+                <label>Döner Sermaye oranı (%)</label>
+                <input type="number" id="setting-doner-sermaye-rate" placeholder="7" min="0" max="100" step="0.1">
+                <p class="help-text">Net maliyet üzerinden döner sermaye payı</p>
               </div>
               <div class="form-field">
                 <label>KDV oranı (%)</label>
                 <input type="number" id="setting-kdv-rate" placeholder="20" min="0" max="100" step="1">
+              </div>
+            </div>
+            <div class="form-row form-row-2">
+              <div class="form-field">
+                <label>Döner Sermaye sabit (₺)</label>
+                <input type="number" id="setting-doner-sermaye" placeholder="0" min="0" step="1">
+                <p class="help-text">Dönemde ek sabit ücret (genellikle 0)</p>
               </div>
             </div>
             <div>
@@ -1876,6 +1883,7 @@ let state = {
     gdriveAutoSync: false,
     faaliyetRate: 10,
     donerSermaye: 0,
+    donerSermayeRate: 7,
     kdvRate: 20,
     teacherShare: 70,
     studentShare: 30
@@ -2141,6 +2149,7 @@ async function loadState() {
         gdriveAutoSync: false,
         faaliyetRate: 10,
         donerSermaye: 0,
+        donerSermayeRate: 7,
         kdvRate: 20,
         teacherShare: 70,
         studentShare: 30
@@ -2205,6 +2214,22 @@ function serviceTotal(srv) {
   const partsLabor = (srv.parts || []).reduce((a, p) => a + (Number(p.labor) || 0), 0);
   const labor = Number(srv.labor) || 0;
   return partsTotal + labor + partsLabor;
+}
+
+function calcServiceBreakdown(srv) {
+  const malzeme = (srv.parts || []).reduce((a, p) => a + (Number(p.sellPrice) || 0) * (Number(p.qty) || 0), 0);
+  const partsLabor = (srv.parts || []).reduce((a, p) => a + (Number(p.labor) || 0), 0);
+  const iscilik = (Number(srv.labor) || 0) + partsLabor;
+  const netMaliyet = malzeme + iscilik;
+  const faaliyetRate = (state.settings.faaliyetRate ?? 10) / 100;
+  const donerRate = (state.settings.donerSermayeRate ?? 7) / 100;
+  const kdvRate = (state.settings.kdvRate ?? 20) / 100;
+  const faaliyet = netMaliyet * faaliyetRate;
+  const donerSermaye = netMaliyet * donerRate;
+  const kdvMathrah = netMaliyet + faaliyet + donerSermaye;
+  const kdv = kdvMathrah * kdvRate;
+  const tutar = kdvMathrah + kdv;
+  return { malzeme, iscilik, netMaliyet, faaliyet, donerSermaye, kdvMathrah, kdv, tutar };
 }
 
 function servicePartsProfit(srv) {
@@ -2686,9 +2711,144 @@ function renderRevenue() {
         <div id="revenue-trend-chart"></div>
       </div>
     </div>
+
+    <div id="revenue-breakdown-section"></div>
   `;
 
   renderRevenueTrend12();
+  renderRevenueBreakdown(periodSvcs);
+}
+
+function renderRevenueBreakdown(periodSvcs) {
+  const host = document.getElementById('revenue-breakdown-section');
+  if (!host) return;
+
+  const teacherSharePct = (state.settings.teacherShare ?? 70) / 100;
+  const studentSharePct = (state.settings.studentShare ?? 30) / 100;
+  const fRate = state.settings.faaliyetRate ?? 10;
+  const dRate = state.settings.donerSermayeRate ?? 7;
+  const kdvRate = state.settings.kdvRate ?? 20;
+
+  // Dönem toplamları
+  let totMalzeme = 0, totIscilik = 0, totFaaliyet = 0, totDoner = 0, totKdvMathrah = 0, totKdv = 0, totTutar = 0;
+  periodSvcs.forEach(s => {
+    const b = calcServiceBreakdown(s);
+    totMalzeme += b.malzeme;
+    totIscilik += b.iscilik;
+    totFaaliyet += b.faaliyet;
+    totDoner += b.donerSermaye;
+    totKdvMathrah += b.kdvMathrah;
+    totKdv += b.kdv;
+    totTutar += b.tutar;
+  });
+
+  // Servis bazlı satırlar
+  const svcRows = periodSvcs.map(s => {
+    const v = state.vehicles.find(vx => vx.id === s.vehicleId);
+    const plate = v ? v.plate : '—';
+    const b = calcServiceBreakdown(s);
+    const teachers = (s.teacherIds || []).map(id => state.teachers.find(t => t.id === id)?.name || '').filter(Boolean);
+    const students = (s.studentIds || []).map(id => state.students.find(st => st.id === id)?.name || '').filter(Boolean);
+    const teacherPay = b.iscilik > 0 && teachers.length > 0 ? b.iscilik * teacherSharePct / teachers.length : 0;
+    const studentPay = b.iscilik > 0 && students.length > 0 ? b.iscilik * studentSharePct / students.length : 0;
+    const date = s.date ? new Date(s.date).toLocaleDateString('tr-TR') : '—';
+    return `<tr>
+      <td style="white-space:nowrap">${date}</td>
+      <td><strong>${escapeHtml(plate)}</strong></td>
+      <td class="money">${fmtMoney(b.malzeme)}</td>
+      <td class="money">${fmtMoney(b.iscilik)}</td>
+      <td class="money">${fmtMoney(b.faaliyet)}</td>
+      <td class="money">${fmtMoney(b.donerSermaye)}</td>
+      <td class="money">${fmtMoney(b.kdvMathrah)}</td>
+      <td class="money">${fmtMoney(b.kdv)}</td>
+      <td class="money"><strong>${fmtMoney(b.tutar)}</strong></td>
+      <td style="font-size:11px; color:var(--text-muted)">${teachers.map(n => `${n}${teacherPay > 0 ? ' ₺' + fmtMoney(teacherPay) : ''}`).join('<br>') || '—'}</td>
+      <td style="font-size:11px; color:var(--text-muted)">${students.map(n => `${n}${studentPay > 0 ? ' ₺' + fmtMoney(studentPay) : ''}`).join('<br>') || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  host.innerHTML = `
+    <div class="section" style="margin-top: 20px;">
+      <div class="section-header">
+        <div class="section-title">Gelir Dağılım Raporu</div>
+        <span style="font-size:11px; color:var(--text-muted);">Excel mantığı: Faaliyet %${fRate} · Döner Sermaye %${dRate} · KDV %${kdvRate}</span>
+      </div>
+
+      <div class="revenue-flow" style="margin-bottom: 16px;">
+        <div class="flow-card">
+          <div class="stat-label">Malzeme (satış)</div>
+          <div class="stat-value money">₺${fmtMoney(totMalzeme)}</div>
+          <div class="stat-sub">Parça satış fiyatları</div>
+        </div>
+        <div class="flow-card">
+          <div class="stat-label">İşçilik</div>
+          <div class="stat-value money">₺${fmtMoney(totIscilik)}</div>
+          <div class="stat-sub">Pay dağıtım tabanı</div>
+        </div>
+        <div class="flow-card">
+          <div class="stat-label">Faaliyet Fonu (%${fRate})</div>
+          <div class="stat-value money" style="color:var(--text-muted)">₺${fmtMoney(totFaaliyet)}</div>
+          <div class="stat-sub">Net maliyet üzerinden</div>
+        </div>
+        <div class="flow-card">
+          <div class="stat-label">Döner Sermaye (%${dRate})</div>
+          <div class="stat-value money" style="color:var(--text-muted)">₺${fmtMoney(totDoner)}</div>
+          <div class="stat-sub">Net maliyet üzerinden</div>
+        </div>
+        <div class="flow-card highlight">
+          <div class="stat-label">KDV Matrahı</div>
+          <div class="stat-value money stat-accent">₺${fmtMoney(totKdvMathrah)}</div>
+          <div class="stat-sub">Malz + İşç + Faal + Döner</div>
+        </div>
+        <div class="flow-card">
+          <div class="stat-label">KDV (%${kdvRate})</div>
+          <div class="stat-value money" style="color:var(--text-muted)">₺${fmtMoney(totKdv)}</div>
+          <div class="stat-sub">Matrah üzerinden</div>
+        </div>
+        <div class="flow-card net">
+          <div class="stat-label">Müşteri Ödemesi</div>
+          <div class="stat-value money" style="color:var(--success)">₺${fmtMoney(totTutar)}</div>
+          <div class="stat-sub">KDV dahil TUTAR</div>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="table" style="font-size:12px; min-width:900px;">
+          <thead>
+            <tr>
+              <th>Tarih</th>
+              <th>Plaka</th>
+              <th>Malzeme</th>
+              <th>İşçilik</th>
+              <th>Faaliyet</th>
+              <th>Döner S.</th>
+              <th>KDV Matrahı</th>
+              <th>KDV</th>
+              <th>TUTAR</th>
+              <th>Öğretmen (pay/kişi)</th>
+              <th>Öğrenci (pay/kişi)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${svcRows}
+          </tbody>
+          <tfoot>
+            <tr style="font-weight:700; border-top: 2px solid var(--border);">
+              <td colspan="2">TOPLAM</td>
+              <td class="money">₺${fmtMoney(totMalzeme)}</td>
+              <td class="money">₺${fmtMoney(totIscilik)}</td>
+              <td class="money">₺${fmtMoney(totFaaliyet)}</td>
+              <td class="money">₺${fmtMoney(totDoner)}</td>
+              <td class="money">₺${fmtMoney(totKdvMathrah)}</td>
+              <td class="money">₺${fmtMoney(totKdv)}</td>
+              <td class="money">₺${fmtMoney(totTutar)}</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  `;
 }
 
 function renderRevenueTrend12() {
@@ -4074,6 +4234,7 @@ function renderSettings() {
   document.getElementById('setting-default-labor').value = state.settings.defaultLabor || '';
   document.getElementById('setting-faaliyet-rate').value = state.settings.faaliyetRate ?? 10;
   document.getElementById('setting-doner-sermaye').value = state.settings.donerSermaye ?? 0;
+  document.getElementById('setting-doner-sermaye-rate').value = state.settings.donerSermayeRate ?? 7;
   document.getElementById('setting-kdv-rate').value = state.settings.kdvRate ?? 20;
   document.getElementById('setting-teacher-share').value = state.settings.teacherShare ?? 70;
   document.getElementById('setting-student-share').value = state.settings.studentShare ?? 30;
@@ -4172,6 +4333,7 @@ async function saveSettings() {
   state.settings.defaultLabor = Number(document.getElementById('setting-default-labor').value) || 0;
   state.settings.faaliyetRate = Number(document.getElementById('setting-faaliyet-rate').value) || 0;
   state.settings.donerSermaye = Number(document.getElementById('setting-doner-sermaye').value) || 0;
+  state.settings.donerSermayeRate = Number(document.getElementById('setting-doner-sermaye-rate').value) || 0;
   state.settings.kdvRate = Number(document.getElementById('setting-kdv-rate').value) || 0;
   const tShare = Number(document.getElementById('setting-teacher-share').value) || 70;
   const sShare = Number(document.getElementById('setting-student-share').value) || 30;
@@ -4513,12 +4675,6 @@ function closeModal(id) {
   document.body.style.overflow = '';
 }
 
-// Close modal on backdrop click
-document.querySelectorAll('.modal-backdrop').forEach(el => {
-  el.addEventListener('click', (e) => {
-    if (e.target === el) closeModal(el.id);
-  });
-});
 
 // ============ SEED DATA (Test Verisi) ============
 function seedTestData() {
