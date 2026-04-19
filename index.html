@@ -1499,10 +1499,6 @@
                 <label>Atölye / Okul adı</label>
                 <input type="text" id="setting-workshop-name" placeholder="Örn: Ankara MTAL Otomotiv Atölyesi">
               </div>
-              <div class="form-field">
-                <label>Varsayılan işçilik (₺)</label>
-                <input type="number" id="setting-default-labor" placeholder="0" step="10">
-              </div>
             </div>
             <div>
               <button class="btn btn-primary" onclick="saveSettings()">Kaydet</button>
@@ -1545,13 +1541,7 @@
                 <input type="number" id="setting-kdv-rate" placeholder="20" min="0" max="100" step="1">
               </div>
             </div>
-            <div class="form-row form-row-2">
-              <div class="form-field">
-                <label>Döner Sermaye sabit (₺)</label>
-                <input type="number" id="setting-doner-sermaye" placeholder="0" min="0" step="1">
-                <p class="help-text">Dönemde ek sabit ücret (genellikle 0)</p>
-              </div>
-            </div>
+
             <div>
               <button class="btn btn-primary" onclick="saveSettings()">Kaydet</button>
             </div>
@@ -4641,9 +4631,7 @@ function renderStudentDetail() {
 // ============ SETTINGS ============
 function renderSettings() {
   document.getElementById('setting-workshop-name').value = state.settings.workshopName || '';
-  document.getElementById('setting-default-labor').value = state.settings.defaultLabor || '';
   document.getElementById('setting-faaliyet-rate').value = state.settings.faaliyetRate ?? 10;
-  document.getElementById('setting-doner-sermaye').value = state.settings.donerSermaye ?? 0;
   document.getElementById('setting-doner-sermaye-rate').value = state.settings.donerSermayeRate ?? 7;
   document.getElementById('setting-kdv-rate').value = state.settings.kdvRate ?? 20;
   document.getElementById('setting-teacher-share').value = state.settings.teacherShare ?? 70;
@@ -4740,9 +4728,7 @@ function renderSettings() {
 
 async function saveSettings() {
   state.settings.workshopName = document.getElementById('setting-workshop-name').value.trim() || 'Atölye';
-  state.settings.defaultLabor = Number(document.getElementById('setting-default-labor').value) || 0;
   state.settings.faaliyetRate = Number(document.getElementById('setting-faaliyet-rate').value) || 0;
-  state.settings.donerSermaye = Number(document.getElementById('setting-doner-sermaye').value) || 0;
   state.settings.donerSermayeRate = Number(document.getElementById('setting-doner-sermaye-rate').value) || 0;
   state.settings.kdvRate = Number(document.getElementById('setting-kdv-rate').value) || 0;
   const tShare = Number(document.getElementById('setting-teacher-share').value) || 70;
