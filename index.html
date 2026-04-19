@@ -1680,10 +1680,6 @@
 
         <div class="form-row form-row-2">
           <div class="form-field">
-            <label>İşçilik Ücreti (₺)</label>
-            <input type="number" id="srv-labor" placeholder="0" step="10" oninput="updateServiceSummary()">
-          </div>
-          <div class="form-field">
             <label>Sonraki bakım tarihi</label>
             <div style="display: flex; gap: 6px; align-items: center;">
               <input type="date" id="srv-next-date" style="flex: 1;">
@@ -2209,17 +2205,18 @@ function getSvcTeacherIds(s) {
   return s.teacherIds || (s.teacherId ? [s.teacherId] : []);
 }
 
+function serviceLaborTotal(srv) {
+  return (Number(srv.labor) || 0) + (srv.parts || []).reduce((a, p) => a + (Number(p.labor) || 0), 0);
+}
+
 function serviceTotal(srv) {
   const partsTotal = (srv.parts || []).reduce((a, p) => a + (Number(p.sellPrice) || 0) * (Number(p.qty) || 0), 0);
-  const partsLabor = (srv.parts || []).reduce((a, p) => a + (Number(p.labor) || 0), 0);
-  const labor = Number(srv.labor) || 0;
-  return partsTotal + labor + partsLabor;
+  return partsTotal + serviceLaborTotal(srv);
 }
 
 function calcServiceBreakdown(srv) {
   const malzeme = (srv.parts || []).reduce((a, p) => a + (Number(p.sellPrice) || 0) * (Number(p.qty) || 0), 0);
-  const partsLabor = (srv.parts || []).reduce((a, p) => a + (Number(p.labor) || 0), 0);
-  const iscilik = (Number(srv.labor) || 0) + partsLabor;
+  const iscilik = serviceLaborTotal(srv);
   const netMaliyet = malzeme + iscilik;
   const faaliyetRate = (state.settings.faaliyetRate ?? 10) / 100;
   const donerRate = (state.settings.donerSermayeRate ?? 7) / 100;
@@ -2336,7 +2333,7 @@ function renderDashboard() {
 
   const periodSvcs = state.services.filter(s => isInPeriod(s.date));
   const periodRevenue = periodSvcs.reduce((a, s) => a + serviceTotal(s), 0);
-  const periodLabor = periodSvcs.reduce((a, s) => a + (Number(s.labor) || 0), 0);
+  const periodLabor = periodSvcs.reduce((a, s) => a + serviceLaborTotal(s), 0);
   const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
   const periodNet = periodLabor + periodProfit;
 
@@ -2500,14 +2497,14 @@ function renderRevenue() {
   const totalPartsBuy = periodSvcs.reduce((a, s) => {
     return a + (s.parts || []).reduce((sum, p) => sum + (Number(p.buyPrice) || 0) * (Number(p.qty) || 0), 0);
   }, 0);
-  const totalLabor = periodSvcs.reduce((a, s) => a + (Number(s.labor) || 0), 0);
+  const totalLabor = periodSvcs.reduce((a, s) => a + serviceLaborTotal(s), 0);
   const partsProfit = totalPartsSell - totalPartsBuy;
 
   // Pay hesabı: per service, işçilik bazlı
   const teacherStats = {};
   const studentStats = {};
   periodSvcs.forEach(s => {
-    const labor = Number(s.labor) || 0;
+    const labor = serviceLaborTotal(s);
     const teachers = s.teacherIds || [];
     const students = s.studentIds || [];
     if (labor > 0 && teachers.length > 0) {
@@ -3122,7 +3119,7 @@ function renderServices() {
 
   // Özet bilgi — dönem toplamı
   const totalRevenue = list.reduce((a, s) => a + serviceTotal(s), 0);
-  const totalLabor = list.reduce((a, s) => a + (Number(s.labor) || 0), 0);
+  const totalLabor = list.reduce((a, s) => a + serviceLaborTotal(s), 0);
   const totalProfit = list.reduce((a, s) => a + servicePartsProfit(s), 0);
 
   if (list.length === 0) {
@@ -3234,7 +3231,6 @@ function openServiceModal(preselectedVehicleId) {
   document.getElementById('srv-km').value = '';
   document.getElementById('srv-next-km').value = '';
   document.getElementById('srv-description').value = '';
-  document.getElementById('srv-labor').value = state.settings.defaultLabor || '';
   document.getElementById('srv-next-date').value = '';
   document.getElementById('srv-notes').value = '';
 
@@ -3261,7 +3257,6 @@ function editService(id) {
   document.getElementById('srv-km').value = s.km || '';
   document.getElementById('srv-next-km').value = s.nextServiceKm || '';
   document.getElementById('srv-description').value = s.description || '';
-  document.getElementById('srv-labor').value = s.labor || 0;
   document.getElementById('srv-next-date').value = s.nextServiceDate || '';
   document.getElementById('srv-notes').value = s.notes || '';
 
@@ -3356,8 +3351,7 @@ function updateServiceSummary() {
     partsLaborTotal += partLabor;
     tr.querySelector('.p-line-total').textContent = fmtMoney(lineTotal);
   });
-  const generalLabor = Number(document.getElementById('srv-labor').value) || 0;
-  const totalLabor = generalLabor + partsLaborTotal;
+  const totalLabor = partsLaborTotal;
   const profit = partsTotal - buyTotal;
   const total = partsTotal + totalLabor;
   document.getElementById('sum-parts').textContent = fmtMoney(partsTotal);
@@ -3384,7 +3378,7 @@ async function saveService() {
     nextServiceKm: document.getElementById('srv-next-km').value || '',
     description,
     parts: collectParts(),
-    labor: Number(document.getElementById('srv-labor').value) || 0,
+    labor: 0,
     nextServiceDate: document.getElementById('srv-next-date').value || '',
     notes: document.getElementById('srv-notes').value.trim(),
     studentIds,
@@ -3459,7 +3453,7 @@ function showServiceDetail(id) {
       </div>
       <div class="summary-item">
         <div class="summary-item-label">İşçilik</div>
-        <div class="summary-item-value money">₺${fmtMoney(s.labor || 0)}</div>
+        <div class="summary-item-value money">₺${fmtMoney(serviceLaborTotal(s))}</div>
       </div>
       <div class="summary-item">
         <div class="summary-item-label">Genel Toplam</div>
@@ -3757,7 +3751,7 @@ function renderTeachers() {
   }
 
   const periodSvcs = state.services.filter(s => isInPeriod(s.date));
-  const periodLabor = periodSvcs.reduce((a, s) => a + (Number(s.labor) || 0), 0);
+  const periodLabor = periodSvcs.reduce((a, s) => a + serviceLaborTotal(s), 0);
   const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
   const periodNet = periodLabor + periodProfit;
 
@@ -3875,7 +3869,7 @@ function renderStudents() {
 
   // Dönem servisleri
   const periodSvcs = state.services.filter(s => isInPeriod(s.date));
-  const periodLabor = periodSvcs.reduce((a, s) => a + (Number(s.labor) || 0), 0);
+  const periodLabor = periodSvcs.reduce((a, s) => a + serviceLaborTotal(s), 0);
   const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
   const periodNet = periodLabor + periodProfit;
 
