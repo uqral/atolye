@@ -1441,11 +1441,20 @@
           Yeni Parça
         </button>
       </div>
-      <div class="search-bar">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" class="search-input" id="parts-search" placeholder="Parça adı veya kategori ile ara..." oninput="renderParts()">
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px;">
+        <div class="search-bar" style="flex:1; margin-bottom:0;">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" class="search-input" id="parts-search" placeholder="Parça adı ile ara..." oninput="renderParts()">
+        </div>
+        <select id="parts-filter-category" onchange="renderParts()" style="height:40px; padding:0 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); font-size:13px; color:var(--text); min-width:160px;">
+          <option value="">Tüm kategoriler</option>
+        </select>
+        <select id="parts-filter-price" onchange="renderParts()" style="height:40px; padding:0 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); font-size:13px; color:var(--text); min-width:160px;">
+          <option value="">Tüm fiyatlar</option>
+          <option value="with-price">Fiyatı girilmiş</option>
+          <option value="no-price">Fiyat girilmemiş</option>
+        </select>
       </div>
-      <div style="height: 16px;"></div>
       <div class="section">
         <div id="parts-catalog-list"></div>
       </div>
@@ -2008,6 +2017,7 @@ let editingStudentId = null;
 let editingTeacherId = null;
 let editingPartId = null;
 let _pendingPartRow = null;
+let partsSort = { col: 'name', dir: 'asc' };
 let currentVehicleDetailId = null;
 
 const PAGE_SIZE = 25;
@@ -3001,12 +3011,33 @@ function renderRevenueTrend12() {
 }
 
 // ============ PARTS CATALOG ============
+function partsSortBy(col) {
+  if (partsSort.col === col) partsSort.dir = partsSort.dir === 'asc' ? 'desc' : 'asc';
+  else { partsSort.col = col; partsSort.dir = 'asc'; }
+  renderParts();
+}
+
 function renderParts() {
   const host = document.getElementById('parts-catalog-list');
   const q = (document.getElementById('parts-search')?.value || '').trim().toLowerCase();
-  const parts = (state.parts || []).filter(p =>
-    !q || p.name.toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q)
-  );
+  const catFilter = document.getElementById('parts-filter-category')?.value || '';
+  const priceFilter = document.getElementById('parts-filter-price')?.value || '';
+
+  // Update category dropdown options
+  const catEl = document.getElementById('parts-filter-category');
+  if (catEl) {
+    const cats = [...new Set((state.parts || []).map(p => p.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr'));
+    const current = catEl.value;
+    catEl.innerHTML = `<option value="">Tüm kategoriler</option>` + cats.map(c => `<option value="${escapeHtml(c)}" ${current === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('');
+  }
+
+  let parts = (state.parts || []).filter(p => {
+    if (q && !p.name.toLowerCase().includes(q)) return false;
+    if (catFilter && p.category !== catFilter) return false;
+    if (priceFilter === 'with-price' && !(p.buyPrice > 0 || p.sellPrice > 0)) return false;
+    if (priceFilter === 'no-price' && (p.buyPrice > 0 || p.sellPrice > 0)) return false;
+    return true;
+  });
 
   const usageCounts = {};
   (state.services || []).forEach(s => {
@@ -3015,40 +3046,53 @@ function renderParts() {
     });
   });
 
-  if (parts.length === 0) {
+  if ((state.parts || []).length === 0) {
     host.innerHTML = `<div class="empty"><h3>Parça kataloğu boş</h3><p>Sık kullandığınız parçaları ekleyerek servis formunda otomatik fiyat doldurabilirsiniz.</p></div>`;
     return;
   }
+  if (parts.length === 0) {
+    host.innerHTML = `<div class="empty"><h3>Eşleşen parça yok</h3><p>Filtre veya arama kriterlerinizi değiştirin.</p></div>`;
+    return;
+  }
 
-  const rows = [...parts]
-    .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
-    .map(p => {
-      const margin = p.sellPrice > 0 ? Math.round((p.sellPrice - p.buyPrice) / p.sellPrice * 100) : null;
-      const usage = usageCounts[p.name.toLowerCase()] || 0;
-      return `<tr>
-        <td><strong>${escapeHtml(p.name)}</strong></td>
-        <td style="color:var(--text-muted)">${escapeHtml(p.category || '—')}</td>
-        <td style="color:var(--text-muted)">${escapeHtml(p.unit || '—')}</td>
-        <td class="money">₺${fmtMoney(p.buyPrice)}</td>
-        <td class="money">₺${fmtMoney(p.sellPrice)}</td>
-        <td>${margin !== null ? margin + '%' : '—'}</td>
-        <td style="color:var(--text-muted)">${usage > 0 ? usage + ' adet' : '—'}</td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-sm btn-icon" onclick="openPartModal('${p.id}')" title="Düzenle">✎</button>
-          <button class="btn btn-sm btn-icon btn-danger" onclick="deletePart('${p.id}')" title="Sil">×</button>
-        </td>
-      </tr>`;
-    }).join('');
+  const colMap = { name: p => p.name, category: p => p.category || '', unit: p => p.unit || '', buyPrice: p => p.buyPrice, sellPrice: p => p.sellPrice, margin: p => p.sellPrice > 0 ? (p.sellPrice - p.buyPrice) / p.sellPrice : -1, usage: p => usageCounts[p.name.toLowerCase()] || 0 };
+  const sortFn = colMap[partsSort.col] || colMap.name;
+  parts = [...parts].sort((a, b) => {
+    const va = sortFn(a), vb = sortFn(b);
+    const cmp = typeof va === 'string' ? va.localeCompare(vb, 'tr') : va - vb;
+    return partsSort.dir === 'asc' ? cmp : -cmp;
+  });
+
+  const arrow = col => partsSort.col === col ? (partsSort.dir === 'asc' ? ' ↑' : ' ↓') : '';
+  const th = (col, label) => `<th style="cursor:pointer;user-select:none;" onclick="partsSortBy('${col}')">${label}${arrow(col)}</th>`;
+
+  const rows = parts.map(p => {
+    const margin = p.sellPrice > 0 ? Math.round((p.sellPrice - p.buyPrice) / p.sellPrice * 100) : null;
+    const usage = usageCounts[p.name.toLowerCase()] || 0;
+    return `<tr>
+      <td><strong>${escapeHtml(p.name)}</strong></td>
+      <td style="color:var(--text-muted)">${escapeHtml(p.category || '—')}</td>
+      <td style="color:var(--text-muted)">${escapeHtml(p.unit || '—')}</td>
+      <td class="money">₺${fmtMoney(p.buyPrice)}</td>
+      <td class="money">₺${fmtMoney(p.sellPrice)}</td>
+      <td>${margin !== null ? margin + '%' : '—'}</td>
+      <td style="color:var(--text-muted)">${usage > 0 ? usage + ' adet' : '—'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm btn-icon" onclick="openPartModal('${p.id}')" title="Düzenle">✎</button>
+        <button class="btn btn-sm btn-icon btn-danger" onclick="deletePart('${p.id}')" title="Sil">×</button>
+      </td>
+    </tr>`;
+  }).join('');
 
   host.innerHTML = `<table class="table">
     <thead><tr>
-      <th>Parça / Malzeme</th>
-      <th>Kategori</th>
-      <th>Birim</th>
-      <th>Alış</th>
-      <th>Satış</th>
-      <th>Marj</th>
-      <th>Toplam Kullanım</th>
+      ${th('name','Parça / Malzeme')}
+      ${th('category','Kategori')}
+      ${th('unit','Birim')}
+      ${th('buyPrice','Alış')}
+      ${th('sellPrice','Satış')}
+      ${th('margin','Marj')}
+      ${th('usage','Toplam Kullanım')}
       <th></th>
     </tr></thead>
     <tbody>${rows}</tbody>
