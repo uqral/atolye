@@ -2355,18 +2355,20 @@ function serviceTotal(srv) {
 }
 
 function calcServiceBreakdown(srv) {
-  const malzeme = (srv.parts || []).reduce((a, p) => a + (Number(p.sellPrice) || 0) * (Number(p.qty) || 0), 0);
-  const iscilik = serviceLaborTotal(srv);
-  const netMaliyet = malzeme + iscilik;
+  const tutar = serviceTotal(srv); // KDV dahil fatura tutarı (başlangıç noktası)
+  const kdvRate = (state.settings.kdvRate ?? 20) / 100;
   const faaliyetRate = (state.settings.faaliyetRate ?? 10) / 100;
   const donerRate = (state.settings.donerSermayeRate ?? 7) / 100;
-  const kdvRate = (state.settings.kdvRate ?? 20) / 100;
-  const faaliyet = netMaliyet * faaliyetRate;
-  const donerSermaye = netMaliyet * donerRate;
-  const kdvMathrah = netMaliyet + faaliyet + donerSermaye;
-  const kdv = kdvMathrah * kdvRate;
-  const tutar = kdvMathrah + kdv;
-  return { malzeme, iscilik, netMaliyet, faaliyet, donerSermaye, kdvMathrah, kdv, tutar };
+
+  const kdvMathrah = tutar / (1 + kdvRate); // KDV hariç = KDV matrahı
+  const kdv = tutar - kdvMathrah;
+  const faaliyet = kdvMathrah * faaliyetRate;
+  const donerSermaye = kdvMathrah * donerRate;
+  const malzemeBuyCost = (srv.parts || []).reduce((a, p) => a + (Number(p.buyPrice) || 0) * (Number(p.qty) || 0), 0);
+  const iscilik = kdvMathrah - faaliyet - donerSermaye - malzemeBuyCost; // dağıtılabilir işçilik
+  const malzeme = (srv.parts || []).reduce((a, p) => a + (Number(p.sellPrice) || 0) * (Number(p.qty) || 0), 0);
+
+  return { tutar, kdvMathrah, kdv, faaliyet, donerSermaye, malzemeBuyCost, iscilik, malzeme };
 }
 
 function servicePartsProfit(srv) {
@@ -2681,17 +2683,17 @@ function renderRevenue() {
   }, 0);
   const kdvRatePct = (state.settings.kdvRate ?? 20) / 100;
   const totalPartsBuyIncKdv = totalPartsBuy * (1 + kdvRatePct);
-  const totalLabor = periodSvcs.reduce((a, s) => a + serviceLaborTotal(s), 0);
+  const totalLabor = periodSvcs.reduce((a, s) => a + calcServiceBreakdown(s).iscilik, 0);
   const partsProfit = totalPartsSell - totalPartsBuy;
 
   let totFaaliyet = 0, totDoner = 0;
   periodSvcs.forEach(s => { const b = calcServiceBreakdown(s); totFaaliyet += b.faaliyet; totDoner += b.donerSermaye; });
 
-  // Pay hesabı: per service, işçilik bazlı
+  // Pay hesabı: per service, dağıtılabilir işçilik bazlı
   const teacherStats = {};
   const studentStats = {};
   periodSvcs.forEach(s => {
-    const labor = serviceLaborTotal(s);
+    const labor = calcServiceBreakdown(s).iscilik;
     const teachers = s.teacherIds || [];
     const students = s.studentIds || [];
     if (labor > 0 && teachers.length > 0) {
@@ -2820,12 +2822,12 @@ function renderRevenue() {
       ${totFaaliyet > 0 ? `<div class="flow-card">
         <div class="stat-label">Faaliyet Fonu (%${state.settings.faaliyetRate ?? 10})</div>
         <div class="stat-value money" style="color: var(--text-muted);">₺${fmtMoney(totFaaliyet)}</div>
-        <div class="stat-sub">Net maliyet üzerinden</div>
+        <div class="stat-sub">KDV matrahı üzerinden</div>
       </div>` : ''}
       ${totDoner > 0 ? `<div class="flow-card">
         <div class="stat-label">Döner Sermaye (%${state.settings.donerSermayeRate ?? 7})</div>
         <div class="stat-value money" style="color: var(--text-muted);">₺${fmtMoney(totDoner)}</div>
-        <div class="stat-sub">Net maliyet üzerinden</div>
+        <div class="stat-sub">KDV matrahı üzerinden</div>
       </div>` : ''}
       <div class="flow-card net">
         <div class="stat-label">Öğretmen payı (%${state.settings.teacherShare ?? 70})</div>
@@ -2919,16 +2921,16 @@ function renderRevenueBreakdown(periodSvcs) {
   const kdvRate = state.settings.kdvRate ?? 20;
 
   // Dönem toplamları
-  let totMalzeme = 0, totIscilik = 0, totFaaliyet = 0, totDoner = 0, totKdvMathrah = 0, totKdv = 0, totTutar = 0;
+  let totTutar = 0, totKdvMathrah = 0, totKdv = 0, totDoner = 0, totFaaliyet = 0, totMalzeme = 0, totIscilik = 0;
   periodSvcs.forEach(s => {
     const b = calcServiceBreakdown(s);
-    totMalzeme += b.malzeme;
-    totIscilik += b.iscilik;
-    totFaaliyet += b.faaliyet;
-    totDoner += b.donerSermaye;
+    totTutar += b.tutar;
     totKdvMathrah += b.kdvMathrah;
     totKdv += b.kdv;
-    totTutar += b.tutar;
+    totDoner += b.donerSermaye;
+    totFaaliyet += b.faaliyet;
+    totMalzeme += b.malzemeBuyCost;
+    totIscilik += b.iscilik;
   });
 
   // Servis bazlı satırlar
@@ -2944,13 +2946,13 @@ function renderRevenueBreakdown(periodSvcs) {
     return `<tr>
       <td style="white-space:nowrap">${date}</td>
       <td><strong>${escapeHtml(plate)}</strong></td>
-      <td class="money">${fmtMoney(b.malzeme)}</td>
-      <td class="money">${fmtMoney(b.iscilik)}</td>
-      <td class="money">${fmtMoney(b.faaliyet)}</td>
-      <td class="money">${fmtMoney(b.donerSermaye)}</td>
-      <td class="money">${fmtMoney(b.kdvMathrah)}</td>
-      <td class="money">${fmtMoney(b.kdv)}</td>
       <td class="money"><strong>${fmtMoney(b.tutar)}</strong></td>
+      <td class="money">${fmtMoney(b.kdvMathrah)}</td>
+      <td class="money" style="color:var(--text-muted)">${fmtMoney(b.kdv)}</td>
+      <td class="money" style="color:var(--text-muted)">${fmtMoney(b.donerSermaye)}</td>
+      <td class="money" style="color:var(--text-muted)">${fmtMoney(b.faaliyet)}</td>
+      <td class="money" style="color:var(--text-muted)">${fmtMoney(b.malzemeBuyCost)}</td>
+      <td class="money" style="color:var(--success); font-weight:600">${fmtMoney(b.iscilik)}</td>
       <td style="font-size:11px; color:var(--text-muted)">${teachers.map(n => `${n}${teacherPay > 0 ? ' ₺' + fmtMoney(teacherPay) : ''}`).join('<br>') || '—'}</td>
       <td style="font-size:11px; color:var(--text-muted)">${students.map(n => `${n}${studentPay > 0 ? ' ₺' + fmtMoney(studentPay) : ''}`).join('<br>') || '—'}</td>
     </tr>`;
@@ -2960,44 +2962,44 @@ function renderRevenueBreakdown(periodSvcs) {
     <div class="section" style="margin-top: 20px;">
       <div class="section-header">
         <div class="section-title">Gelir Dağılım Raporu</div>
-        <span style="font-size:11px; color:var(--text-muted);">Excel mantığı: Faaliyet %${fRate} · Döner Sermaye %${dRate} · KDV %${kdvRate}</span>
+        <span style="font-size:11px; color:var(--text-muted);">Formül: KDV dahil → KDV hariç → −Döner %${dRate} → −Faaliyet %${fRate} → −Malzeme alış → Dağ. İşçilik</span>
       </div>
 
       <div class="revenue-flow" style="margin-bottom: 16px;">
-        <div class="flow-card">
-          <div class="stat-label">Malzeme (satış)</div>
-          <div class="stat-value money">₺${fmtMoney(totMalzeme)}</div>
-          <div class="stat-sub">Parça satış fiyatları</div>
-        </div>
-        <div class="flow-card">
-          <div class="stat-label">İşçilik</div>
-          <div class="stat-value money">₺${fmtMoney(totIscilik)}</div>
-          <div class="stat-sub">Pay dağıtım tabanı</div>
-        </div>
-        <div class="flow-card">
-          <div class="stat-label">Faaliyet Fonu (%${fRate})</div>
-          <div class="stat-value money" style="color:var(--text-muted)">₺${fmtMoney(totFaaliyet)}</div>
-          <div class="stat-sub">Net maliyet üzerinden</div>
-        </div>
-        <div class="flow-card">
-          <div class="stat-label">Döner Sermaye (%${dRate})</div>
-          <div class="stat-value money" style="color:var(--text-muted)">₺${fmtMoney(totDoner)}</div>
-          <div class="stat-sub">Net maliyet üzerinden</div>
+        <div class="flow-card net">
+          <div class="stat-label">Müşteri Ödemesi (KDV dahil)</div>
+          <div class="stat-value money" style="color:var(--success)">₺${fmtMoney(totTutar)}</div>
+          <div class="stat-sub">Fatura tutarı</div>
         </div>
         <div class="flow-card highlight">
-          <div class="stat-label">KDV Matrahı</div>
+          <div class="stat-label">KDV Matrahı (KDV hariç)</div>
           <div class="stat-value money stat-accent">₺${fmtMoney(totKdvMathrah)}</div>
-          <div class="stat-sub">Malz + İşç + Faal + Döner</div>
+          <div class="stat-sub">Tutar ÷ (1 + %${kdvRate})</div>
         </div>
         <div class="flow-card">
           <div class="stat-label">KDV (%${kdvRate})</div>
           <div class="stat-value money" style="color:var(--text-muted)">₺${fmtMoney(totKdv)}</div>
           <div class="stat-sub">Matrah üzerinden</div>
         </div>
-        <div class="flow-card net">
-          <div class="stat-label">Müşteri Ödemesi</div>
-          <div class="stat-value money" style="color:var(--success)">₺${fmtMoney(totTutar)}</div>
-          <div class="stat-sub">KDV dahil TUTAR</div>
+        <div class="flow-card">
+          <div class="stat-label">Döner Sermaye (%${dRate})</div>
+          <div class="stat-value money" style="color:var(--text-muted)">₺${fmtMoney(totDoner)}</div>
+          <div class="stat-sub">KDV matrahı üzerinden</div>
+        </div>
+        <div class="flow-card">
+          <div class="stat-label">Faaliyet Fonu (%${fRate})</div>
+          <div class="stat-value money" style="color:var(--text-muted)">₺${fmtMoney(totFaaliyet)}</div>
+          <div class="stat-sub">KDV matrahı üzerinden</div>
+        </div>
+        <div class="flow-card">
+          <div class="stat-label">Malzeme Alış (KDV hariç)</div>
+          <div class="stat-value money" style="color:var(--danger)">₺${fmtMoney(totMalzeme)}</div>
+          <div class="stat-sub">Alış fiyatları toplamı</div>
+        </div>
+        <div class="flow-card highlight">
+          <div class="stat-label">Dağıtılabilir İşçilik</div>
+          <div class="stat-value money stat-accent">₺${fmtMoney(totIscilik)}</div>
+          <div class="stat-sub">%${teacherSharePct*100|0} öğretmen · %${studentSharePct*100|0} öğrenci</div>
         </div>
       </div>
 
@@ -3007,13 +3009,13 @@ function renderRevenueBreakdown(periodSvcs) {
             <tr>
               <th>Tarih</th>
               <th>Plaka</th>
-              <th>Malzeme</th>
-              <th>İşçilik</th>
-              <th>Faaliyet</th>
-              <th>Döner S.</th>
+              <th>KDV dahil</th>
               <th>KDV Matrahı</th>
               <th>KDV</th>
-              <th>TUTAR</th>
+              <th>Döner S.</th>
+              <th>Faaliyet</th>
+              <th>Malz. Alış</th>
+              <th>Dağ. İşçilik</th>
               <th>Öğretmen (pay/kişi)</th>
               <th>Öğrenci (pay/kişi)</th>
             </tr>
@@ -3024,13 +3026,13 @@ function renderRevenueBreakdown(periodSvcs) {
           <tfoot>
             <tr style="font-weight:700; border-top: 2px solid var(--border);">
               <td colspan="2">TOPLAM</td>
-              <td class="money">₺${fmtMoney(totMalzeme)}</td>
-              <td class="money">₺${fmtMoney(totIscilik)}</td>
-              <td class="money">₺${fmtMoney(totFaaliyet)}</td>
-              <td class="money">₺${fmtMoney(totDoner)}</td>
+              <td class="money">₺${fmtMoney(totTutar)}</td>
               <td class="money">₺${fmtMoney(totKdvMathrah)}</td>
               <td class="money">₺${fmtMoney(totKdv)}</td>
-              <td class="money">₺${fmtMoney(totTutar)}</td>
+              <td class="money">₺${fmtMoney(totDoner)}</td>
+              <td class="money">₺${fmtMoney(totFaaliyet)}</td>
+              <td class="money">₺${fmtMoney(totMalzeme)}</td>
+              <td class="money">₺${fmtMoney(totIscilik)}</td>
               <td colspan="2"></td>
             </tr>
           </tfoot>
