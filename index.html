@@ -748,14 +748,15 @@
   .revenue-flow {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 20px;
+    margin-bottom: 24px;
+    padding: 4px 2px;
   }
   .flow-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 18px 20px;
+    padding: 20px 22px;
     box-shadow: var(--shadow);
     position: relative;
   }
@@ -3002,7 +3003,7 @@ function renderRevenueBreakdown(periodSvcs) {
         <span style="font-size:11px; color:var(--text-muted);">Formül: KDV dahil → KDV hariç → −Döner %${dRate} → −Faaliyet %${fRate} → −Malzeme alış → Dağ. İşçilik</span>
       </div>
 
-      <div class="revenue-flow" style="margin-bottom: 28px; flex-wrap: wrap; gap: 12px;">
+      <div class="revenue-flow" style="margin-bottom: 28px;">
         <div class="flow-card net">
           <div class="stat-label">Müşteri Ödemesi (KDV dahil)</div>
           <div class="stat-value money" style="color:var(--success)">₺${fmtMoney(totTutar)}</div>
