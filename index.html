@@ -3126,7 +3126,7 @@ function renderParts() {
   });
 
   const arrow = col => partsSort.col === col ? (partsSort.dir === 'asc' ? ' ↑' : ' ↓') : '';
-  const th = (col, label) => `<th style="cursor:pointer;user-select:none;" onclick="partsSortBy('${col}')">${label}${arrow(col)}</th>`;
+  const th = (col, label, tip) => `<th style="cursor:pointer;user-select:none;" onclick="partsSortBy('${col}')"${tip ? ` title="${tip}"` : ''}>${label}${arrow(col)}${tip ? ' <span class="th-info">i</span>' : ''}</th>`;
 
   const rows = parts.map(p => {
     const margin = p.sellPrice > 0 ? Math.round((p.sellPrice - p.buyPrice) / p.sellPrice * 100) : null;
@@ -3151,8 +3151,8 @@ function renderParts() {
       ${th('name','Parça / Malzeme')}
       ${th('category','Kategori')}
       ${th('unit','Birim')}
-      ${th('buyPrice','Alış <span class="th-info" title="KDV hariç fiyat">i</span>')}
-      ${th('sellPrice','Satış <span class="th-info" title="KDV hariç fiyat">i</span>')}
+      ${th('buyPrice','Alış','KDV hariç fiyat')}
+      ${th('sellPrice','Satış','KDV hariç fiyat')}
       ${th('margin','Marj')}
       ${th('usage','Toplam Kullanım')}
       <th></th>
