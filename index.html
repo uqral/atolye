@@ -1202,10 +1202,22 @@
   color: var(--text-muted);
   font-size: 9px;
   font-weight: 700;
-  cursor: default;
+  cursor: pointer;
   position: relative;
   margin-left: 4px;
   vertical-align: middle;
+}
+.th-info-popup {
+  position: fixed;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 5px;
+  z-index: 9999;
+  pointer-events: none;
 }
 </style>
 </head>
@@ -3079,6 +3091,20 @@ function partsSortBy(col) {
   renderParts();
 }
 
+let _thInfoPopup = null;
+function showThInfoPopup(e, text) {
+  if (_thInfoPopup) { _thInfoPopup.remove(); _thInfoPopup = null; return; }
+  const el = document.createElement('div');
+  el.className = 'th-info-popup';
+  el.textContent = text;
+  document.body.appendChild(el);
+  const r = e.target.getBoundingClientRect();
+  el.style.top = (r.bottom + 6) + 'px';
+  el.style.left = (r.left + r.width / 2 - el.offsetWidth / 2) + 'px';
+  _thInfoPopup = el;
+  setTimeout(() => { document.addEventListener('click', () => { el.remove(); _thInfoPopup = null; }, { once: true }); }, 0);
+}
+
 function renderParts() {
   const host = document.getElementById('parts-catalog-list');
   const q = (document.getElementById('parts-search')?.value || '').trim().toLowerCase();
@@ -3126,7 +3152,7 @@ function renderParts() {
   });
 
   const arrow = col => partsSort.col === col ? (partsSort.dir === 'asc' ? ' ↑' : ' ↓') : '';
-  const th = (col, label, tip) => `<th style="cursor:pointer;user-select:none;" onclick="partsSortBy('${col}')"${tip ? ` title="${tip}"` : ''}>${label}${arrow(col)}${tip ? ' <span class="th-info">i</span>' : ''}</th>`;
+  const th = (col, label, tip) => `<th style="cursor:pointer;user-select:none;" onclick="partsSortBy('${col}')"${tip ? ` title="${tip}"` : ''}>${label}${arrow(col)}${tip ? ` <span class="th-info" onclick="event.stopPropagation();showThInfoPopup(event,'${tip}')">i</span>` : ''}</th>`;
 
   const rows = parts.map(p => {
     const margin = p.sellPrice > 0 ? Math.round((p.sellPrice - p.buyPrice) / p.sellPrice * 100) : null;
