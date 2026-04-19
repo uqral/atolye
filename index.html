@@ -2500,6 +2500,9 @@ function renderRevenue() {
   const totalLabor = periodSvcs.reduce((a, s) => a + serviceLaborTotal(s), 0);
   const partsProfit = totalPartsSell - totalPartsBuy;
 
+  let totFaaliyet = 0, totDoner = 0;
+  periodSvcs.forEach(s => { const b = calcServiceBreakdown(s); totFaaliyet += b.faaliyet; totDoner += b.donerSermaye; });
+
   // Pay hesabı: per service, işçilik bazlı
   const teacherStats = {};
   const studentStats = {};
@@ -2630,10 +2633,15 @@ function renderRevenue() {
         <div class="stat-value money stat-accent">₺${fmtMoney(totalLabor)}</div>
         <div class="stat-sub">Pay dağıtım tabanı</div>
       </div>
-      ${donerSermaye > 0 ? `<div class="flow-card">
-        <div class="stat-label">Döner Sermaye</div>
-        <div class="stat-value money" style="color: var(--text-muted);">₺${fmtMoney(donerSermaye)}</div>
-        <div class="stat-sub">Sabit kesinti (ayarlardan)</div>
+      ${totFaaliyet > 0 ? `<div class="flow-card">
+        <div class="stat-label">Faaliyet Fonu (%${state.settings.faaliyetRate ?? 10})</div>
+        <div class="stat-value money" style="color: var(--text-muted);">₺${fmtMoney(totFaaliyet)}</div>
+        <div class="stat-sub">Net maliyet üzerinden</div>
+      </div>` : ''}
+      ${totDoner > 0 ? `<div class="flow-card">
+        <div class="stat-label">Döner Sermaye (%${state.settings.donerSermayeRate ?? 7})</div>
+        <div class="stat-value money" style="color: var(--text-muted);">₺${fmtMoney(totDoner)}</div>
+        <div class="stat-sub">Net maliyet üzerinden</div>
       </div>` : ''}
       <div class="flow-card net">
         <div class="stat-label">Öğretmen payı (%${state.settings.teacherShare ?? 70})</div>
