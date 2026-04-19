@@ -1528,6 +1528,14 @@
                 <label>Atölye / Okul adı</label>
                 <input type="text" id="setting-workshop-name" placeholder="Örn: Ankara MTAL Otomotiv Atölyesi">
               </div>
+              <div class="form-field">
+                <label>Logo <span style="font-size:11px;color:var(--text-muted);font-weight:400;">(Faturada görünür · PNG/JPG önerilir)</span></label>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <input type="file" id="setting-logo-file" accept="image/*" onchange="previewLogo(this)" style="flex:1;min-width:0;">
+                  <img id="setting-logo-preview" src="" alt="" style="height:48px;border-radius:6px;border:1px solid var(--border);display:none;object-fit:contain;background:#fff;padding:2px;">
+                  <button class="btn btn-sm btn-danger" id="setting-logo-clear" onclick="clearLogo()" style="display:none;">Kaldır</button>
+                </div>
+              </div>
             </div>
             <div>
               <button class="btn btn-primary" onclick="saveSettings()">Kaydet</button>
@@ -4158,9 +4166,12 @@ function showInvoiceModal(invoiceId) {
   document.getElementById('invoice-modal-body').innerHTML = `
     <div class="invoice-doc" id="invoice-printable-${inv.id}">
       <div class="invoice-header">
-        <div>
-          <div class="invoice-workshop">${escapeHtml(inv.workshopName)}</div>
-          <div style="font-size: 11px; color: #888; margin-top: 2px;">Atölye Takip Sistemi</div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          ${state.settings.logoBase64 ? `<img src="${state.settings.logoBase64}" alt="Logo" style="height:56px;width:auto;object-fit:contain;border-radius:4px;">` : ''}
+          <div>
+            <div class="invoice-workshop">${escapeHtml(inv.workshopName)}</div>
+            <div style="font-size: 11px; color: #888; margin-top: 2px;">Atölye Takip Sistemi</div>
+          </div>
         </div>
         <div style="text-align:right">
           <div class="invoice-title">PROFORMA FATURA</div>
@@ -4750,6 +4761,16 @@ function renderStudentDetail() {
 // ============ SETTINGS ============
 function renderSettings() {
   document.getElementById('setting-workshop-name').value = state.settings.workshopName || '';
+  const logoPreview = document.getElementById('setting-logo-preview');
+  const logoClear = document.getElementById('setting-logo-clear');
+  if (state.settings.logoBase64) {
+    logoPreview.src = state.settings.logoBase64;
+    logoPreview.style.display = '';
+    logoClear.style.display = '';
+  } else {
+    logoPreview.style.display = 'none';
+    logoClear.style.display = 'none';
+  }
   document.getElementById('setting-faaliyet-rate').value = state.settings.faaliyetRate ?? 10;
   document.getElementById('setting-doner-sermaye-rate').value = state.settings.donerSermayeRate ?? 7;
   document.getElementById('setting-kdv-rate').value = state.settings.kdvRate ?? 20;
@@ -4857,7 +4878,30 @@ async function saveSettings() {
   state.settings.studentShare = sShare;
   await saveState();
   document.getElementById('brand-name').textContent = state.settings.workshopName;
+  renderSettings();
   showToast('Ayarlar kaydedildi', 'success');
+}
+
+function previewLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    state.settings.logoBase64 = e.target.result;
+    const preview = document.getElementById('setting-logo-preview');
+    preview.src = e.target.result;
+    preview.style.display = '';
+    document.getElementById('setting-logo-clear').style.display = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function clearLogo() {
+  state.settings.logoBase64 = '';
+  document.getElementById('setting-logo-file').value = '';
+  await saveState();
+  renderSettings();
+  showToast('Logo kaldırıldı', 'success');
 }
 
 // PWA durum göstergesini güncelle
