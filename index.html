@@ -1785,17 +1785,19 @@
           </div>
           <div class="form-field">
             <label>Marka</label>
-            <input type="text" id="veh-brand" placeholder="Renault">
+            <input type="text" id="veh-brand" list="veh-brand-list" placeholder="Renault" autocomplete="off" oninput="onBrandInput()">
+            <datalist id="veh-brand-list"></datalist>
           </div>
           <div class="form-field">
             <label>Model</label>
-            <input type="text" id="veh-model" placeholder="Clio">
+            <input type="text" id="veh-model" list="veh-model-list" placeholder="Clio" autocomplete="off">
+            <datalist id="veh-model-list"></datalist>
           </div>
         </div>
         <div class="form-row form-row-3">
           <div class="form-field">
             <label>Yıl</label>
-            <input type="number" id="veh-year" placeholder="2018" min="1950" max="2030">
+            <select id="veh-year"></select>
           </div>
           <div class="form-field">
             <label>Motor / Yakıt</label>
@@ -2075,6 +2077,59 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ============ CAR DATA ============
+const CAR_DATA = {
+  'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
+  'BMW': ['1 Serisi','2 Serisi','3 Serisi','4 Serisi','5 Serisi','6 Serisi','7 Serisi','8 Serisi','X1','X2','X3','X4','X5','X6','X7','Z4','i3','i4','iX'],
+  'Chevrolet': ['Aveo','Captiva','Cruze','Malibu','Spark','Tahoe','Trailblazer','Trax'],
+  'Citroën': ['Berlingo','C1','C3','C3 Aircross','C4','C4 Cactus','C5','C5 Aircross','C5 X','Jumpy','Spacetourer'],
+  'Dacia': ['Duster','Jogger','Logan','Sandero','Spring'],
+  'Fiat': ['500','Bravo','Doblo','Ducato','Egea','Fiorino','Linea','Panda','Punto','Tipo'],
+  'Ford': ['EcoSport','Explorer','Fiesta','Focus','Kuga','Mondeo','Mustang','Puma','Ranger','S-Max','Transit','Transit Connect'],
+  'Honda': ['Accord','Civic','CR-V','HR-V','Jazz','NSX'],
+  'Hyundai': ['Accent','Bayon','Creta','Elantra','i10','i20','i30','Ioniq','Ioniq 5','Kona','Santa Fe','Tucson'],
+  'Jeep': ['Cherokee','Compass','Grand Cherokee','Renegade','Wrangler'],
+  'Kia': ['Ceed','EV6','Niro','Picanto','ProCeed','Rio','Sorento','Soul','Sportage','Stinger','Stonic','Xceed'],
+  'Land Rover': ['Defender','Discovery','Discovery Sport','Freelander','Range Rover','Range Rover Evoque','Range Rover Sport','Range Rover Velar'],
+  'Mazda': ['CX-3','CX-30','CX-5','CX-60','MX-5','Mazda 2','Mazda 3','Mazda 6'],
+  'Mercedes-Benz': ['A Serisi','B Serisi','C Serisi','CLA','CLS','E Serisi','EQA','EQB','EQC','G Serisi','GLA','GLB','GLC','GLE','GLS','S Serisi','Sprinter','V Serisi','Vito'],
+  'Mitsubishi': ['ASX','Colt','Eclipse Cross','Grandis','L200','Outlander','Pajero'],
+  'Nissan': ['Ariya','Juke','Leaf','Micra','Navara','Note','Qashqai','X-Trail'],
+  'Opel': ['Adam','Astra','Combo','Corsa','Crossland','Grandland','Insignia','Mokka','Vivaro','Zafira'],
+  'Peugeot': ['108','2008','208','3008','308','408','5008','508','Expert','Partner','Rifter'],
+  'Renault': ['Captur','Clio','Duster','Express','Fluence','Kadjar','Kangoo','Koleos','Laguna','Megane','Sandero','Symbol','Talisman','Trafic','Twingo','Zoe'],
+  'Seat': ['Arona','Ateca','Ibiza','Leon','Tarraco'],
+  'Skoda': ['Fabia','Karoq','Kodiaq','Octavia','Rapid','Scala','Superb'],
+  'Subaru': ['Forester','Impreza','Legacy','Outback','XV'],
+  'Suzuki': ['Baleno','Celerio','Ignis','Jimny','S-Cross','Swift','Vitara'],
+  'Toyota': ['Auris','Avensis','C-HR','Camry','Corolla','Corolla Cross','Hilux','Land Cruiser','Prius','ProAce','RAV4','Yaris','Yaris Cross'],
+  'Volkswagen': ['Arteon','Caddy','Golf','ID.3','ID.4','Multivan','Passat','Polo','T-Cross','T-Roc','Tiguan','Touareg','Transporter','Up'],
+  'Volvo': ['C40','S60','S90','V40','V60','V90','XC40','XC60','XC90'],
+};
+
+function initVehicleFormLists() {
+  const brandList = document.getElementById('veh-brand-list');
+  if (!brandList) return;
+  brandList.innerHTML = Object.keys(CAR_DATA).sort().map(b => `<option value="${b}">`).join('');
+
+  const yearSel = document.getElementById('veh-year');
+  if (yearSel && yearSel.options.length === 0) {
+    yearSel.innerHTML = '<option value="">— Seçin —</option>';
+    const cur = new Date().getFullYear();
+    for (let y = cur; y >= 1970; y--) yearSel.innerHTML += `<option value="${y}">${y}</option>`;
+  }
+
+  onBrandInput();
+}
+
+function onBrandInput() {
+  const brand = (document.getElementById('veh-brand')?.value || '').trim();
+  const modelList = document.getElementById('veh-model-list');
+  if (!modelList) return;
+  const models = CAR_DATA[brand] || [];
+  modelList.innerHTML = models.map(m => `<option value="${m}">`).join('');
+}
+
 // ============ STATE ============
 let state = {
   vehicles: [],
@@ -3538,8 +3593,10 @@ function renderVehicles() {
 function openVehicleModal() {
   editingVehicleId = null;
   document.getElementById('vehicle-modal-title').textContent = 'Yeni Araç';
-  ['veh-plate','veh-brand','veh-model','veh-year','veh-engine','veh-color','veh-customer','veh-tc','veh-phone','veh-address','veh-notes']
+  ['veh-plate','veh-brand','veh-model','veh-engine','veh-color','veh-customer','veh-tc','veh-phone','veh-address','veh-notes']
     .forEach(id => document.getElementById(id).value = '');
+  initVehicleFormLists();
+  document.getElementById('veh-year').value = '';
   openModal('vehicle-modal');
   setTimeout(() => document.getElementById('veh-plate').focus(), 50);
 }
@@ -3552,7 +3609,6 @@ function editVehicle(id) {
   document.getElementById('veh-plate').value = v.plate || '';
   document.getElementById('veh-brand').value = v.brand || '';
   document.getElementById('veh-model').value = v.model || '';
-  document.getElementById('veh-year').value = v.year || '';
   document.getElementById('veh-engine').value = v.engine || '';
   document.getElementById('veh-color').value = v.color || '';
   document.getElementById('veh-customer').value = v.customerName || '';
@@ -3560,6 +3616,9 @@ function editVehicle(id) {
   document.getElementById('veh-phone').value = v.phone || '';
   document.getElementById('veh-address').value = v.address || '';
   document.getElementById('veh-notes').value = v.notes || '';
+  initVehicleFormLists();
+  document.getElementById('veh-year').value = v.year || '';
+  onBrandInput();
   openModal('vehicle-modal');
 }
 
