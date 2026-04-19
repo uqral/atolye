@@ -2679,6 +2679,8 @@ function renderRevenue() {
   const totalPartsBuy = periodSvcs.reduce((a, s) => {
     return a + (s.parts || []).reduce((sum, p) => sum + (Number(p.buyPrice) || 0) * (Number(p.qty) || 0), 0);
   }, 0);
+  const kdvRatePct = (state.settings.kdvRate ?? 20) / 100;
+  const totalPartsBuyExKdv = totalPartsBuy / (1 + kdvRatePct);
   const totalLabor = periodSvcs.reduce((a, s) => a + serviceLaborTotal(s), 0);
   const partsProfit = totalPartsSell - totalPartsBuy;
 
@@ -2801,9 +2803,9 @@ function renderRevenue() {
         <div class="stat-sub">${totalPartsSell > 0 ? Math.round((partsProfit / totalPartsSell) * 100) + '% marj' : '—'}</div>
       </div>
       <div class="flow-card">
-        <div class="stat-label">Malzeme maliyeti</div>
+        <div class="stat-label">Malzeme maliyeti (KDV dahil)</div>
         <div class="stat-value money" style="color: var(--danger);">₺${fmtMoney(totalPartsBuy)}</div>
-        <div class="stat-sub">Alış fiyatları toplamı</div>
+        <div class="stat-sub">KDV hariç: ₺${fmtMoney(totalPartsBuyExKdv)} · %${state.settings.kdvRate ?? 20} KDV</div>
       </div>
       <div class="flow-card highlight">
         <div class="stat-label">Parça kârı</div>
