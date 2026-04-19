@@ -3543,9 +3543,9 @@ function renderServices() {
     <div style="padding: 12px 16px; background: var(--surface-alt); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
       <div style="font-size: 12px; color: var(--text-muted);"><strong style="color: var(--text); font-size: 13px;">${totalSvcs} kayıt</strong> · ${getPeriodLabel()}</div>
       <div style="font-size: 12px; color: var(--text-muted);">
-        Toplam: <strong class="money" style="color: var(--accent); font-size: 13px;">₺${fmtMoney(totalRevenue)}</strong>
+        KDV hariç: <strong class="money" style="color: var(--accent); font-size: 13px;">₺${fmtMoney(totalRevenue)}</strong>
+        · KDV dahil: <strong class="money" style="color: var(--accent); font-size: 13px;">₺${fmtMoney(totalRevenue * (1 + (state.settings.kdvRate ?? 20) / 100))}</strong>
         · İşçilik: <strong class="money">₺${fmtMoney(totalLabor)}</strong>
-        · Parça kârı: <strong class="money">₺${fmtMoney(totalProfit)}</strong>
       </div>
     </div>
     <table class="table"><thead><tr>
@@ -3563,7 +3563,7 @@ function renderServices() {
       <td>${s.vehicle ? escapeHtml((s.vehicle.brand || '') + ' ' + (s.vehicle.model || '')) : '—'}</td>
       <td>${escapeHtml((s.description || '').substring(0, 50))}${(s.description || '').length > 50 ? '…' : ''}</td>
       <td style="font-size: 12px; color: var(--text-muted);">${escapeHtml(studentNames || '—')}</td>
-      <td class="money"><strong>₺${fmtMoney(serviceTotal(s))}</strong></td>
+      <td class="money"><strong>₺${fmtMoney(serviceTotal(s))}</strong><div style="font-size:10px; color:var(--text-muted); font-weight:400;">KDV dahil: ₺${fmtMoney(serviceTotal(s) * (1 + (state.settings.kdvRate ?? 20) / 100))}</div></td>
       <td>›</td>
     </tr>`;
   });
