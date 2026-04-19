@@ -2622,6 +2622,7 @@ function setTrendPeriod(period) {
     b.classList.toggle('active', b.dataset.period === period);
   });
   renderMonthlyTrend();
+  renderRevenueTrendPanel();
 }
 
 function renderMonthlyTrend() {
@@ -2918,7 +2919,13 @@ function renderRevenue() {
 
     <div class="section" style="margin-top: 20px;">
       <div class="section-header">
-        <div class="section-title">Aylık gelir trendi (son 12 ay)</div>
+        <div class="section-title">Gelir trendi</div>
+        <div class="trend-filter-btns" id="revenue-trend-filter-btns">
+          <button class="btn btn-sm trend-filter-btn${trendPeriod==='daily'?' active':''}" data-period="daily" onclick="setTrendPeriod('daily')">Günlük</button>
+          <button class="btn btn-sm trend-filter-btn${trendPeriod==='weekly'?' active':''}" data-period="weekly" onclick="setTrendPeriod('weekly')">Haftalık</button>
+          <button class="btn btn-sm trend-filter-btn${trendPeriod==='monthly'?' active':''}" data-period="monthly" onclick="setTrendPeriod('monthly')">Aylık</button>
+          <button class="btn btn-sm trend-filter-btn${trendPeriod==='yearly'?' active':''}" data-period="yearly" onclick="setTrendPeriod('yearly')">Yıllık</button>
+        </div>
       </div>
       <div class="section-body">
         <div id="revenue-trend-chart"></div>
@@ -2928,7 +2935,7 @@ function renderRevenue() {
     <div id="revenue-breakdown-section"></div>
   `;
 
-  renderRevenueTrend12();
+  renderRevenueTrendPanel();
   renderRevenueBreakdown(periodSvcs);
 }
 
@@ -3064,22 +3071,47 @@ function renderRevenueBreakdown(periodSvcs) {
   `;
 }
 
-function renderRevenueTrend12() {
+function renderRevenueTrendPanel() {
   const host = document.getElementById('revenue-trend-chart');
   if (!host) return;
+  // reuse same renderMonthlyTrend logic but target revenue-trend-chart
+  const origHost = document.getElementById('monthly-trend');
+  // temporarily swap target
   const now = new Date();
-  const months = [];
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const label = d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' });
-    const svcs = state.services.filter(s => monthKeyOf(s.date) === key);
-    const revenue = svcs.reduce((a, s) => a + serviceTotal(s), 0);
-    months.push({ key, label, revenue, count: svcs.length });
+  const bars = [];
+  if (trendPeriod === 'monthly') {
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' });
+      const svcs = state.services.filter(s => monthKeyOf(s.date) === key);
+      bars.push({ label, revenue: svcs.reduce((a, s) => a + serviceTotal(s), 0), count: svcs.length });
+    }
+  } else if (trendPeriod === 'weekly') {
+    for (let i = 11; i >= 0; i--) {
+      const start = new Date(now); start.setDate(now.getDate() - i * 7 - (now.getDay() || 7) + 1); start.setHours(0,0,0,0);
+      const end = new Date(start); end.setDate(start.getDate() + 6); end.setHours(23,59,59,999);
+      const startStr = start.toISOString().slice(0,10), endStr = end.toISOString().slice(0,10);
+      const svcs = state.services.filter(s => s.date >= startStr && s.date <= endStr);
+      bars.push({ label: start.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }), revenue: svcs.reduce((a, s) => a + serviceTotal(s), 0), count: svcs.length });
+    }
+  } else if (trendPeriod === 'daily') {
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now); d.setDate(now.getDate() - i);
+      const key = d.toISOString().slice(0,10);
+      const svcs = state.services.filter(s => s.date === key);
+      bars.push({ label: d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }), revenue: svcs.reduce((a, s) => a + serviceTotal(s), 0), count: svcs.length });
+    }
+  } else {
+    for (let i = 4; i >= 0; i--) {
+      const year = now.getFullYear() - i;
+      const svcs = state.services.filter(s => s.date && s.date.startsWith(String(year)));
+      bars.push({ label: String(year), revenue: svcs.reduce((a, s) => a + serviceTotal(s), 0), count: svcs.length });
+    }
   }
-  const max = Math.max(1, ...months.map(m => m.revenue));
+  const max = Math.max(1, ...bars.map(m => m.revenue));
   let html = '<div class="chart-container" style="height: 220px;">';
-  months.forEach(m => {
+  bars.forEach(m => {
     const heightPct = (m.revenue / max) * 100;
     const shortLabel = m.revenue > 0 ? '₺' + (m.revenue >= 1000 ? (m.revenue / 1000).toFixed(1) + 'b' : Math.round(m.revenue)) : '—';
     html += `
