@@ -3874,20 +3874,20 @@ function showServiceDetail(id) {
 
     <div class="summary-box" style="margin-top: 14px;">
       <div class="summary-item">
-        <div class="summary-item-label">Parça toplamı</div>
+        <div class="summary-item-label">Parça toplamı <span style="font-size:10px; color:var(--text-muted); font-weight:400;">(KDV hariç)</span></div>
         <div class="summary-item-value money">₺${fmtMoney(partsSum)}</div>
       </div>
       <div class="summary-item">
-        <div class="summary-item-label">İşçilik</div>
+        <div class="summary-item-label">İşçilik <span style="font-size:10px; color:var(--text-muted); font-weight:400;">(KDV hariç)</span></div>
         <div class="summary-item-value money">₺${fmtMoney(serviceLaborTotal(s))}</div>
       </div>
       <div class="summary-item">
-        <div class="summary-item-label">Genel Toplam</div>
+        <div class="summary-item-label">Genel Toplam <span style="font-size:10px; color:var(--text-muted); font-weight:400;">(KDV hariç)</span></div>
         <div class="summary-item-value big money">₺${fmtMoney(total)}</div>
       </div>
       <div class="summary-item">
-        <div class="summary-item-label">Öğrenci sayısı</div>
-        <div class="summary-item-value">${studentNames.length}</div>
+        <div class="summary-item-label">KDV dahil tutar <span style="font-size:10px; color:var(--text-muted); font-weight:400;">(%${state.settings.kdvRate ?? 20})</span></div>
+        <div class="summary-item-value big money" style="color:var(--accent)">₺${fmtMoney(total * (1 + (state.settings.kdvRate ?? 20) / 100))}</div>
       </div>
     </div>
 
