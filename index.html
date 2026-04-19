@@ -729,6 +729,20 @@
     text-align: center;
     white-space: nowrap;
   }
+  .trend-filter-btns {
+    display: flex;
+    gap: 6px;
+  }
+  .trend-filter-btn {
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .trend-filter-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
 
   /* Revenue panel */
   .revenue-flow {
@@ -1269,16 +1283,13 @@
 
       <div class="section">
         <div class="section-header">
-          <div class="section-title">Yaklaşan bakımlar</div>
-          <span style="font-size: 11px; color: var(--text-muted);">Dönem filtresinden bağımsız</span>
-        </div>
-        <div id="upcoming-maintenance"></div>
-      </div>
-
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">Aylık gelir trendi</div>
-          <span style="font-size: 11px; color: var(--text-muted);">Son 6 ay</span>
+          <div class="section-title">Gelir trendi</div>
+          <div class="trend-filter-btns">
+            <button class="btn btn-sm trend-filter-btn active" data-period="monthly" onclick="setTrendPeriod('monthly')">Aylık</button>
+            <button class="btn btn-sm trend-filter-btn" data-period="weekly" onclick="setTrendPeriod('weekly')">Haftalık</button>
+            <button class="btn btn-sm trend-filter-btn" data-period="daily" onclick="setTrendPeriod('daily')">Günlük</button>
+            <button class="btn btn-sm trend-filter-btn" data-period="yearly" onclick="setTrendPeriod('yearly')">Yıllık</button>
+          </div>
         </div>
         <div class="section-body">
           <div id="monthly-trend"></div>
@@ -1291,6 +1302,14 @@
           <button class="btn btn-sm" onclick="goto('services')">Tümünü gör</button>
         </div>
         <div id="recent-services"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Yaklaşan bakımlar</div>
+          <span style="font-size: 11px; color: var(--text-muted);">Dönem filtresinden bağımsız</span>
+        </div>
+        <div id="upcoming-maintenance"></div>
       </div>
     </section>
 
@@ -2563,25 +2582,66 @@ function renderUpcomingMaintenance() {
 }
 
 // Son 6 ayın aylık gelir çubuk grafiği (dashboard'da)
+let trendPeriod = 'monthly';
+
+function setTrendPeriod(period) {
+  trendPeriod = period;
+  document.querySelectorAll('.trend-filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.period === period);
+  });
+  renderMonthlyTrend();
+}
+
 function renderMonthlyTrend() {
   const host = document.getElementById('monthly-trend');
   if (!host) return;
 
   const now = new Date();
-  const months = [];
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const label = d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' });
-    const svcs = state.services.filter(s => monthKeyOf(s.date) === key);
-    const revenue = svcs.reduce((a, s) => a + serviceTotal(s), 0);
-    months.push({ key, label, revenue, count: svcs.length });
+  const bars = [];
+
+  if (trendPeriod === 'monthly') {
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' });
+      const svcs = state.services.filter(s => monthKeyOf(s.date) === key);
+      const revenue = svcs.reduce((a, s) => a + serviceTotal(s), 0);
+      bars.push({ label, revenue, count: svcs.length });
+    }
+  } else if (trendPeriod === 'weekly') {
+    for (let i = 11; i >= 0; i--) {
+      const start = new Date(now); start.setDate(now.getDate() - i * 7 - (now.getDay() || 7) + 1); start.setHours(0,0,0,0);
+      const end = new Date(start); end.setDate(start.getDate() + 6); end.setHours(23,59,59,999);
+      const startStr = start.toISOString().slice(0, 10);
+      const endStr = end.toISOString().slice(0, 10);
+      const label = start.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+      const svcs = state.services.filter(s => s.date >= startStr && s.date <= endStr);
+      const revenue = svcs.reduce((a, s) => a + serviceTotal(s), 0);
+      bars.push({ label, revenue, count: svcs.length });
+    }
+  } else if (trendPeriod === 'daily') {
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now); d.setDate(now.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const label = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+      const svcs = state.services.filter(s => s.date === key);
+      const revenue = svcs.reduce((a, s) => a + serviceTotal(s), 0);
+      bars.push({ label, revenue, count: svcs.length });
+    }
+  } else if (trendPeriod === 'yearly') {
+    for (let i = 4; i >= 0; i--) {
+      const year = now.getFullYear() - i;
+      const label = String(year);
+      const svcs = state.services.filter(s => s.date && s.date.startsWith(String(year)));
+      const revenue = svcs.reduce((a, s) => a + serviceTotal(s), 0);
+      bars.push({ label, revenue, count: svcs.length });
+    }
   }
 
-  const max = Math.max(1, ...months.map(m => m.revenue));
+  const max = Math.max(1, ...bars.map(m => m.revenue));
 
   let html = '<div class="chart-container">';
-  months.forEach(m => {
+  bars.forEach(m => {
     const heightPct = (m.revenue / max) * 100;
     const shortLabel = m.revenue > 0 ? '₺' + (m.revenue >= 1000 ? (m.revenue / 1000).toFixed(1) + 'b' : Math.round(m.revenue)) : '—';
     html += `
