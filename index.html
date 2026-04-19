@@ -5589,6 +5589,12 @@ document.addEventListener('click', (e) => {
   }
 });
 
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const openModal = document.querySelector('.modal-backdrop.open');
+  if (openModal) closeModal(openModal.id);
+});
+
 async function init() {
   try {
     await gdriveHandleCallback();
