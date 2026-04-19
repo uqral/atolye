@@ -1141,6 +1141,41 @@
   min-width: 160px;
   text-align: center;
 }
+
+
+/* Part name autocomplete */
+.p-name-wrap { position: relative; }
+.part-suggestions {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  min-width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  overflow: hidden;
+}
+.part-suggest-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.part-suggest-item:hover { background: var(--surface-alt); }
+.part-suggest-new {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  border-top: 1px solid var(--border);
+}
+.part-suggest-new:hover { background: var(--warning-soft); }
 </style>
 </head>
 <body>
@@ -1967,6 +2002,7 @@ let editingServiceId = null;
 let editingStudentId = null;
 let editingTeacherId = null;
 let editingPartId = null;
+let _pendingPartRow = null;
 let currentVehicleDetailId = null;
 
 const PAGE_SIZE = 25;
@@ -3043,7 +3079,17 @@ async function savePart() {
   await saveState();
   closeModal('part-modal');
   showToast('Parça kaydedildi', 'success');
-  renderParts();
+  if (_pendingPartRow) {
+    const buy = _pendingPartRow.querySelector('.p-buy');
+    const sell = _pendingPartRow.querySelector('.p-sell');
+    const nameInput = _pendingPartRow.querySelector('.p-name');
+    if (nameInput) nameInput.value = data.name;
+    if (buy && !Number(buy.value)) buy.value = data.buyPrice || '';
+    if (sell && !Number(sell.value)) sell.value = data.sellPrice || '';
+    updateServiceSummary();
+    _pendingPartRow = null;
+  }
+  if (document.getElementById('page-parts') && !document.getElementById('page-parts').classList.contains('hidden')) renderParts();
   updatePartsDatalist();
 }
 
@@ -3069,17 +3115,70 @@ function updatePartsDatalist() {
   dl.innerHTML = (state.parts || []).map(p => `<option value="${escapeHtml(p.name)}">`).join('');
 }
 
-function autoFillPartPrices(input) {
-  const name = input.value.trim();
-  if (!name) return;
-  const part = (state.parts || []).find(p => p.name.toLowerCase() === name.toLowerCase());
-  if (!part) return;
+function showPartSuggestions(input) {
+  const query = input.value.trim().toLowerCase();
+  const wrap = input.parentElement;
+  let dd = wrap.querySelector('.part-suggestions');
+  if (!dd) {
+    dd = document.createElement('div');
+    dd.className = 'part-suggestions';
+    wrap.appendChild(dd);
+  }
+  dd._inputRef = input;
+
+  const parts = state.parts || [];
+  const matches = query
+    ? parts.filter(p => p.name.toLowerCase().includes(query)).slice(0, 8)
+    : parts.slice(0, 8);
+  const exactMatch = parts.some(p => p.name.toLowerCase() === query);
+
+  let html = matches.map(p =>
+    `<div class="part-suggest-item" onmousedown="selectCatalogPart(event,'${p.id}')">
+      <span>${escapeHtml(p.name)}</span>
+      <span style="color:var(--text-muted);font-size:11px;">₺${fmtMoney(p.sellPrice)}</span>
+    </div>`
+  ).join('');
+
+  if (query && !exactMatch) {
+    html += `<div class="part-suggest-new" onmousedown="addToCatalogFromRow(event)">+ "${escapeHtml(input.value.trim())}" — kataloğa ekle</div>`;
+  }
+
+  dd.innerHTML = html;
+  dd.style.display = html ? 'block' : 'none';
+}
+
+function hidePartSuggestions(input) {
+  setTimeout(() => {
+    const dd = input.parentElement?.querySelector('.part-suggestions');
+    if (dd) dd.style.display = 'none';
+  }, 150);
+}
+
+function selectCatalogPart(event, partId) {
+  event.preventDefault();
+  const dd = event.currentTarget.closest('.part-suggestions');
+  const input = dd._inputRef;
+  const part = (state.parts || []).find(p => p.id === partId);
+  if (!part || !input) return;
+  input.value = part.name;
   const tr = input.closest('tr');
   const buyInput = tr.querySelector('.p-buy');
   const sellInput = tr.querySelector('.p-sell');
-  if (buyInput && !Number(buyInput.value)) buyInput.value = part.buyPrice || '';
-  if (sellInput && !Number(sellInput.value)) sellInput.value = part.sellPrice || '';
+  if (buyInput) buyInput.value = part.buyPrice || '';
+  if (sellInput) sellInput.value = part.sellPrice || '';
   updateServiceSummary();
+  dd.style.display = 'none';
+}
+
+function addToCatalogFromRow(event) {
+  event.preventDefault();
+  const dd = event.currentTarget.closest('.part-suggestions');
+  const input = dd._inputRef;
+  if (!input) return;
+  _pendingPartRow = input.closest('tr');
+  dd.style.display = 'none';
+  openPartModal();
+  document.getElementById('part-name').value = input.value.trim();
 }
 
 // ============ VEHICLES ============
@@ -3509,7 +3608,7 @@ function addPartRow(part) {
   const tbody = document.getElementById('parts-tbody');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}" list="parts-datalist" onchange="autoFillPartPrices(this)"></td>
+    <td><div class="p-name-wrap"><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}" oninput="showPartSuggestions(this)" onblur="hidePartSuggestions(this)" autocomplete="off"></div></td>
     <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty ?? 1}" step="1" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
