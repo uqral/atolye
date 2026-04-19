@@ -1800,9 +1800,9 @@
               <tr>
                 <th style="width: 32%;">Parça / İşçilik adı</th>
                 <th style="width: 10%;">Adet</th>
-                <th style="width: 14%;">Alış (₺)</th>
-                <th style="width: 14%;">Satış (₺)</th>
-                <th style="width: 14%;">İşçilik (₺)</th>
+                <th style="width: 14%;">Alış (₺)<div style="font-weight:400; font-size:10px; color:var(--text-muted)">KDV hariç</div></th>
+                <th style="width: 14%;">Satış (₺)<div style="font-weight:400; font-size:10px; color:var(--text-muted)">KDV hariç</div></th>
+                <th style="width: 14%;">İşçilik (₺)<div style="font-weight:400; font-size:10px; color:var(--text-muted)">KDV hariç</div></th>
                 <th style="width: 10%;">Toplam</th>
                 <th style="width: 6%;"></th>
               </tr>
@@ -2355,13 +2355,14 @@ function serviceTotal(srv) {
 }
 
 function calcServiceBreakdown(srv) {
-  const tutar = serviceTotal(srv); // KDV dahil fatura tutarı (başlangıç noktası)
+  // Satış ve işçilik KDV hariç girilir → serviceTotal = KDV matrahı
+  const kdvMathrah = serviceTotal(srv);
   const kdvRate = (state.settings.kdvRate ?? 20) / 100;
   const faaliyetRate = (state.settings.faaliyetRate ?? 10) / 100;
   const donerRate = (state.settings.donerSermayeRate ?? 7) / 100;
 
-  const kdvMathrah = tutar / (1 + kdvRate); // KDV hariç = KDV matrahı
-  const kdv = tutar - kdvMathrah;
+  const kdv = kdvMathrah * kdvRate;
+  const tutar = kdvMathrah + kdv; // KDV dahil fatura tutarı
   const faaliyet = kdvMathrah * faaliyetRate;
   const donerSermaye = kdvMathrah * donerRate;
   const malzemeBuyCost = (srv.parts || []).reduce((a, p) => a + (Number(p.buyPrice) || 0) * (Number(p.qty) || 0), 0);
