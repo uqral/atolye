@@ -1838,7 +1838,8 @@
           </div>
           <div class="form-field">
             <label>Motor / Yakıt</label>
-            <input type="text" id="veh-engine" placeholder="1.5 dCi">
+            <input type="text" id="veh-engine" placeholder="1.5 dCi" list="veh-engine-list" autocomplete="off">
+            <datalist id="veh-engine-list"></datalist>
           </div>
           <div class="form-field">
             <label>Renk</label>
@@ -2159,6 +2160,237 @@ function allCarData() {
   return merged;
 }
 
+const CAR_FUEL_DATA = {
+  'Audi': {
+    'A1': ['1.0 TFSI (Benzin)','1.4 TFSI (Benzin)','1.6 TDI (Dizel)'],
+    'A3': ['1.0 TFSI (Benzin)','1.5 TFSI (Benzin)','2.0 TFSI (Benzin)','1.6 TDI (Dizel)','2.0 TDI (Dizel)','e-tron (Elektrik)'],
+    'A4': ['1.4 TFSI (Benzin)','2.0 TFSI (Benzin)','3.0 TFSI (Benzin)','2.0 TDI (Dizel)','3.0 TDI (Dizel)'],
+    'A6': ['2.0 TFSI (Benzin)','3.0 TFSI (Benzin)','2.0 TDI (Dizel)','3.0 TDI (Dizel)'],
+    'Q3': ['1.5 TFSI (Benzin)','2.0 TFSI (Benzin)','2.0 TDI (Dizel)'],
+    'Q5': ['2.0 TFSI (Benzin)','3.0 TFSI (Benzin)','2.0 TDI (Dizel)','3.0 TDI (Dizel)'],
+    'Q7': ['3.0 TFSI (Benzin)','3.0 TDI (Dizel)','55 TFSI e (PHEV)'],
+    'e-tron': ['55 quattro (Elektrik)','50 quattro (Elektrik)'],
+  },
+  'BMW': {
+    '1 Serisi': ['116i (Benzin)','118i (Benzin)','120i (Benzin)','116d (Dizel)','118d (Dizel)','120d (Dizel)'],
+    '3 Serisi': ['318i (Benzin)','320i (Benzin)','330i (Benzin)','316d (Dizel)','318d (Dizel)','320d (Dizel)','330e (PHEV)'],
+    '5 Serisi': ['520i (Benzin)','530i (Benzin)','540i (Benzin)','520d (Dizel)','530d (Dizel)','530e (PHEV)'],
+    'X1': ['18i (Benzin)','20i (Benzin)','18d (Dizel)','20d (Dizel)','25e (PHEV)'],
+    'X3': ['20i (Benzin)','30i (Benzin)','20d (Dizel)','30d (Dizel)','30e (PHEV)'],
+    'X5': ['40i (Benzin)','50i (Benzin)','30d (Dizel)','40d (Dizel)','45e (PHEV)'],
+    'i3': ['i3 (Elektrik)','i3s (Elektrik)'],
+    'i4': ['eDrive40 (Elektrik)','M50 (Elektrik)'],
+    'iX': ['xDrive40 (Elektrik)','xDrive50 (Elektrik)'],
+  },
+  'Citroën': {
+    'C1': ['1.0 VTi (Benzin)','1.2 PureTech (Benzin)'],
+    'C3': ['1.2 PureTech (Benzin)','1.5 BlueHDi (Dizel)'],
+    'C3 Aircross': ['1.2 PureTech (Benzin)','1.5 BlueHDi (Dizel)'],
+    'C4': ['1.2 PureTech (Benzin)','1.5 BlueHDi (Dizel)','ë-C4 (Elektrik)'],
+    'C5 Aircross': ['1.2 PureTech (Benzin)','1.5 BlueHDi (Dizel)','2.0 BlueHDi (Dizel)','Hybrid (PHEV)'],
+    'Berlingo': ['1.2 PureTech (Benzin)','1.5 BlueHDi (Dizel)','ë-Berlingo (Elektrik)'],
+  },
+  'Dacia': {
+    'Duster': ['1.0 TCe (Benzin)','1.3 TCe (Benzin)','1.5 dCi (Dizel)','1.5 Blue dCi (Dizel)'],
+    'Logan': ['1.0 SCe (Benzin)','1.5 dCi (Dizel)'],
+    'Sandero': ['1.0 SCe (Benzin)','1.0 TCe (Benzin)','1.5 dCi (Dizel)'],
+    'Jogger': ['1.0 TCe (Benzin)','1.5 Blue dCi (Dizel)','TCe 100 ECO-G (LPG/Benzin)'],
+    'Spring': ['65 HP (Elektrik)'],
+  },
+  'Fiat': {
+    'Egea': ['1.0 Firefly (Benzin)','1.4 T-Jet (Benzin)','1.3 Multijet (Dizel)','1.6 Multijet (Dizel)'],
+    '500': ['1.0 Hybrid (Mild Hibrit)','1.2 (Benzin)','0.9 TwinAir (Benzin)','42 kWh (Elektrik)'],
+    'Doblo': ['1.4 (Benzin)','1.6 Multijet (Dizel)'],
+    'Fiorino': ['1.4 (Benzin)','1.3 Multijet (Dizel)'],
+    'Tipo': ['1.0 Firefly (Benzin)','1.4 T-Jet (Benzin)','1.6 Multijet (Dizel)'],
+    'Panda': ['1.0 Hybrid (Mild Hibrit)','1.2 (Benzin)','0.9 TwinAir (Benzin)'],
+  },
+  'Ford': {
+    'Fiesta': ['1.0 EcoBoost (Benzin)','1.1 (Benzin)','1.5 TDCi (Dizel)'],
+    'Focus': ['1.0 EcoBoost (Benzin)','1.5 EcoBoost (Benzin)','1.5 TDCi (Dizel)','2.0 TDCi (Dizel)'],
+    'Mondeo': ['1.5 EcoBoost (Benzin)','2.0 EcoBoost (Benzin)','1.5 TDCi (Dizel)','2.0 TDCi (Dizel)'],
+    'Kuga': ['1.5 EcoBoost (Benzin)','2.0 EcoBoost (Benzin)','1.5 TDCi (Dizel)','2.0 TDCi (Dizel)','PHEV (Hibrit)'],
+    'Puma': ['1.0 EcoBoost (Benzin)','1.0 EcoBoost MHEV (Mild Hibrit)','1.5 TDCi (Dizel)'],
+    'EcoSport': ['1.0 EcoBoost (Benzin)','1.5 TDCi (Dizel)'],
+    'Transit': ['2.0 EcoBlue (Dizel)'],
+    'Transit Connect': ['1.0 EcoBoost (Benzin)','1.5 EcoBlue (Dizel)'],
+    'Ranger': ['2.0 EcoBlue (Dizel)','3.2 TDCi (Dizel)'],
+  },
+  'Honda': {
+    'Civic': ['1.0 VTEC Turbo (Benzin)','1.5 VTEC Turbo (Benzin)','1.6 i-DTEC (Dizel)','2.0 i-MMD (Hibrit)'],
+    'Jazz': ['1.3 i-VTEC (Benzin)','1.5 i-MMD (Hibrit)'],
+    'CR-V': ['1.5 VTEC Turbo (Benzin)','2.0 i-MMD (Hibrit)'],
+    'HR-V': ['1.5 i-VTEC (Benzin)','1.5 i-MMD (Hibrit)'],
+    'Accord': ['2.0 i-VTEC (Benzin)','2.4 i-VTEC (Benzin)','2.2 i-DTEC (Dizel)','2.0 i-MMD (Hibrit)'],
+  },
+  'Hyundai': {
+    'i10': ['1.0 (Benzin)','1.2 (Benzin)'],
+    'i20': ['1.0 T-GDI (Benzin)','1.2 MPI (Benzin)','1.4 CRDi (Dizel)','1.0 T-GDI Hybrid (Mild Hibrit)'],
+    'i30': ['1.0 T-GDI (Benzin)','1.4 T-GDI (Benzin)','1.6 CRDi (Dizel)'],
+    'Elantra': ['1.5 (Benzin)','1.6 MPI (Benzin)','2.0 MPI (Benzin)','1.6 CRDi (Dizel)'],
+    'Tucson': ['1.6 T-GDI (Benzin)','2.0 (Benzin)','1.6 CRDi (Dizel)','1.6 T-GDI PHEV (PHEV)'],
+    'Kona': ['1.0 T-GDI (Benzin)','1.6 CRDi (Dizel)','Kona Electric (Elektrik)'],
+    'Bayon': ['1.0 T-GDI (Benzin)','1.0 T-GDI MHEV (Mild Hibrit)'],
+    'Ioniq 5': ['58 kWh (Elektrik)','72.6 kWh (Elektrik)'],
+  },
+  'Kia': {
+    'Picanto': ['1.0 (Benzin)','1.2 (Benzin)'],
+    'Rio': ['1.0 T-GDI (Benzin)','1.25 MPI (Benzin)','1.4 CRDi (Dizel)'],
+    'Ceed': ['1.0 T-GDI (Benzin)','1.4 T-GDI (Benzin)','1.6 CRDi (Dizel)'],
+    'Sportage': ['1.6 T-GDI (Benzin)','2.0 MPI (Benzin)','1.6 CRDi (Dizel)','1.6 T-GDI PHEV (PHEV)'],
+    'Stonic': ['1.0 T-GDI (Benzin)','1.4 MPI (Benzin)','1.6 CRDi (Dizel)'],
+    'Xceed': ['1.0 T-GDI (Benzin)','1.4 T-GDI (Benzin)','1.6 CRDi (Dizel)','1.6 T-GDI PHEV (PHEV)'],
+    'EV6': ['58 kWh (Elektrik)','77.4 kWh (Elektrik)'],
+  },
+  'Land Rover': {
+    'Discovery Sport': ['2.0 Si4 (Benzin)','2.0 D (Dizel)','1.5 P300e (PHEV)'],
+    'Range Rover Evoque': ['2.0 Si4 (Benzin)','2.0 D (Dizel)','1.5 P300e (PHEV)'],
+    'Range Rover Sport': ['3.0 Si6 (Benzin)','3.0 SDV6 (Dizel)','P400e (PHEV)'],
+    'Defender': ['2.0 Si4 (Benzin)','3.0 D (Dizel)','P400e (PHEV)'],
+  },
+  'Mazda': {
+    'Mazda 2': ['1.5 Skyactiv-G (Benzin)','1.5 e-Skyactiv G (Hibrit)'],
+    'Mazda 3': ['2.0 Skyactiv-G (Benzin)','2.0 Skyactiv-X (Benzin)','1.8 Skyactiv-D (Dizel)'],
+    'Mazda 6': ['2.0 Skyactiv-G (Benzin)','2.5 Skyactiv-G (Benzin)','2.2 Skyactiv-D (Dizel)'],
+    'CX-3': ['2.0 Skyactiv-G (Benzin)','1.8 Skyactiv-D (Dizel)'],
+    'CX-30': ['2.0 Skyactiv-G (Benzin)','2.0 Skyactiv-X (Benzin)','1.8 Skyactiv-D (Dizel)'],
+    'CX-5': ['2.0 Skyactiv-G (Benzin)','2.5 Skyactiv-G (Benzin)','2.2 Skyactiv-D (Dizel)'],
+  },
+  'Mercedes-Benz': {
+    'A Serisi': ['A 160 (Benzin)','A 180 (Benzin)','A 200 (Benzin)','A 180 d (Dizel)','A 200 d (Dizel)','A 250 e (PHEV)'],
+    'B Serisi': ['B 180 (Benzin)','B 200 (Benzin)','B 180 d (Dizel)','B 200 d (Dizel)'],
+    'C Serisi': ['C 180 (Benzin)','C 200 (Benzin)','C 300 (Benzin)','C 180 d (Dizel)','C 200 d (Dizel)','C 300 d (Dizel)','C 300 e (PHEV)'],
+    'E Serisi': ['E 200 (Benzin)','E 220 d (Dizel)','E 300 (Benzin)','E 300 de (PHEV)'],
+    'GLA': ['GLA 180 (Benzin)','GLA 200 (Benzin)','GLA 180 d (Dizel)','GLA 200 d (Dizel)'],
+    'GLC': ['GLC 200 (Benzin)','GLC 300 (Benzin)','GLC 200 d (Dizel)','GLC 300 d (Dizel)','GLC 300 e (PHEV)'],
+    'Vito': ['114 CDI (Dizel)','116 CDI (Dizel)','119 CDI (Dizel)'],
+    'Sprinter': ['211 CDI (Dizel)','314 CDI (Dizel)','316 CDI (Dizel)'],
+  },
+  'Mitsubishi': {
+    'ASX': ['1.6 (Benzin)','2.0 (Benzin)','1.8 Di-D (Dizel)'],
+    'Eclipse Cross': ['1.5 Turbo (Benzin)','2.4 PHEV (PHEV)'],
+    'Outlander': ['2.0 (Benzin)','2.4 (Benzin)','2.2 Di-D (Dizel)','2.4 PHEV (PHEV)'],
+    'L200': ['2.2 Di-D (Dizel)','2.4 Di-D (Dizel)'],
+  },
+  'Nissan': {
+    'Micra': ['0.9 IG-T (Benzin)','1.0 IG-T (Benzin)','1.5 dCi (Dizel)'],
+    'Juke': ['1.0 DIG-T (Benzin)','1.6 (Benzin)','1.5 dCi (Dizel)'],
+    'Qashqai': ['1.3 DIG-T (Benzin)','1.5 dCi (Dizel)','1.3 MHEV (Mild Hibrit)','e-POWER (Hibrit)'],
+    'X-Trail': ['1.3 DIG-T (Benzin)','1.7 dCi (Dizel)','e-POWER (Hibrit)'],
+    'Leaf': ['40 kWh (Elektrik)','62 kWh (Elektrik)'],
+    'Navara': ['2.3 dCi (Dizel)'],
+  },
+  'Opel': {
+    'Corsa': ['1.2 (Benzin)','1.4 (Benzin)','1.2 Turbo (Benzin)','1.5 CDTI (Dizel)','50 kWh (Elektrik)'],
+    'Astra': ['1.2 Turbo (Benzin)','1.4 Turbo (Benzin)','1.5 CDTI (Dizel)','1.6 CDTI (Dizel)'],
+    'Insignia': ['1.4 Turbo (Benzin)','2.0 Turbo (Benzin)','1.6 CDTI (Dizel)','2.0 CDTI (Dizel)'],
+    'Mokka': ['1.2 Turbo (Benzin)','1.5 CDTI (Dizel)','50 kWh (Elektrik)'],
+    'Grandland': ['1.2 Turbo (Benzin)','1.5 CDTI (Dizel)','Plug-in Hybrid (PHEV)'],
+    'Crossland': ['1.2 (Benzin)','1.2 Turbo (Benzin)','1.5 CDTI (Dizel)'],
+  },
+  'Peugeot': {
+    '108': ['1.0 VTi (Benzin)','1.2 PureTech (Benzin)'],
+    '208': ['1.2 PureTech (Benzin)','1.5 BlueHDi (Dizel)','50 kWh (Elektrik)'],
+    '301': ['1.2 PureTech (Benzin)','1.6 BlueHDi (Dizel)'],
+    '308': ['1.2 PureTech (Benzin)','1.5 BlueHDi (Dizel)','1.6 BlueHDi (Dizel)','Hybrid (PHEV)'],
+    '2008': ['1.2 PureTech (Benzin)','1.5 BlueHDi (Dizel)','50 kWh (Elektrik)'],
+    '3008': ['1.2 PureTech (Benzin)','1.5 BlueHDi (Dizel)','Hybrid (PHEV)'],
+    '5008': ['1.2 PureTech (Benzin)','1.5 BlueHDi (Dizel)','2.0 BlueHDi (Dizel)','Hybrid (PHEV)'],
+  },
+  'Renault': {
+    'Clio': ['1.0 SCe (Benzin)','1.0 TCe (Benzin)','1.3 TCe (Benzin)','1.5 dCi (Dizel)','E-Tech Hybrid (Hibrit)','E-Tech Electric (Elektrik)'],
+    'Megane': ['1.3 TCe (Benzin)','1.5 dCi (Dizel)','1.7 dCi (Dizel)','E-Tech Hybrid (Hibrit)'],
+    'Symbol': ['1.2 (Benzin)','1.5 dCi (Dizel)'],
+    'Fluence': ['1.6 (Benzin)','2.0 (Benzin)','1.5 dCi (Dizel)'],
+    'Kadjar': ['1.3 TCe (Benzin)','1.5 dCi (Dizel)','1.7 dCi (Dizel)'],
+    'Captur': ['1.0 TCe (Benzin)','1.3 TCe (Benzin)','1.5 dCi (Dizel)','E-Tech PHEV (PHEV)'],
+    'Kangoo': ['1.3 TCe (Benzin)','1.5 dCi (Dizel)','E-Tech Electric (Elektrik)'],
+    'Zoe': ['R110 (Elektrik)','R135 (Elektrik)'],
+    'Talisman': ['1.3 TCe (Benzin)','1.6 dCi (Dizel)'],
+    'Koleos': ['1.3 TCe (Benzin)','2.0 dCi (Dizel)'],
+    'Trafic': ['2.0 dCi (Dizel)'],
+  },
+  'Seat': {
+    'Ibiza': ['1.0 MPI (Benzin)','1.0 TSI (Benzin)','1.5 TSI (Benzin)','1.6 TDI (Dizel)'],
+    'Leon': ['1.0 TSI (Benzin)','1.5 TSI (Benzin)','2.0 TSI (Benzin)','2.0 TDI (Dizel)','e-HYBRID (PHEV)'],
+    'Arona': ['1.0 TSI (Benzin)','1.5 TSI (Benzin)','1.6 TDI (Dizel)'],
+    'Ateca': ['1.0 TSI (Benzin)','1.5 TSI (Benzin)','2.0 TSI (Benzin)','2.0 TDI (Dizel)'],
+    'Tarraco': ['1.5 TSI (Benzin)','2.0 TSI (Benzin)','2.0 TDI (Dizel)','e-HYBRID (PHEV)'],
+  },
+  'Skoda': {
+    'Fabia': ['1.0 MPI (Benzin)','1.0 TSI (Benzin)','1.5 TSI (Benzin)'],
+    'Octavia': ['1.0 TSI (Benzin)','1.5 TSI (Benzin)','2.0 TSI (Benzin)','1.6 TDI (Dizel)','2.0 TDI (Dizel)','iV (PHEV)'],
+    'Superb': ['1.5 TSI (Benzin)','2.0 TSI (Benzin)','2.0 TDI (Dizel)','iV (PHEV)'],
+    'Karoq': ['1.0 TSI (Benzin)','1.5 TSI (Benzin)','2.0 TDI (Dizel)'],
+    'Kodiaq': ['1.5 TSI (Benzin)','2.0 TSI (Benzin)','2.0 TDI (Dizel)','iV (PHEV)'],
+  },
+  'Suzuki': {
+    'Swift': ['1.2 (Benzin)','1.4 Boosterjet (Benzin)','1.2 Hybrid (Mild Hibrit)'],
+    'Vitara': ['1.4 Boosterjet (Benzin)','1.5 SHVS (Mild Hibrit)','1.6 DDiS (Dizel)'],
+    'S-Cross': ['1.0 Boosterjet (Benzin)','1.4 Boosterjet (Benzin)','1.6 DDiS (Dizel)'],
+    'Ignis': ['1.2 (Benzin)','1.2 SHVS (Mild Hibrit)'],
+    'Jimny': ['1.5 (Benzin)'],
+  },
+  'Toyota': {
+    'Yaris': ['1.0 (Benzin)','1.5 (Benzin)','1.5 Hybrid (Hibrit)'],
+    'Yaris Cross': ['1.5 (Benzin)','1.5 Hybrid (Hibrit)','AWD-i Hybrid (Hibrit)'],
+    'Corolla': ['1.2 Turbo (Benzin)','1.8 Hybrid (Hibrit)','2.0 Hybrid (Hibrit)'],
+    'Auris': ['1.2 Turbo (Benzin)','1.6 (Benzin)','1.4 D-4D (Dizel)','1.8 Hybrid (Hibrit)'],
+    'C-HR': ['1.2 Turbo (Benzin)','1.8 Hybrid (Hibrit)','2.0 Hybrid (Hibrit)'],
+    'RAV4': ['2.0 (Benzin)','2.5 Hybrid (Hibrit)','2.5 PHEV (PHEV)'],
+    'Camry': ['2.5 Hybrid (Hibrit)'],
+    'Hilux': ['2.4 D-4D (Dizel)','2.8 D-4D (Dizel)'],
+    'Land Cruiser': ['4.0 (Benzin)','2.8 D-4D (Dizel)','3.0 D-4D (Dizel)'],
+  },
+  'Volkswagen': {
+    'Polo': ['1.0 MPI (Benzin)','1.0 TSI (Benzin)','1.5 TSI (Benzin)','1.6 TDI (Dizel)'],
+    'Golf': ['1.0 TSI (Benzin)','1.5 TSI (Benzin)','2.0 TSI (Benzin)','2.0 TDI (Dizel)','GTE (PHEV)','e-Golf (Elektrik)'],
+    'Passat': ['1.4 TSI (Benzin)','1.5 TSI (Benzin)','2.0 TSI (Benzin)','1.6 TDI (Dizel)','2.0 TDI (Dizel)','GTE (PHEV)'],
+    'Tiguan': ['1.5 TSI (Benzin)','2.0 TSI (Benzin)','2.0 TDI (Dizel)','eHybrid (PHEV)'],
+    'T-Roc': ['1.0 TSI (Benzin)','1.5 TSI (Benzin)','2.0 TDI (Dizel)'],
+    'T-Cross': ['1.0 TSI (Benzin)','1.5 TSI (Benzin)','1.6 TDI (Dizel)'],
+    'Touareg': ['3.0 TSI (Benzin)','3.0 TDI (Dizel)','eHybrid (PHEV)'],
+    'Multivan': ['2.0 TDI (Dizel)','1.4 TSI eHybrid (PHEV)','2.0 TSI (Benzin)'],
+    'Caddy': ['1.5 TSI (Benzin)','2.0 TDI (Dizel)'],
+    'Transporter': ['2.0 TDI (Dizel)'],
+    'Crafter': ['2.0 TDI (Dizel)'],
+    'ID.3': ['58 kWh (Elektrik)','77 kWh (Elektrik)'],
+    'ID.4': ['52 kWh (Elektrik)','77 kWh (Elektrik)'],
+  },
+  'Volvo': {
+    'V40': ['T2 (Benzin)','T3 (Benzin)','D2 (Dizel)','D3 (Dizel)','D4 (Dizel)'],
+    'S60': ['T5 (Benzin)','T6 (Benzin)','D4 (Dizel)','T8 (PHEV)'],
+    'XC40': ['T3 (Benzin)','T4 (Benzin)','T5 AWD (Benzin)','D4 (Dizel)','Recharge (Elektrik)'],
+    'XC60': ['T5 (Benzin)','T6 (Benzin)','D4 (Dizel)','D5 (Dizel)','T8 (PHEV)'],
+    'XC90': ['T6 (Benzin)','D5 (Dizel)','T8 (PHEV)'],
+    'C40': ['Recharge (Elektrik)'],
+  },
+  'Tesla': {
+    'Model 3': ['Standard Range (Elektrik)','Long Range (Elektrik)','Performance (Elektrik)'],
+    'Model Y': ['Standard Range (Elektrik)','Long Range (Elektrik)','Performance (Elektrik)'],
+    'Model S': ['Long Range (Elektrik)','Plaid (Elektrik)'],
+    'Model X': ['Long Range (Elektrik)','Plaid (Elektrik)'],
+  },
+};
+
+function allCarFuelData() {
+  const custom = state.settings?.customCarFuelData || {};
+  const merged = {};
+  const allBrands = new Set([...Object.keys(CAR_FUEL_DATA), ...Object.keys(custom)]);
+  allBrands.forEach(brand => {
+    merged[brand] = {};
+    const baseModels = CAR_FUEL_DATA[brand] || {};
+    const customModels = custom[brand] || {};
+    const allModels = new Set([...Object.keys(baseModels), ...Object.keys(customModels)]);
+    allModels.forEach(model => {
+      const baseFuels = baseModels[model] || [];
+      const customFuels = customModels[model] || [];
+      merged[brand][model] = [...new Set([...baseFuels, ...customFuels])];
+    });
+  });
+  return merged;
+}
+
 function initVehicleFormLists() {
   const brandList = document.getElementById('veh-brand-list');
   if (!brandList) return;
@@ -2172,6 +2404,13 @@ function initVehicleFormLists() {
     for (let y = cur; y >= 1970; y--) yearSel.innerHTML += `<option value="${y}">${y}</option>`;
   }
 
+  const modelInput = document.getElementById('veh-model');
+  if (modelInput && !modelInput._fuelListenerAdded) {
+    modelInput.addEventListener('input', onModelInput);
+    modelInput.addEventListener('change', onModelInput);
+    modelInput._fuelListenerAdded = true;
+  }
+
   onBrandInput();
 }
 
@@ -2181,6 +2420,16 @@ function onBrandInput() {
   if (!modelList) return;
   const models = allCarData()[brand] || [];
   modelList.innerHTML = models.map(m => `<option value="${m}">`).join('');
+  onModelInput();
+}
+
+function onModelInput() {
+  const brand = (document.getElementById('veh-brand')?.value || '').trim();
+  const model = (document.getElementById('veh-model')?.value || '').trim();
+  const engineList = document.getElementById('veh-engine-list');
+  if (!engineList) return;
+  const fuels = allCarFuelData()[brand]?.[model] || [];
+  engineList.innerHTML = fuels.map(f => `<option value="${f}">`).join('');
 }
 
 // ============ STATE ============
@@ -3751,6 +4000,16 @@ async function saveVehicle() {
     if (data.model) {
       const list = custom[data.brand] || (custom[data.brand] = []);
       if (!CAR_DATA[data.brand]?.includes(data.model) && !list.includes(data.model)) list.push(data.model);
+    }
+  }
+  // Yeni yakıt tipi varsa öğren
+  if (data.engine && data.brand && data.model) {
+    const baseFuels = CAR_FUEL_DATA[data.brand]?.[data.model] || [];
+    if (!baseFuels.includes(data.engine)) {
+      const customFuel = state.settings.customCarFuelData || (state.settings.customCarFuelData = {});
+      if (!customFuel[data.brand]) customFuel[data.brand] = {};
+      const modelFuels = customFuel[data.brand][data.model] || (customFuel[data.brand][data.model] = []);
+      if (!modelFuels.includes(data.engine)) modelFuels.push(data.engine);
     }
   }
 
