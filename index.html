@@ -1386,6 +1386,11 @@
 }
 
 /* Multi-select dropdown */
+.section#rapor-filter-section {
+  overflow: visible;
+  position: relative;
+  z-index: 5;
+}
 .rapor-ms { position: relative; }
 .rapor-ms-trigger {
   display: flex;
@@ -1449,6 +1454,124 @@
   .rapor-kpi--accent { background: #fff5f0 !important; }
   @page { margin: 16mm 14mm; }
 }
+/* ===== DATE RANGE PICKER ===== */
+.drp-wrap { position: relative; }
+.drp-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+.drp-trigger:hover { border-color: var(--accent); }
+.drp-label { flex: 1; }
+.drp-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 300;
+}
+.drp-panel.open { display: flex; }
+.drp-presets {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  padding: 8px 0;
+  min-width: 130px;
+}
+.drp-preset-btn {
+  display: block;
+  width: 100%;
+  padding: 9px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.drp-preset-btn:hover { background: var(--bg); }
+.drp-preset-btn.active { color: var(--accent); font-weight: 600; }
+.drp-cals { display: flex; padding: 12px; gap: 0; }
+.drp-cal { min-width: 224px; }
+.drp-cal + .drp-cal { border-left: 1px solid var(--border); padding-left: 14px; margin-left: 14px; }
+.drp-cal-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 4px;
+}
+.drp-nav {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.drp-nav:hover { color: var(--text); }
+.drp-nav-ph { width: 20px; flex-shrink: 0; }
+.drp-sel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 12px;
+  color: var(--text);
+  padding: 3px 5px;
+  cursor: pointer;
+}
+.drp-dow-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+.drp-dow {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+.drp-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+.drp-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  color: var(--text);
+}
+.drp-day:hover:not(.drp-day--start):not(.drp-day--end) { background: var(--bg); }
+.drp-day--other { color: var(--text-light); }
+.drp-day--today { font-weight: 700; color: #3b7eda; }
+.drp-day--start,
+.drp-day--end { background: var(--accent) !important; color: #fff !important; }
+.drp-day--start { border-radius: var(--radius) 0 0 var(--radius); }
+.drp-day--end   { border-radius: 0 var(--radius) var(--radius) 0; }
+.drp-day--start.drp-day--end { border-radius: var(--radius); }
+.drp-day--in-range { background: var(--accent-soft); border-radius: 0; }
 </style>
 </head>
 <body>
@@ -1778,14 +1901,26 @@
       <div class="section no-print" id="rapor-filter-section">
         <div class="section-header"><div class="section-title">Rapor Filtresi</div></div>
         <div class="section-body">
-          <div class="form-row form-row-2" style="max-width:560px; margin-bottom:16px;">
-            <div class="form-field">
-              <label>Başlangıç Tarihi</label>
-              <input type="date" id="rapor-from">
-            </div>
-            <div class="form-field">
-              <label>Bitiş Tarihi</label>
-              <input type="date" id="rapor-to">
+          <div class="form-field" style="margin-bottom:16px; max-width:560px; position:relative;">
+            <label>Dönem</label>
+            <div class="drp-wrap" id="rapor-drp">
+              <div class="drp-trigger" onclick="toggleDrp()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <span class="drp-label" id="drp-label">Tarih seçin</span>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:auto"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+              <div class="drp-panel" id="drp-panel">
+                <div class="drp-presets">
+                  <button class="drp-preset-btn" onclick="drpPreset('today')">Bugün</button>
+                  <button class="drp-preset-btn" onclick="drpPreset('yesterday')">Dün</button>
+                  <button class="drp-preset-btn" onclick="drpPreset('7d')">Son 7 Gün</button>
+                  <button class="drp-preset-btn" onclick="drpPreset('30d')">Son 30 Gün</button>
+                  <button class="drp-preset-btn" onclick="drpPreset('this_month')">Bu Ay</button>
+                  <button class="drp-preset-btn" onclick="drpPreset('last_month')">Geçen Ay</button>
+                  <button class="drp-preset-btn" onclick="drpPreset('all')">Tüm Zamanlar</button>
+                </div>
+                <div class="drp-cals" id="drp-cals"></div>
+              </div>
             </div>
           </div>
           <div class="form-row form-row-2" style="max-width:560px; margin-bottom:20px;">
@@ -2821,6 +2956,12 @@ let currentVehicleDetailId = null;
 
 const PAGE_SIZE = 25;
 let pageState = { vehicles: 1, services: 1, students: 1, invoices: 1 };
+
+let _drpFrom = null, _drpTo = null;
+let _drpStep = 'from';
+let _drpHover = null;
+let _drpLY = new Date().getFullYear();
+let _drpLM = new Date().getMonth();
 
 // Global period filter state — her sayfaya uygulanır
 let periodFilter = {
@@ -5787,13 +5928,7 @@ function renderStudentDetail() {
 
 // ============ RAPORLAR ============
 function renderRaporlar() {
-  const now = new Date();
-  const fromDefault = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-  const toDefault = now.toISOString().slice(0, 10);
-  const fromEl = document.getElementById('rapor-from');
-  const toEl = document.getElementById('rapor-to');
-  if (!fromEl.value) fromEl.value = fromDefault;
-  if (!toEl.value) toEl.value = toDefault;
+  drpInit();
   buildRaporMs('rapor-teacher', state.teachers, 'Tüm öğretmenler');
   buildRaporMs('rapor-student', state.students, 'Tüm öğrenciler');
 }
@@ -5868,10 +6003,8 @@ function getRaporMsIds(prefix) {
 }
 
 function generateReport() {
-  const from = document.getElementById('rapor-from').value;
-  const to = document.getElementById('rapor-to').value;
-  if (!from || !to) { showToast('Başlangıç ve bitiş tarihini girin', 'danger'); return; }
-  if (from > to) { showToast('Başlangıç tarihi bitiş tarihinden büyük olamaz', 'danger'); return; }
+  const from = _drpFrom, to = _drpTo;
+  if (!from || !to) { showToast('Dönem seçin', 'danger'); return; }
 
   const teacherIds = getRaporMsIds('rapor-teacher');
   const studentIds = getRaporMsIds('rapor-student');
@@ -6821,6 +6954,190 @@ document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => goto(item.dataset.page));
 });
 
+// ============ DATE RANGE PICKER ============
+function drpDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function drpFmtDisplay(ds) {
+  if (!ds) return '';
+  const [y,m,d] = ds.split('-');
+  return `${d}/${m}/${y}`;
+}
+function drpUpdateTrigger() {
+  const lbl = document.getElementById('drp-label');
+  if (!lbl) return;
+  if (_drpFrom && _drpTo) {
+    lbl.textContent = `${drpFmtDisplay(_drpFrom)}  –  ${drpFmtDisplay(_drpTo)}`;
+  } else if (_drpFrom) {
+    lbl.textContent = `${drpFmtDisplay(_drpFrom)}  –  ...`;
+  } else {
+    lbl.textContent = 'Tarih seçin';
+  }
+}
+function drpInit() {
+  if (_drpFrom && _drpTo) { drpUpdateTrigger(); return; }
+  const now = new Date();
+  _drpLY = now.getFullYear();
+  _drpLM = now.getMonth();
+  _drpFrom = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  _drpTo   = drpDateStr(now);
+  _drpStep = 'from';
+  drpUpdateTrigger();
+}
+function toggleDrp() {
+  const panel = document.getElementById('drp-panel');
+  if (!panel) return;
+  if (panel.classList.contains('open')) { closeDrp(); return; }
+  renderDrpCals();
+  panel.classList.add('open');
+}
+function closeDrp() {
+  const panel = document.getElementById('drp-panel');
+  if (panel) panel.classList.remove('open');
+  _drpHover = null;
+}
+function drpGetDayClasses(ds) {
+  const classes = ['drp-day'];
+  if (ds === drpDateStr(new Date())) classes.push('drp-day--today');
+  const f = _drpFrom;
+  const t = (_drpStep === 'to' && _drpHover) ? _drpHover : _drpTo;
+  if (f && t) {
+    const lo = f <= t ? f : t, hi = f <= t ? t : f;
+    if (ds === lo && ds === hi) classes.push('drp-day--start','drp-day--end');
+    else if (ds === lo) classes.push('drp-day--start');
+    else if (ds === hi) classes.push('drp-day--end');
+    else if (ds > lo && ds < hi) classes.push('drp-day--in-range');
+  } else if (f && ds === f) {
+    classes.push('drp-day--start');
+  }
+  return classes.join(' ');
+}
+function drpUpdateDayClasses() {
+  document.querySelectorAll('.drp-day[data-d]').forEach(el => {
+    el.className = drpGetDayClasses(el.dataset.d);
+  });
+}
+function drpRenderCal(year, month, side) {
+  const MN = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const DN = ['Pt','Sa','Çr','Pe','Cu','Ct','Pz'];
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month + 1, 0);
+  const startDow = (firstDay.getDay() + 6) % 7;
+  const endDow   = (lastDay.getDay() + 6) % 7;
+  const curY = new Date().getFullYear();
+  const yearOpts = Array.from({length: curY - 2014 + 3}, (_,i) => 2015+i)
+    .map(y => `<option value="${y}"${y===year?' selected':''}>${y}</option>`).join('');
+  const monthOpts = MN.map((m,i) => `<option value="${i}"${i===month?' selected':''}>${m}</option>`).join('');
+  const prevBtn = side==='left'
+    ? `<button class="drp-nav" onclick="drpNav(-1)">&#8249;</button>`
+    : `<span class="drp-nav-ph"></span>`;
+  const nextBtn = side==='right'
+    ? `<button class="drp-nav" onclick="drpNav(1)">&#8250;</button>`
+    : `<span class="drp-nav-ph"></span>`;
+  let grid = '';
+  for (let i=0; i<startDow; i++) {
+    const d = new Date(year, month, i-startDow+1);
+    const ds = drpDateStr(d);
+    grid += `<div class="drp-day drp-day--other" data-d="${ds}" onmouseenter="drpHover('${ds}')" onmouseleave="drpHoverEnd()" onclick="drpClick('${ds}')">${d.getDate()}</div>`;
+  }
+  for (let d=1; d<=lastDay.getDate(); d++) {
+    const ds = drpDateStr(new Date(year, month, d));
+    grid += `<div class="${drpGetDayClasses(ds)}" data-d="${ds}" onmouseenter="drpHover('${ds}')" onmouseleave="drpHoverEnd()" onclick="drpClick('${ds}')">${d}</div>`;
+  }
+  if (endDow < 6) {
+    for (let i=1; i<=6-endDow; i++) {
+      const d = new Date(year, month+1, i);
+      const ds = drpDateStr(d);
+      grid += `<div class="drp-day drp-day--other" data-d="${ds}" onmouseenter="drpHover('${ds}')" onmouseleave="drpHoverEnd()" onclick="drpClick('${ds}')">${i}</div>`;
+    }
+  }
+  return `<div class="drp-cal">
+    <div class="drp-cal-hd">
+      ${prevBtn}
+      <select class="drp-sel" onchange="drpSetCalMonth('${side}',+this.value)">${monthOpts}</select>
+      <select class="drp-sel" onchange="drpSetCalYear('${side}',+this.value)">${yearOpts}</select>
+      ${nextBtn}
+    </div>
+    <div class="drp-dow-row">${DN.map(d=>`<div class="drp-dow">${d}</div>`).join('')}</div>
+    <div class="drp-cal-grid">${grid}</div>
+  </div>`;
+}
+function renderDrpCals() {
+  const cals = document.getElementById('drp-cals');
+  if (!cals) return;
+  let ry = _drpLY, rm = _drpLM + 1;
+  if (rm > 11) { rm = 0; ry++; }
+  cals.innerHTML = drpRenderCal(_drpLY, _drpLM, 'left') + drpRenderCal(ry, rm, 'right');
+}
+function drpNav(dir) {
+  _drpLM += dir;
+  if (_drpLM < 0)  { _drpLM = 11; _drpLY--; }
+  if (_drpLM > 11) { _drpLM = 0;  _drpLY++; }
+  renderDrpCals();
+}
+function drpSetCalMonth(side, month) {
+  if (side === 'left') { _drpLM = month; }
+  else { _drpLM = month - 1; if (_drpLM < 0) { _drpLM = 11; _drpLY--; } }
+  renderDrpCals();
+}
+function drpSetCalYear(side, year) {
+  if (side === 'left') { _drpLY = year; }
+  else { _drpLY = (_drpLM === 11) ? year - 1 : year; }
+  renderDrpCals();
+}
+function drpHover(ds) {
+  _drpHover = ds;
+  if (_drpStep === 'to') drpUpdateDayClasses();
+}
+function drpHoverEnd() {
+  _drpHover = null;
+  if (_drpStep === 'to') drpUpdateDayClasses();
+}
+function drpClick(ds) {
+  if (_drpStep === 'from') {
+    _drpFrom = ds; _drpTo = null; _drpStep = 'to';
+    drpUpdateDayClasses(); drpUpdateTrigger();
+  } else {
+    if (ds < _drpFrom) { _drpTo = _drpFrom; _drpFrom = ds; }
+    else { _drpTo = ds; }
+    _drpStep = 'from';
+    drpUpdateDayClasses(); drpUpdateTrigger(); closeDrp();
+  }
+}
+function drpPreset(type) {
+  const now = new Date(), today = drpDateStr(now);
+  if (type === 'today') {
+    _drpFrom = _drpTo = today;
+  } else if (type === 'yesterday') {
+    const y = new Date(now); y.setDate(y.getDate()-1);
+    _drpFrom = _drpTo = drpDateStr(y);
+  } else if (type === '7d') {
+    const s = new Date(now); s.setDate(s.getDate()-6);
+    _drpFrom = drpDateStr(s); _drpTo = today;
+  } else if (type === '30d') {
+    const s = new Date(now); s.setDate(s.getDate()-29);
+    _drpFrom = drpDateStr(s); _drpTo = today;
+  } else if (type === 'this_month') {
+    _drpFrom = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+    _drpTo = today;
+  } else if (type === 'last_month') {
+    const s = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    const e = new Date(now.getFullYear(), now.getMonth(), 0);
+    _drpFrom = drpDateStr(s); _drpTo = drpDateStr(e);
+  } else if (type === 'all') {
+    const dates = state.services.map(s=>s.date).filter(Boolean).sort();
+    _drpFrom = dates.length ? dates[0] : `${now.getFullYear()}-01-01`;
+    _drpTo = today;
+  }
+  _drpStep = 'from';
+  if (_drpFrom) { const p=_drpFrom.split('-'); _drpLY=+p[0]; _drpLM=+p[1]-1; }
+  drpUpdateTrigger();
+  document.querySelectorAll('.drp-preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderDrpCals();
+  closeDrp();
+}
+
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.vehicle-search-wrap')) {
     const dd = document.getElementById('vehicle-dropdown');
@@ -6829,6 +7146,7 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('.rapor-ms')) {
     document.querySelectorAll('.rapor-ms-panel.open').forEach(p => p.classList.remove('open'));
   }
+  if (!e.target.closest('#rapor-drp')) closeDrp();
 });
 
 document.addEventListener('keydown', (e) => {
