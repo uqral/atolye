@@ -4482,9 +4482,13 @@ function showBrandSuggestions(input) {
   const allBrands = [...new Set(source.map(p => p.brand).filter(Boolean))];
   const matches = query ? allBrands.filter(b => b.toLowerCase().includes(query)).slice(0, 8) : allBrands.slice(0, 8);
 
-  const html = matches.map(b =>
-    `<div class="part-suggest-item" data-brand="${escapeHtml(b)}" onmousedown="selectBrandSuggestion(event)"><span>${escapeHtml(b)}</span></div>`
-  ).join('');
+  const html = matches.map(b => {
+    const entry = (byName.length ? byName : parts).find(p => (p.brand || '').toLowerCase() === b.toLowerCase());
+    const price = entry ? (entry.sellPrice > 0 ? `₺${fmtMoney(entry.sellPrice)}` : entry.laborPrice > 0 ? `₺${fmtMoney(entry.laborPrice)} işçilik` : '') : '';
+    return `<div class="part-suggest-item" data-brand="${escapeHtml(b)}" onmousedown="selectBrandSuggestion(event)">
+      <span>${escapeHtml(b)}</span>${price ? `<span style="color:var(--text-muted);font-size:11px;">${price}</span>` : ''}
+    </div>`;
+  }).join('');
   dd.innerHTML = html;
   dd.style.display = html ? 'block' : 'none';
 }
@@ -5016,8 +5020,8 @@ function addPartRow(part) {
   const tbody = document.getElementById('parts-tbody');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><div class="p-name-wrap"><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}" oninput="showPartSuggestions(this)" onblur="hidePartSuggestions(this)" autocomplete="off"></div></td>
-    <td><div class="p-brand-wrap"><input type="text" class="p-brand" placeholder="Marka" value="${escapeHtml(part?.brand || '')}" oninput="showBrandSuggestions(this)" onblur="hideBrandSuggestions(this)" autocomplete="off"></div></td>
+    <td><div class="p-name-wrap"><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}" oninput="showPartSuggestions(this)" onfocus="showPartSuggestions(this)" onblur="hidePartSuggestions(this)" autocomplete="off"></div></td>
+    <td><div class="p-brand-wrap"><input type="text" class="p-brand" placeholder="Marka" value="${escapeHtml(part?.brand || '')}" oninput="showBrandSuggestions(this)" onfocus="showBrandSuggestions(this)" onblur="hideBrandSuggestions(this)" autocomplete="off"></div></td>
     <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty ?? 1}" step="1" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
