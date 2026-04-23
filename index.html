@@ -1823,6 +1823,10 @@
             <input type="text" id="veh-color" placeholder="Beyaz">
           </div>
         </div>
+        <div class="form-field">
+          <label>Şasi Numarası</label>
+          <input type="text" id="veh-vin" placeholder="WV1ZZZ2HZ..." maxlength="17" style="text-transform:uppercase;">
+        </div>
         <div class="form-row form-row-3">
           <div class="form-field">
             <label>Müşteri Adı</label>
@@ -3658,7 +3662,7 @@ function renderVehicles() {
 function openVehicleModal() {
   editingVehicleId = null;
   document.getElementById('vehicle-modal-title').textContent = 'Yeni Araç';
-  ['veh-plate','veh-brand','veh-model','veh-engine','veh-color','veh-customer','veh-tc','veh-phone','veh-address','veh-notes']
+  ['veh-plate','veh-brand','veh-model','veh-engine','veh-color','veh-vin','veh-customer','veh-tc','veh-phone','veh-address','veh-notes']
     .forEach(id => document.getElementById(id).value = '');
   initVehicleFormLists();
   document.getElementById('veh-year').value = '';
@@ -3676,6 +3680,7 @@ function editVehicle(id) {
   document.getElementById('veh-model').value = v.model || '';
   document.getElementById('veh-engine').value = v.engine || '';
   document.getElementById('veh-color').value = v.color || '';
+  document.getElementById('veh-vin').value = v.vin || '';
   document.getElementById('veh-customer').value = v.customerName || '';
   document.getElementById('veh-tc').value = v.customerTC || '';
   document.getElementById('veh-phone').value = v.phone || '';
@@ -3698,6 +3703,7 @@ async function saveVehicle() {
     year: document.getElementById('veh-year').value.trim(),
     engine: document.getElementById('veh-engine').value.trim(),
     color: document.getElementById('veh-color').value.trim(),
+    vin: document.getElementById('veh-vin').value.trim().toUpperCase(),
     customerName: document.getElementById('veh-customer').value.trim(),
     customerTC: document.getElementById('veh-tc').value.trim(),
     phone: document.getElementById('veh-phone').value.trim(),
@@ -3796,6 +3802,7 @@ function showVehicleDetail(id) {
       <div class="vehicle-info-item"><div class="vehicle-info-label">Renk</div><div class="vehicle-info-value">${escapeHtml(v.color || '—')}</div></div>
       <div class="vehicle-info-item"><div class="vehicle-info-label">Toplam servis</div><div class="vehicle-info-value">${svcs.length} kayıt</div></div>
       <div class="vehicle-info-item"><div class="vehicle-info-label">Toplam tutar</div><div class="vehicle-info-value money">₺${fmtMoney(totalSpent)}</div></div>
+      ${v.vin ? `<div class="vehicle-info-item" style="grid-column: 1 / -1"><div class="vehicle-info-label">Şasi No</div><div class="vehicle-info-value" style="font-family:monospace;letter-spacing:.5px">${escapeHtml(v.vin)}</div></div>` : ''}
     </div>
 
     ${v.notes ? `<div class="section"><div class="section-body"><strong style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Not:</strong><br>${escapeHtml(v.notes)}</div></div>` : ''}
