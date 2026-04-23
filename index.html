@@ -4411,8 +4411,24 @@ function selectBrandSuggestion(event) {
   const item = event.currentTarget;
   const dd = item.closest('.brand-suggestions');
   const input = dd?._inputRef;
-  if (input) input.value = item.dataset.brand || '';
+  if (!input) return;
+  const brand = item.dataset.brand || '';
+  input.value = brand;
   if (dd) dd.style.display = 'none';
+
+  const tr = input.closest('tr');
+  if (!tr) return;
+  const partName = tr.querySelector('.p-name')?.value.trim().toLowerCase() || '';
+  const match = (state.parts || []).find(p =>
+    p.name.toLowerCase() === partName && (p.brand || '').toLowerCase() === brand.toLowerCase()
+  );
+  if (match) {
+    const buyInput = tr.querySelector('.p-buy');
+    const sellInput = tr.querySelector('.p-sell');
+    if (buyInput) buyInput.value = match.buyPrice || '';
+    if (sellInput) sellInput.value = match.sellPrice || '';
+    updateServiceSummary();
+  }
 }
 
 function selectCatalogPart(event, partId) {
