@@ -1217,6 +1217,7 @@
 
 /* Part name autocomplete */
 .p-name-wrap { position: relative; }
+.p-brand-wrap { position: relative; }
 .part-suggestions {
   position: absolute;
   top: calc(100% + 2px);
@@ -2156,6 +2157,12 @@
           <input type="text" id="part-name" placeholder="Örn: Motor yağı 5W-40">
         </div>
       </div>
+      <div class="form-row form-row-2">
+        <div class="form-field" style="grid-column: 1/-1;">
+          <label>Marka</label>
+          <input type="text" id="part-brand" placeholder="Örn: Bosch, NGK, Mann, Valeo...">
+        </div>
+      </div>
       <div class="form-row form-row-3">
         <div class="form-field">
           <label>Kategori</label>
@@ -2301,11 +2308,12 @@
           <table class="parts-table" id="parts-table">
             <thead>
               <tr>
-                <th style="width: 32%;">Parça / İşçilik adı</th>
-                <th style="width: 10%;">Adet</th>
-                <th style="width: 14%;">Alış (₺)<div style="font-weight:400; font-size:10px; color:var(--text-muted)">KDV hariç</div></th>
-                <th style="width: 14%;">Satış (₺)<div style="font-weight:400; font-size:10px; color:var(--text-muted)">KDV hariç</div></th>
-                <th style="width: 14%;">İşçilik (₺)<div style="font-weight:400; font-size:10px; color:var(--text-muted)">KDV hariç</div></th>
+                <th style="width: 25%;">Parça / İşçilik adı</th>
+                <th style="width: 15%;">Marka</th>
+                <th style="width: 8%;">Adet</th>
+                <th style="width: 12%;">Alış (₺)<div style="font-weight:400; font-size:10px; color:var(--text-muted)">KDV hariç</div></th>
+                <th style="width: 12%;">Satış (₺)<div style="font-weight:400; font-size:10px; color:var(--text-muted)">KDV hariç</div></th>
+                <th style="width: 12%;">İşçilik (₺)<div style="font-weight:400; font-size:10px; color:var(--text-muted)">KDV hariç</div></th>
                 <th style="width: 10%;">Toplam</th>
                 <th style="width: 6%;"></th>
               </tr>
@@ -4208,7 +4216,7 @@ function renderParts() {
     return;
   }
 
-  const colMap = { name: p => p.name, category: p => p.category || '', unit: p => p.unit || '', buyPrice: p => p.buyPrice, sellPrice: p => p.sellPrice, margin: p => p.sellPrice > 0 ? (p.sellPrice - p.buyPrice) / p.sellPrice : -1, usage: p => usageCounts[p.name.toLowerCase()] || 0 };
+  const colMap = { name: p => p.name, brand: p => p.brand || '', category: p => p.category || '', unit: p => p.unit || '', buyPrice: p => p.buyPrice, sellPrice: p => p.sellPrice, margin: p => p.sellPrice > 0 ? (p.sellPrice - p.buyPrice) / p.sellPrice : -1, usage: p => usageCounts[p.name.toLowerCase()] || 0 };
   const sortFn = colMap[partsSort.col] || colMap.name;
   parts = [...parts].sort((a, b) => {
     const va = sortFn(a), vb = sortFn(b);
@@ -4224,6 +4232,7 @@ function renderParts() {
     const usage = usageCounts[p.name.toLowerCase()] || 0;
     return `<tr>
       <td><strong>${escapeHtml(p.name)}</strong></td>
+      <td style="color:var(--text-muted)">${escapeHtml(p.brand || '—')}</td>
       <td style="color:var(--text-muted)">${escapeHtml(p.category || '—')}</td>
       <td style="color:var(--text-muted)">${escapeHtml(p.unit || '—')}</td>
       <td class="money">₺${fmtMoney(p.buyPrice)}</td>
@@ -4240,6 +4249,7 @@ function renderParts() {
   host.innerHTML = `<table class="table">
     <thead><tr>
       ${th('name','Parça / Malzeme')}
+      ${th('brand','Marka')}
       ${th('category','Kategori')}
       ${th('unit','Birim')}
       ${th('buyPrice','Alış','KDV hariç fiyat')}
@@ -4257,6 +4267,7 @@ function openPartModal(id) {
   const part = id ? (state.parts || []).find(p => p.id === id) : null;
   document.getElementById('part-modal-title').textContent = part ? 'Parça Düzenle' : 'Yeni Parça';
   document.getElementById('part-name').value = part?.name || '';
+  document.getElementById('part-brand').value = part?.brand || '';
   document.getElementById('part-unit').value = part?.unit || '';
   document.getElementById('part-buy-price').value = part?.buyPrice || '';
   document.getElementById('part-sell-price').value = part?.sellPrice || '';
@@ -4270,6 +4281,7 @@ async function savePart() {
   if (!state.parts) state.parts = [];
   const data = {
     name,
+    brand: document.getElementById('part-brand').value.trim(),
     unit: document.getElementById('part-unit').value.trim(),
     buyPrice: Number(document.getElementById('part-buy-price').value) || 0,
     sellPrice: Number(document.getElementById('part-sell-price').value) || 0,
@@ -4288,7 +4300,9 @@ async function savePart() {
     const buy = _pendingPartRow.querySelector('.p-buy');
     const sell = _pendingPartRow.querySelector('.p-sell');
     const nameInput = _pendingPartRow.querySelector('.p-name');
+    const brandInput = _pendingPartRow.querySelector('.p-brand');
     if (nameInput) nameInput.value = data.name;
+    if (brandInput && !brandInput.value) brandInput.value = data.brand || '';
     if (buy && !Number(buy.value)) buy.value = data.buyPrice || '';
     if (sell && !Number(sell.value)) sell.value = data.sellPrice || '';
     updateServiceSummary();
@@ -4340,7 +4354,7 @@ function showPartSuggestions(input) {
   let html = matches.map(p =>
     `<div class="part-suggest-item" onmousedown="selectCatalogPart(event,'${p.id}')">
       <span>${escapeHtml(p.name)}</span>
-      <span style="color:var(--text-muted);font-size:11px;">₺${fmtMoney(p.sellPrice)}</span>
+      <span style="color:var(--text-muted);font-size:11px;">${p.brand ? escapeHtml(p.brand) + ' · ' : ''}₺${fmtMoney(p.sellPrice)}</span>
     </div>`
   ).join('');
 
@@ -4359,6 +4373,48 @@ function hidePartSuggestions(input) {
   }, 150);
 }
 
+function showBrandSuggestions(input) {
+  const query = input.value.trim().toLowerCase();
+  const tr = input.closest('tr');
+  const partName = tr?.querySelector('.p-name')?.value.trim().toLowerCase() || '';
+  const wrap = input.parentElement;
+  let dd = wrap.querySelector('.brand-suggestions');
+  if (!dd) {
+    dd = document.createElement('div');
+    dd.className = 'brand-suggestions part-suggestions';
+    wrap.appendChild(dd);
+  }
+  dd._inputRef = input;
+
+  const parts = state.parts || [];
+  const byName = partName ? parts.filter(p => p.name.toLowerCase() === partName) : parts;
+  const source = byName.length ? byName : parts;
+  const allBrands = [...new Set(source.map(p => p.brand).filter(Boolean))];
+  const matches = query ? allBrands.filter(b => b.toLowerCase().includes(query)).slice(0, 8) : allBrands.slice(0, 8);
+
+  const html = matches.map(b =>
+    `<div class="part-suggest-item" data-brand="${escapeHtml(b)}" onmousedown="selectBrandSuggestion(event)"><span>${escapeHtml(b)}</span></div>`
+  ).join('');
+  dd.innerHTML = html;
+  dd.style.display = html ? 'block' : 'none';
+}
+
+function hideBrandSuggestions(input) {
+  setTimeout(() => {
+    const dd = input.parentElement?.querySelector('.brand-suggestions');
+    if (dd) dd.style.display = 'none';
+  }, 150);
+}
+
+function selectBrandSuggestion(event) {
+  event.preventDefault();
+  const item = event.currentTarget;
+  const dd = item.closest('.brand-suggestions');
+  const input = dd?._inputRef;
+  if (input) input.value = item.dataset.brand || '';
+  if (dd) dd.style.display = 'none';
+}
+
 function selectCatalogPart(event, partId) {
   event.preventDefault();
   const dd = event.currentTarget.closest('.part-suggestions');
@@ -4369,8 +4425,10 @@ function selectCatalogPart(event, partId) {
   const tr = input.closest('tr');
   const buyInput = tr.querySelector('.p-buy');
   const sellInput = tr.querySelector('.p-sell');
+  const brandInput = tr.querySelector('.p-brand');
   if (buyInput) buyInput.value = part.buyPrice || '';
   if (sellInput) sellInput.value = part.sellPrice || '';
+  if (brandInput) brandInput.value = part.brand || '';
   updateServiceSummary();
   dd.style.display = 'none';
 }
@@ -4849,6 +4907,7 @@ function addPartRow(part) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><div class="p-name-wrap"><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}" oninput="showPartSuggestions(this)" onblur="hidePartSuggestions(this)" autocomplete="off"></div></td>
+    <td><div class="p-brand-wrap"><input type="text" class="p-brand" placeholder="Marka" value="${escapeHtml(part?.brand || '')}" oninput="showBrandSuggestions(this)" onblur="hideBrandSuggestions(this)" autocomplete="off"></div></td>
     <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty ?? 1}" step="1" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
@@ -4865,12 +4924,13 @@ function collectParts() {
   const parts = [];
   rows.forEach(tr => {
     const name = tr.querySelector('.p-name').value.trim();
+    const brand = tr.querySelector('.p-brand')?.value.trim() || '';
     const qty = Number(tr.querySelector('.p-qty').value) || 0;
     const buyPrice = Number(tr.querySelector('.p-buy').value) || 0;
     const sellPrice = Number(tr.querySelector('.p-sell').value) || 0;
     const labor = Number(tr.querySelector('.p-labor').value) || 0;
     if (name || qty || buyPrice || sellPrice || labor) {
-      parts.push({ name, qty, buyPrice, sellPrice, labor });
+      parts.push({ name, brand, qty, buyPrice, sellPrice, labor });
     }
   });
   return parts;
@@ -4965,12 +5025,13 @@ function showServiceDetail(id) {
   let partsHtml = '';
   if ((s.parts || []).length > 0) {
     partsHtml = `<table class="table" style="margin-top: 8px;"><thead><tr>
-      <th>Parça</th><th style="text-align:right">Adet</th><th style="text-align:right">Birim</th><th style="text-align:right">İşçilik</th><th style="text-align:right">Toplam</th>
+      <th>Parça</th><th>Marka</th><th style="text-align:right">Adet</th><th style="text-align:right">Birim</th><th style="text-align:right">İşçilik</th><th style="text-align:right">Toplam</th>
     </tr></thead><tbody>`;
     s.parts.forEach(p => {
       const lineTotal = (Number(p.qty) || 0) * (Number(p.sellPrice) || 0) + (Number(p.labor) || 0);
       partsHtml += `<tr>
         <td>${escapeHtml(p.name)}</td>
+        <td style="color:var(--text-muted)">${escapeHtml(p.brand || '—')}</td>
         <td style="text-align:right">${p.qty}</td>
         <td style="text-align:right; font-family: Consolas, monospace;">₺${fmtMoney(p.sellPrice)}</td>
         <td style="text-align:right; font-family: Consolas, monospace;">${p.labor ? '₺' + fmtMoney(p.labor) : '—'}</td>
