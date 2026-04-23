@@ -6280,7 +6280,7 @@ function generateReport() {
     totalTutar += b.tutar;
     totalFaaliyet += b.faaliyet;
     totalDoner += b.donerSermaye;
-    totalMalzeme += b.malzeme;
+    totalMalzeme += b.malzemeBuyCost;
     totalIscilik += b.iscilik;
   });
 
@@ -6361,7 +6361,7 @@ function generateReport() {
     <table class="rapor-table" style="margin-top:14px; max-width:400px;">
       <tr><td>Faaliyet Payı</td><td class="rapor-num">₺${fmtMoney(totalFaaliyet)}</td></tr>
       <tr><td>Döner Sermaye</td><td class="rapor-num">₺${fmtMoney(totalDoner)}</td></tr>
-      <tr><td>Malzeme Geliri</td><td class="rapor-num">₺${fmtMoney(totalMalzeme)}</td></tr>
+      <tr><td>Malzeme Maliyeti (KDV Hariç)</td><td class="rapor-num">₺${fmtMoney(totalMalzeme)}</td></tr>
       <tr class="rapor-total"><td>Dağıtılabilir İşçilik</td><td class="rapor-num">₺${fmtMoney(totalIscilik)}</td></tr>
     </table>
   </div>
