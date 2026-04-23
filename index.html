@@ -298,9 +298,9 @@
     color: #111;
     border: 1.5px solid #999;
     border-radius: 4px;
-    letter-spacing: 1.5px;
-    font-size: 12px;
-    padding: 3px 8px 3px 28px;
+    letter-spacing: 2px;
+    font-size: 13px;
+    padding: 4px 9px 4px 28px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     vertical-align: middle;
     line-height: 1.4;
@@ -1187,10 +1187,11 @@
 
 .invoice-grand-total {
   font-weight: 700;
-  font-size: 16px;
+  font-size: 13px;
   border-bottom: 2px solid #222 !important;
   padding-top: 8px !important;
   color: var(--accent);
+  white-space: nowrap;
 }
 
 @media (max-width: 600px) {
@@ -4418,7 +4419,7 @@ function showInvoiceModal(invoiceId) {
         <div class="invoice-total-row"><span>İşçilik Toplamı</span><span>₺${fmtMoney(totalLabor)}</span></div>
         <div class="invoice-total-row" style="border-top:1px solid #ddd;padding-top:8px;margin-top:4px;color:#555;"><span>KDV Hariç Toplam</span><span>₺${fmtMoney(inv.total)}</span></div>
         <div class="invoice-total-row" style="color:#888;font-size:12px;"><span>KDV (%${state.settings.kdvRate ?? 20})</span><span>₺${fmtMoney(inv.total * (state.settings.kdvRate ?? 20) / 100)}</span></div>
-        <div class="invoice-total-row invoice-grand-total"><span>GENEL TOPLAM (KDV Dahil)</span><span>₺${fmtMoney(inv.total * (1 + (state.settings.kdvRate ?? 20) / 100))}</span></div>
+        <div class="invoice-total-row invoice-grand-total"><span style="font-size:11px;font-weight:600;letter-spacing:0.02em;">GENEL TOPLAM (KDV DAHİL)</span><span style="font-size:16px;">₺${fmtMoney(inv.total * (1 + (state.settings.kdvRate ?? 20) / 100))}</span></div>
       </div>
 
       ${inv.teacherNames?.length > 0 ? `<div style="margin-top:14px;font-size:12px;color:#666;">Sorumlu Öğretmen: ${inv.teacherNames.map(n => escapeHtml(n)).join(', ')}</div>` : ''}
