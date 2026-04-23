@@ -1349,6 +1349,16 @@
           <div class="stat-value" id="stat-students">0</div>
           <div class="stat-sub" id="stat-students-sub">—</div>
         </div>
+        <div class="stat-card" id="stat-teacher-pay-card" style="cursor:pointer;background:var(--success-soft);border-color:var(--success)" onclick="showPayDetailPopup('teacher')">
+          <div class="stat-label" id="stat-teacher-pay-label">Öğretmen payı (%70) ↗</div>
+          <div class="stat-value money" id="stat-teacher-pay" style="color:var(--success)">₺0</div>
+          <div class="stat-sub" id="stat-teacher-pay-sub">—</div>
+        </div>
+        <div class="stat-card" id="stat-student-pay-card" style="cursor:pointer;background:var(--success-soft);border-color:var(--success)" onclick="showPayDetailPopup('student')">
+          <div class="stat-label" id="stat-student-pay-label">Öğrenci payı (%30) ↗</div>
+          <div class="stat-value money" id="stat-student-pay" style="color:var(--success)">₺0</div>
+          <div class="stat-sub" id="stat-student-pay-sub">—</div>
+        </div>
       </div>
 
       <div class="section">
@@ -2652,6 +2662,40 @@ function renderDashboard() {
   document.getElementById('stat-students-sub').textContent = activeStudentIds.size > 0
     ? `Pay: ₺${fmtMoney(perPersonShare)} (${activeStudentIds.size} kişiye)`
     : `${state.students.length} toplam`;
+
+  // Öğretmen / Öğrenci pay kartları
+  const tSharePct = (state.settings.teacherShare ?? 70) / 100;
+  const sSharePct = (state.settings.studentShare ?? 30) / 100;
+  const dashTeacherStats = {}, dashStudentStats = {};
+  periodSvcs.forEach(s => {
+    const labor = calcServiceBreakdown(s).iscilik;
+    if (labor <= 0) return;
+    (s.teacherIds || []).forEach(id => {
+      if (!dashTeacherStats[id]) dashTeacherStats[id] = { pay: 0, count: 0 };
+      dashTeacherStats[id].pay += labor * tSharePct / (s.teacherIds.length);
+      dashTeacherStats[id].count++;
+    });
+    (s.studentIds || []).forEach(id => {
+      if (!dashStudentStats[id]) dashStudentStats[id] = { pay: 0, count: 0 };
+      dashStudentStats[id].pay += labor * sSharePct / (s.studentIds.length);
+      dashStudentStats[id].count++;
+    });
+  });
+  const dashTotalTeacher = Object.values(dashTeacherStats).reduce((a, v) => a + v.pay, 0);
+  const dashTotalStudent = Object.values(dashStudentStats).reduce((a, v) => a + v.pay, 0);
+  const tCount = Object.keys(dashTeacherStats).length;
+  const sCount = Object.keys(dashStudentStats).length;
+  const tPct = state.settings.teacherShare ?? 70;
+  const sPct = state.settings.studentShare ?? 30;
+  document.getElementById('stat-teacher-pay-label').textContent = `Öğretmen payı (%${tPct}) ↗`;
+  document.getElementById('stat-student-pay-label').textContent = `Öğrenci payı (%${sPct}) ↗`;
+  document.getElementById('stat-teacher-pay').textContent = '₺' + fmtMoney(dashTotalTeacher);
+  document.getElementById('stat-student-pay').textContent = '₺' + fmtMoney(dashTotalStudent);
+  document.getElementById('stat-teacher-pay-sub').textContent = tCount > 0 ? `${tCount} öğretmen` : 'Bu dönemde yok';
+  document.getElementById('stat-student-pay-sub').textContent = sCount > 0 ? `${sCount} öğrenci` : 'Bu dönemde yok';
+  // showPayDetailPopup için _lastTeacherStats/_lastStudentStats gerekiyor; renderRevenue çağrılmamışsa doldur
+  window._lastTeacherStats = dashTeacherStats;
+  window._lastStudentStats = dashStudentStats;
 
   // Period subtitle
   const dashSub = document.getElementById('dashboard-date');
