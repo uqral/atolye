@@ -2154,7 +2154,9 @@
       <div class="form-row form-row-2">
         <div class="form-field" style="grid-column: 1/-1;">
           <label>Parça / Malzeme Adı *</label>
-          <input type="text" id="part-name" placeholder="Örn: Motor yağı 5W-40">
+          <div class="p-name-wrap">
+            <input type="text" id="part-name" placeholder="Örn: Motor yağı 5W-40" oninput="showPartModalNameSuggestions(this)" onblur="hidePartModalNameSuggestions(this)" autocomplete="off">
+          </div>
         </div>
       </div>
       <div class="form-row form-row-2">
@@ -4381,6 +4383,40 @@ function hidePartSuggestions(input) {
     const dd = input.parentElement?.querySelector('.part-suggestions');
     if (dd) dd.style.display = 'none';
   }, 150);
+}
+
+function showPartModalNameSuggestions(input) {
+  const query = input.value.trim().toLowerCase();
+  const wrap = input.parentElement;
+  let dd = wrap.querySelector('.part-suggestions');
+  if (!dd) {
+    dd = document.createElement('div');
+    dd.className = 'part-suggestions';
+    wrap.appendChild(dd);
+  }
+  const names = [...new Set((state.parts || []).map(p => p.name).filter(Boolean))];
+  const matches = query ? names.filter(n => n.toLowerCase().includes(query)).slice(0, 10) : names.slice(0, 10);
+  const html = matches.map(n =>
+    `<div class="part-suggest-item" onmousedown="selectPartModalName(event,'${escapeHtml(n).replace(/'/g,"\\'")}')"><span>${escapeHtml(n)}</span></div>`
+  ).join('');
+  dd.innerHTML = html;
+  dd.style.display = html ? 'block' : 'none';
+}
+
+function hidePartModalNameSuggestions(input) {
+  setTimeout(() => {
+    const dd = input.parentElement?.querySelector('.part-suggestions');
+    if (dd) dd.style.display = 'none';
+  }, 150);
+}
+
+function selectPartModalName(event, name) {
+  event.preventDefault();
+  const item = event.currentTarget;
+  const dd = item.closest('.part-suggestions');
+  if (dd) dd.style.display = 'none';
+  const input = document.getElementById('part-name');
+  if (input) input.value = name;
 }
 
 function showBrandSuggestions(input) {
