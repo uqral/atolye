@@ -4395,7 +4395,9 @@ function showInvoiceModal(invoiceId) {
       <div class="invoice-totals">
         <div class="invoice-total-row"><span>Parça Toplamı</span><span>₺${fmtMoney(partsTotal)}</span></div>
         <div class="invoice-total-row"><span>İşçilik Toplamı</span><span>₺${fmtMoney(totalLabor)}</span></div>
-        <div class="invoice-total-row invoice-grand-total"><span>GENEL TOPLAM</span><span>₺${fmtMoney(inv.total)}</span></div>
+        <div class="invoice-total-row" style="border-top:1px solid #ddd;padding-top:8px;margin-top:4px;color:#555;"><span>KDV Hariç Toplam</span><span>₺${fmtMoney(inv.total)}</span></div>
+        <div class="invoice-total-row" style="color:#888;font-size:12px;"><span>KDV (%${state.settings.kdvRate ?? 20})</span><span>₺${fmtMoney(inv.total * (state.settings.kdvRate ?? 20) / 100)}</span></div>
+        <div class="invoice-total-row invoice-grand-total"><span>GENEL TOPLAM (KDV Dahil)</span><span>₺${fmtMoney(inv.total * (1 + (state.settings.kdvRate ?? 20) / 100))}</span></div>
       </div>
 
       ${inv.teacherNames?.length > 0 ? `<div style="margin-top:14px;font-size:12px;color:#666;">Sorumlu Öğretmen: ${inv.teacherNames.map(n => escapeHtml(n)).join(', ')}</div>` : ''}
