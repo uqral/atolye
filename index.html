@@ -1330,12 +1330,12 @@
 
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-label">Bu ay gelir</div>
+          <div class="stat-label" id="stat-revenue-label">Bu ay gelir</div>
           <div class="stat-value money stat-accent" id="stat-revenue">₺0</div>
           <div class="stat-sub" id="stat-revenue-sub">—</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Bu ay iş sayısı</div>
+          <div class="stat-label" id="stat-jobs-label">Bu ay iş sayısı</div>
           <div class="stat-value" id="stat-jobs">0</div>
           <div class="stat-sub" id="stat-jobs-sub">—</div>
         </div>
@@ -2637,6 +2637,9 @@ function renderDashboard() {
   periodSvcs.forEach(s => (s.studentIds || []).forEach(id => activeStudentIds.add(id)));
   const perPersonShare = activeStudentIds.size > 0 ? periodNet / activeStudentIds.size : 0;
 
+  const periodOptLabel = PERIOD_OPTIONS.find(o => o.key === periodFilter.type)?.label || 'Dönem';
+  document.getElementById('stat-revenue-label').textContent = `${periodOptLabel} gelir`;
+  document.getElementById('stat-jobs-label').textContent = `${periodOptLabel} iş sayısı`;
   document.getElementById('stat-revenue').textContent = '₺' + fmtMoney(periodRevenue);
   document.getElementById('stat-revenue-sub').textContent = `Net dağıtılabilir: ₺${fmtMoney(periodNet)}`;
   document.getElementById('stat-jobs').textContent = periodSvcs.length;
