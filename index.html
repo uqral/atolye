@@ -1239,7 +1239,9 @@
   align-items: center;
   gap: 8px;
 }
-.part-suggest-item:hover { background: var(--surface-alt); }
+.part-suggest-item:hover,
+.part-suggest-item.suggest-active { background: var(--surface-alt); }
+.part-suggest-new.suggest-active { background: var(--warning-soft); }
 .part-suggest-new {
   padding: 8px 12px;
   cursor: pointer;
@@ -2155,7 +2157,7 @@
         <div class="form-field" style="grid-column: 1/-1;">
           <label>Parça / Malzeme Adı *</label>
           <div class="p-name-wrap">
-            <input type="text" id="part-name" placeholder="Örn: Motor yağı 5W-40" oninput="showPartModalNameSuggestions(this)" onfocus="showPartModalNameSuggestions(this)" onblur="hidePartModalNameSuggestions(this)" autocomplete="off">
+            <input type="text" id="part-name" placeholder="Örn: Motor yağı 5W-40" oninput="showPartModalNameSuggestions(this)" onfocus="showPartModalNameSuggestions(this)" onblur="hidePartModalNameSuggestions(this)" onkeydown="navigateSuggestions(event,this)" autocomplete="off">
           </div>
         </div>
       </div>
@@ -4429,6 +4431,31 @@ function hidePartSuggestions(input) {
   }, 150);
 }
 
+function navigateSuggestions(event, input) {
+  const wrap = input.parentElement;
+  const dd = wrap?.querySelector('.part-suggestions, .brand-suggestions');
+  if (!dd || dd.style.display === 'none') return;
+  const items = [...dd.querySelectorAll('.part-suggest-item, .part-suggest-new')];
+  if (!items.length) return;
+  const activeIdx = items.findIndex(i => i.classList.contains('suggest-active'));
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    const next = activeIdx < items.length - 1 ? activeIdx + 1 : 0;
+    items.forEach((i, idx) => i.classList.toggle('suggest-active', idx === next));
+    items[next].scrollIntoView({ block: 'nearest' });
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    const prev = activeIdx > 0 ? activeIdx - 1 : items.length - 1;
+    items.forEach((i, idx) => i.classList.toggle('suggest-active', idx === prev));
+    items[prev].scrollIntoView({ block: 'nearest' });
+  } else if (event.key === 'Enter' && activeIdx !== -1) {
+    event.preventDefault();
+    items[activeIdx].dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  } else if (event.key === 'Escape') {
+    dd.style.display = 'none';
+  }
+}
+
 function showPartModalNameSuggestions(input) {
   const query = input.value.trim().toLowerCase();
   const wrap = input.parentElement;
@@ -5020,8 +5047,8 @@ function addPartRow(part) {
   const tbody = document.getElementById('parts-tbody');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><div class="p-name-wrap"><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}" oninput="showPartSuggestions(this)" onfocus="showPartSuggestions(this)" onblur="hidePartSuggestions(this)" autocomplete="off"></div></td>
-    <td><div class="p-brand-wrap"><input type="text" class="p-brand" placeholder="Marka" value="${escapeHtml(part?.brand || '')}" oninput="showBrandSuggestions(this)" onfocus="showBrandSuggestions(this)" onblur="hideBrandSuggestions(this)" autocomplete="off"></div></td>
+    <td><div class="p-name-wrap"><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}" oninput="showPartSuggestions(this)" onfocus="showPartSuggestions(this)" onblur="hidePartSuggestions(this)" onkeydown="navigateSuggestions(event,this)" autocomplete="off"></div></td>
+    <td><div class="p-brand-wrap"><input type="text" class="p-brand" placeholder="Marka" value="${escapeHtml(part?.brand || '')}" oninput="showBrandSuggestions(this)" onfocus="showBrandSuggestions(this)" onblur="hideBrandSuggestions(this)" onkeydown="navigateSuggestions(event,this)" autocomplete="off"></div></td>
     <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty ?? 1}" step="1" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
