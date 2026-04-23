@@ -1385,6 +1385,54 @@
   text-align: center;
 }
 
+/* Multi-select dropdown */
+.rapor-ms { position: relative; }
+.rapor-ms-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+.rapor-ms-trigger:hover { border-color: var(--primary); }
+.rapor-ms-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rapor-ms-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 200;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.rapor-ms-panel.open { display: block; }
+.rapor-ms-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text);
+}
+.rapor-ms-item:hover { background: var(--bg); }
+.rapor-ms-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--primary); flex-shrink: 0; cursor: pointer; }
+.rapor-ms-all-item { border-bottom: 1px solid var(--border); margin-bottom: 4px; font-weight: 600; }
+
 @media print {
   .sidebar, .page-header, .no-print, #rapor-filter-section { display: none !important; }
   .main { margin: 0 !important; padding: 0 !important; }
@@ -1743,11 +1791,23 @@
           <div class="form-row form-row-2" style="max-width:560px; margin-bottom:20px;">
             <div class="form-field">
               <label>Öğretmen Filtresi</label>
-              <select id="rapor-teacher-filter" style="height:40px; padding:0 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); font-size:13px; color:var(--text); width:100%;"></select>
+              <div class="rapor-ms" id="rapor-teacher-ms">
+                <div class="rapor-ms-trigger" onclick="toggleRaporMs('rapor-teacher-ms')">
+                  <span class="rapor-ms-label" id="rapor-teacher-ms-label">Tüm öğretmenler</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+                <div class="rapor-ms-panel" id="rapor-teacher-ms-panel"></div>
+              </div>
             </div>
             <div class="form-field">
               <label>Öğrenci Filtresi</label>
-              <select id="rapor-student-filter" style="height:40px; padding:0 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); font-size:13px; color:var(--text); width:100%;"></select>
+              <div class="rapor-ms" id="rapor-student-ms">
+                <div class="rapor-ms-trigger" onclick="toggleRaporMs('rapor-student-ms')">
+                  <span class="rapor-ms-label" id="rapor-student-ms-label">Tüm öğrenciler</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+                <div class="rapor-ms-panel" id="rapor-student-ms-panel"></div>
+              </div>
             </div>
           </div>
           <button class="btn btn-primary" onclick="generateReport()">
@@ -5734,16 +5794,77 @@ function renderRaporlar() {
   const toEl = document.getElementById('rapor-to');
   if (!fromEl.value) fromEl.value = fromDefault;
   if (!toEl.value) toEl.value = toDefault;
+  buildRaporMs('rapor-teacher', state.teachers, 'Tüm öğretmenler');
+  buildRaporMs('rapor-student', state.students, 'Tüm öğrenciler');
+}
 
-  const teacherSel = document.getElementById('rapor-teacher-filter');
-  const studentSel = document.getElementById('rapor-student-filter');
-  const prevT = teacherSel.value, prevS = studentSel.value;
-  teacherSel.innerHTML = '<option value="all">Tüm öğretmenler</option>' +
-    state.teachers.map(t => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)}</option>`).join('');
-  studentSel.innerHTML = '<option value="all">Tüm öğrenciler</option>' +
-    state.students.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join('');
-  if (prevT) teacherSel.value = prevT;
-  if (prevS) studentSel.value = prevS;
+function buildRaporMs(prefix, people, allLabel) {
+  const panel = document.getElementById(`${prefix}-ms-panel`);
+  if (!panel) return;
+  panel.innerHTML =
+    `<label class="rapor-ms-item rapor-ms-all-item">
+      <input type="checkbox" value="__all__" checked onchange="onRaporMsAll(this,'${prefix}')">
+      <span>${allLabel}</span>
+    </label>` +
+    people.map(p =>
+      `<label class="rapor-ms-item">
+        <input type="checkbox" value="${p.id}" class="${prefix}-cb" onchange="onRaporMsItem(this,'${prefix}','${allLabel}')">
+        <span>${escapeHtml(p.name)}</span>
+      </label>`
+    ).join('');
+  updateRaporMsLabel(prefix, allLabel);
+}
+
+function toggleRaporMs(msId) {
+  const ms = document.getElementById(msId);
+  const panel = ms.querySelector('.rapor-ms-panel');
+  const isOpen = panel.classList.contains('open');
+  document.querySelectorAll('.rapor-ms-panel.open').forEach(p => p.classList.remove('open'));
+  if (!isOpen) panel.classList.add('open');
+}
+
+function onRaporMsAll(cb, prefix) {
+  const panel = cb.closest('.rapor-ms-panel');
+  panel.querySelectorAll(`.${prefix}-cb`).forEach(c => { c.checked = false; });
+  if (!cb.checked) cb.checked = true; // "Tümü" her zaman seçili kalır tek başına
+  const allLabel = cb.closest('.rapor-ms-all-item').querySelector('span').textContent;
+  updateRaporMsLabel(prefix, allLabel);
+}
+
+function onRaporMsItem(cb, prefix, allLabel) {
+  const panel = cb.closest('.rapor-ms-panel');
+  const allCb = panel.querySelector('input[value="__all__"]');
+  if (cb.checked) {
+    allCb.checked = false;
+  } else {
+    const anyChecked = [...panel.querySelectorAll(`.${prefix}-cb`)].some(c => c.checked);
+    if (!anyChecked) allCb.checked = true;
+  }
+  updateRaporMsLabel(prefix, allLabel);
+}
+
+function updateRaporMsLabel(prefix, allLabel) {
+  const panel = document.getElementById(`${prefix}-ms-panel`);
+  const labelEl = document.getElementById(`${prefix}-ms-label`);
+  if (!panel || !labelEl) return;
+  const allCb = panel.querySelector('input[value="__all__"]');
+  if (allCb && allCb.checked) { labelEl.textContent = allLabel; return; }
+  const selected = [...panel.querySelectorAll(`.${prefix}-cb:checked`)];
+  if (selected.length === 0) { labelEl.textContent = allLabel; return; }
+  if (selected.length === 1) {
+    labelEl.textContent = selected[0].closest('label').querySelector('span').textContent;
+  } else {
+    labelEl.textContent = `${selected.length} kişi seçildi`;
+  }
+}
+
+function getRaporMsIds(prefix) {
+  const panel = document.getElementById(`${prefix}-ms-panel`);
+  if (!panel) return null;
+  const allCb = panel.querySelector('input[value="__all__"]');
+  if (allCb && allCb.checked) return null; // null = tümü
+  const ids = [...panel.querySelectorAll(`.${prefix}-cb:checked`)].map(c => c.value);
+  return ids.length > 0 ? new Set(ids) : null;
 }
 
 function generateReport() {
@@ -5752,8 +5873,8 @@ function generateReport() {
   if (!from || !to) { showToast('Başlangıç ve bitiş tarihini girin', 'danger'); return; }
   if (from > to) { showToast('Başlangıç tarihi bitiş tarihinden büyük olamaz', 'danger'); return; }
 
-  const teacherFilter = document.getElementById('rapor-teacher-filter').value;
-  const studentFilter = document.getElementById('rapor-student-filter').value;
+  const teacherIds = getRaporMsIds('rapor-teacher');
+  const studentIds = getRaporMsIds('rapor-student');
 
   const svcs = state.services.filter(s => s.date >= from && s.date <= to && s.status !== 'archived');
 
@@ -5790,11 +5911,11 @@ function generateReport() {
   });
 
   const teacherRows = Object.entries(teacherStats)
-    .filter(([id]) => teacherFilter === 'all' || id === teacherFilter)
+    .filter(([id]) => !teacherIds || teacherIds.has(id))
     .map(([id, v]) => ({ name: (state.teachers.find(t => t.id === id) || {}).name || 'Bilinmeyen', ...v }))
     .sort((a, b) => b.pay - a.pay);
   const studentRows = Object.entries(studentStats)
-    .filter(([id]) => studentFilter === 'all' || id === studentFilter)
+    .filter(([id]) => !studentIds || studentIds.has(id))
     .map(([id, v]) => ({ name: (state.students.find(s => s.id === id) || {}).name || 'Bilinmeyen', ...v }))
     .sort((a, b) => b.pay - a.pay);
 
@@ -6704,6 +6825,9 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('.vehicle-search-wrap')) {
     const dd = document.getElementById('vehicle-dropdown');
     if (dd) dd.classList.remove('open');
+  }
+  if (!e.target.closest('.rapor-ms')) {
+    document.querySelectorAll('.rapor-ms-panel.open').forEach(p => p.classList.remove('open'));
   }
 });
 
