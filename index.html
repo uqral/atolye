@@ -4419,7 +4419,7 @@ function showInvoiceModal(invoiceId) {
         <div class="invoice-total-row"><span>İşçilik Toplamı</span><span>₺${fmtMoney(totalLabor)}</span></div>
         <div class="invoice-total-row" style="border-top:1px solid #ddd;padding-top:8px;margin-top:4px;color:#555;"><span>KDV Hariç Toplam</span><span>₺${fmtMoney(inv.total)}</span></div>
         <div class="invoice-total-row" style="color:#888;font-size:12px;"><span>KDV (%${state.settings.kdvRate ?? 20})</span><span>₺${fmtMoney(inv.total * (state.settings.kdvRate ?? 20) / 100)}</span></div>
-        <div class="invoice-total-row invoice-grand-total"><span style="font-size:11px;font-weight:600;letter-spacing:0.02em;">GENEL TOPLAM (KDV DAHİL)</span><span style="font-size:16px;">₺${fmtMoney(inv.total * (1 + (state.settings.kdvRate ?? 20) / 100))}</span></div>
+        <div class="invoice-total-row invoice-grand-total"><span><strong style="font-size:14px;letter-spacing:0.04em;">GENEL TOPLAM</strong><span style="font-size:10px;font-weight:500;color:#b8450b;margin-left:5px;">(KDV DAHİL)</span></span><span style="font-size:18px;">₺${fmtMoney(inv.total * (1 + (state.settings.kdvRate ?? 20) / 100))}</span></div>
       </div>
 
       ${inv.teacherNames?.length > 0 ? `<div style="margin-top:14px;font-size:12px;color:#666;">Sorumlu Öğretmen: ${inv.teacherNames.map(n => escapeHtml(n)).join(', ')}</div>` : ''}
