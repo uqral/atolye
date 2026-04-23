@@ -1375,6 +1375,7 @@
 }
 .rapor-total td { font-weight: 700; }
 .rapor-num { text-align: right; font-variant-numeric: tabular-nums; }
+.rapor-table th.rapor-num { text-align: right; }
 .rapor-empty { color: #888; font-size: 13px; padding: 8px 0; }
 .rapor-footer {
   margin-top: 32px;
@@ -1438,22 +1439,6 @@
 .rapor-ms-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--primary); flex-shrink: 0; cursor: pointer; }
 .rapor-ms-all-item { border-bottom: 1px solid var(--border); margin-bottom: 4px; font-weight: 600; }
 
-@media print {
-  .sidebar, .page-header, .no-print, #rapor-filter-section { display: none !important; }
-  .main { margin: 0 !important; padding: 0 !important; }
-  .page { padding: 0 !important; }
-  body, .main, #page-raporlar { background: #fff !important; }
-  .rapor-doc {
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    max-width: none !important;
-    box-shadow: none !important;
-  }
-  .rapor-kpi { border: 1px solid #ccc !important; background: #fff !important; }
-  .rapor-kpi--accent { background: #fff5f0 !important; }
-  @page { margin: 16mm 14mm; }
-}
 /* ===== DATE RANGE PICKER ===== */
 .drp-wrap { position: relative; }
 .drp-trigger {
@@ -1572,6 +1557,23 @@
 .drp-day--end   { border-radius: 0 var(--radius) var(--radius) 0; }
 .drp-day--start.drp-day--end { border-radius: var(--radius); }
 .drp-day--in-range { background: var(--accent-soft); border-radius: 0; }
+
+@media print {
+  .sidebar, .page-header, .no-print, #rapor-filter-section { display: none !important; }
+  .main { margin: 0 !important; padding: 0 !important; }
+  .page { padding: 0 !important; }
+  body, .main, #page-raporlar { background: #fff !important; }
+  .rapor-doc {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    box-shadow: none !important;
+  }
+  .rapor-kpi { border: 1px solid #ccc !important; background: #fff !important; }
+  .rapor-kpi--accent { background: #fff5f0 !important; }
+  @page { margin: 16mm 14mm; }
+}
 </style>
 </head>
 <body>
@@ -2946,6 +2948,13 @@ const GDRIVE_REDIRECT_URI = 'https://uqral.github.io/atolye/';
 let _gdriveSyncing = false;
 
 let editingVehicleId = null;
+
+// Date Range Picker state
+let _drpFrom = null, _drpTo = null;
+let _drpStep = 'from';
+let _drpHover = null;
+let _drpLY = new Date().getFullYear();
+let _drpLM = new Date().getMonth();
 let editingServiceId = null;
 let editingStudentId = null;
 let editingTeacherId = null;
@@ -2956,12 +2965,6 @@ let currentVehicleDetailId = null;
 
 const PAGE_SIZE = 25;
 let pageState = { vehicles: 1, services: 1, students: 1, invoices: 1 };
-
-let _drpFrom = null, _drpTo = null;
-let _drpStep = 'from';
-let _drpHover = null;
-let _drpLY = new Date().getFullYear();
-let _drpLM = new Date().getMonth();
 
 // Global period filter state — her sayfaya uygulanır
 let periodFilter = {
@@ -3278,9 +3281,10 @@ function serviceTotal(srv) {
 function calcServiceBreakdown(srv) {
   // Satış ve işçilik KDV hariç girilir → serviceTotal = KDV matrahı
   const kdvMathrah = serviceTotal(srv);
-  const kdvRate = (state.settings.kdvRate ?? 20) / 100;
-  const faaliyetRate = (state.settings.faaliyetRate ?? 10) / 100;
-  const donerRate = (state.settings.donerSermayeRate ?? 7) / 100;
+  const r = srv.rates || state.settings;
+  const kdvRate = (r.kdvRate ?? 20) / 100;
+  const faaliyetRate = (r.faaliyetRate ?? 10) / 100;
+  const donerRate = (r.donerSermayeRate ?? 7) / 100;
 
   const kdv = kdvMathrah * kdvRate;
   const tutar = kdvMathrah + kdv; // KDV dahil fatura tutarı
@@ -3426,20 +3430,21 @@ function renderDashboard() {
     : `${state.students.length} toplam`;
 
   // Öğretmen / Öğrenci pay kartları
-  const tSharePct = (state.settings.teacherShare ?? 70) / 100;
-  const sSharePct = (state.settings.studentShare ?? 30) / 100;
   const dashTeacherStats = {}, dashStudentStats = {};
   periodSvcs.forEach(s => {
     const labor = calcServiceBreakdown(s).iscilik;
     if (labor <= 0) return;
+    const sr = s.rates || state.settings;
+    const tPctS = (sr.teacherShare ?? 70) / 100;
+    const sPctS = (sr.studentShare ?? 30) / 100;
     (s.teacherIds || []).forEach(id => {
       if (!dashTeacherStats[id]) dashTeacherStats[id] = { pay: 0, count: 0 };
-      dashTeacherStats[id].pay += labor * tSharePct / (s.teacherIds.length);
+      dashTeacherStats[id].pay += labor * tPctS / (s.teacherIds.length);
       dashTeacherStats[id].count++;
     });
     (s.studentIds || []).forEach(id => {
       if (!dashStudentStats[id]) dashStudentStats[id] = { pay: 0, count: 0 };
-      dashStudentStats[id].pay += labor * sSharePct / (s.studentIds.length);
+      dashStudentStats[id].pay += labor * sPctS / (s.studentIds.length);
       dashStudentStats[id].count++;
     });
   });
@@ -3658,8 +3663,11 @@ function renderRevenue() {
     const labor = calcServiceBreakdown(s).iscilik;
     const teachers = s.teacherIds || [];
     const students = s.studentIds || [];
+    const sr = s.rates || state.settings;
+    const tPctS = (sr.teacherShare ?? 70) / 100;
+    const sPctS = (sr.studentShare ?? 30) / 100;
     if (labor > 0 && teachers.length > 0) {
-      const share = labor * teacherSharePct / teachers.length;
+      const share = labor * tPctS / teachers.length;
       teachers.forEach(id => {
         if (!teacherStats[id]) teacherStats[id] = { pay: 0, count: 0 };
         teacherStats[id].pay += share;
@@ -3667,7 +3675,7 @@ function renderRevenue() {
       });
     }
     if (labor > 0 && students.length > 0) {
-      const share = labor * studentSharePct / students.length;
+      const share = labor * sPctS / students.length;
       students.forEach(id => {
         if (!studentStats[id]) studentStats[id] = { pay: 0, count: 0 };
         studentStats[id].pay += share;
@@ -3874,12 +3882,6 @@ function renderRevenueBreakdown(periodSvcs) {
   const host = document.getElementById('revenue-breakdown-section');
   if (!host) return;
 
-  const teacherSharePct = (state.settings.teacherShare ?? 70) / 100;
-  const studentSharePct = (state.settings.studentShare ?? 30) / 100;
-  const fRate = state.settings.faaliyetRate ?? 10;
-  const dRate = state.settings.donerSermayeRate ?? 7;
-  const kdvRate = state.settings.kdvRate ?? 20;
-
   // Dönem toplamları
   let totTutar = 0, totKdvMathrah = 0, totKdv = 0, totDoner = 0, totFaaliyet = 0, totMalzeme = 0, totIscilik = 0;
   periodSvcs.forEach(s => {
@@ -3898,10 +3900,11 @@ function renderRevenueBreakdown(periodSvcs) {
     const v = state.vehicles.find(vx => vx.id === s.vehicleId);
     const plate = v ? v.plate : '—';
     const b = calcServiceBreakdown(s);
+    const sr = s.rates || state.settings;
     const teachers = (s.teacherIds || []).map(id => state.teachers.find(t => t.id === id)?.name || '').filter(Boolean);
     const students = (s.studentIds || []).map(id => state.students.find(st => st.id === id)?.name || '').filter(Boolean);
-    const teacherPay = b.iscilik > 0 && teachers.length > 0 ? b.iscilik * teacherSharePct / teachers.length : 0;
-    const studentPay = b.iscilik > 0 && students.length > 0 ? b.iscilik * studentSharePct / students.length : 0;
+    const teacherPay = b.iscilik > 0 && teachers.length > 0 ? b.iscilik * (sr.teacherShare ?? 70) / 100 / teachers.length : 0;
+    const studentPay = b.iscilik > 0 && students.length > 0 ? b.iscilik * (sr.studentShare ?? 30) / 100 / students.length : 0;
     const date = s.date ? new Date(s.date).toLocaleDateString('tr-TR') : '—';
     return `<tr>
       <td style="white-space:nowrap">${date}</td>
@@ -4870,9 +4873,16 @@ async function saveService() {
 
   if (editingServiceId) {
     const s = state.services.find(x => x.id === editingServiceId);
-    if (s) Object.assign(s, data);
+    if (s) Object.assign(s, data); // rates korunur, data'ya dahil edilmedi
   } else {
-    state.services.push(Object.assign({ id: uid(), createdAt: new Date().toISOString() }, data));
+    const rates = {
+      kdvRate:          state.settings.kdvRate          ?? 20,
+      faaliyetRate:     state.settings.faaliyetRate     ?? 10,
+      donerSermayeRate: state.settings.donerSermayeRate ?? 7,
+      teacherShare:     state.settings.teacherShare     ?? 70,
+      studentShare:     state.settings.studentShare     ?? 30,
+    };
+    state.services.push(Object.assign({ id: uid(), createdAt: new Date().toISOString(), rates }, data));
   }
 
   await saveState();
@@ -5547,8 +5557,6 @@ function renderTeacherDetail() {
   const t = state.teachers.find(x => x.id === id);
   if (!t) return;
 
-  const teacherSharePct = (state.settings.teacherShare ?? 70) / 100;
-
   const allSvcs = state.services.filter(svc => getSvcTeacherIds(svc).includes(id));
   let svcs = allSvcs.filter(svc => isInTdPeriod(svc.date));
 
@@ -5558,7 +5566,8 @@ function renderTeacherDetail() {
     else if (tdSvcSort.key === 'pay') {
       const ba = calcServiceBreakdown(a); const bb = calcServiceBreakdown(b);
       const ta = getSvcTeacherIds(a).length || 1; const tb = getSvcTeacherIds(b).length || 1;
-      av = ba.iscilik * teacherSharePct / ta; bv = bb.iscilik * teacherSharePct / tb;
+      av = ba.iscilik * ((a.rates || state.settings).teacherShare ?? 70) / 100 / ta;
+      bv = bb.iscilik * ((b.rates || state.settings).teacherShare ?? 70) / 100 / tb;
     } else if (tdSvcSort.key === 'plate') {
       const va = state.vehicles.find(v => v.id === a.vehicleId);
       const vb = state.vehicles.find(v => v.id === b.vehicleId);
@@ -5588,7 +5597,8 @@ function renderTeacherDetail() {
 
   const periodPay = svcs.reduce((acc, svc) => {
     const teacherCount = getSvcTeacherIds(svc).length || 1;
-    return acc + calcServiceBreakdown(svc).iscilik * teacherSharePct / teacherCount;
+    const tPct = ((svc.rates || state.settings).teacherShare ?? 70) / 100;
+    return acc + calcServiceBreakdown(svc).iscilik * tPct / teacherCount;
   }, 0);
 
   const si = k => tdSvcSort.key === k ? (tdSvcSort.dir === 'desc' ? ' ↓' : ' ↑') : '';
@@ -5621,7 +5631,8 @@ function renderTeacherDetail() {
     svcs.forEach(svc => {
       const v = state.vehicles.find(vx => vx.id === svc.vehicleId);
       const teacherCount = getSvcTeacherIds(svc).length || 1;
-      const pay = calcServiceBreakdown(svc).iscilik * teacherSharePct / teacherCount;
+      const tPct = ((svc.rates || state.settings).teacherShare ?? 70) / 100;
+      const pay = calcServiceBreakdown(svc).iscilik * tPct / teacherCount;
       svcHtml += `<tr class="clickable" onclick="showServiceDetail('${svc.id}')">
         <td>${fmtDate(svc.date)}</td>
         <td>${v ? `<span class="plate">${escapeHtml(v.plate)}</span> <span style="color:var(--text-muted);font-size:12px;">${escapeHtml((v.brand||'')+' '+(v.model||''))}</span>` : '—'}</td>
@@ -5933,6 +5944,197 @@ function renderRaporlar() {
   buildRaporMs('rapor-student', state.students, 'Tüm öğrenciler');
 }
 
+// ============ DATE RANGE PICKER ============
+function drpDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function drpFmtDisplay(ds) {
+  if (!ds) return '';
+  const [y,m,d] = ds.split('-');
+  return `${d}/${m}/${y}`;
+}
+function drpUpdateTrigger() {
+  const lbl = document.getElementById('drp-label');
+  if (!lbl) return;
+  if (_drpFrom && _drpTo) {
+    lbl.textContent = `${drpFmtDisplay(_drpFrom)}  –  ${drpFmtDisplay(_drpTo)}`;
+  } else if (_drpFrom) {
+    lbl.textContent = `${drpFmtDisplay(_drpFrom)}  –  ...`;
+  } else {
+    lbl.textContent = 'Tarih seçin';
+  }
+}
+function drpInit() {
+  if (_drpFrom && _drpTo) { drpUpdateTrigger(); return; }
+  const now = new Date();
+  _drpLY = now.getFullYear();
+  _drpLM = now.getMonth();
+  _drpFrom = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  _drpTo   = drpDateStr(now);
+  _drpStep = 'from';
+  drpUpdateTrigger();
+}
+function toggleDrp() {
+  const panel = document.getElementById('drp-panel');
+  if (!panel) return;
+  if (panel.classList.contains('open')) { closeDrp(); return; }
+  renderDrpCals();
+  panel.classList.add('open');
+}
+function closeDrp() {
+  const panel = document.getElementById('drp-panel');
+  if (panel) panel.classList.remove('open');
+  _drpHover = null;
+}
+function drpGetDayClasses(ds) {
+  const classes = ['drp-day'];
+  if (ds === drpDateStr(new Date())) classes.push('drp-day--today');
+  const f = _drpFrom;
+  const t = (_drpStep === 'to' && _drpHover) ? _drpHover : _drpTo;
+  if (f && t) {
+    const lo = f <= t ? f : t, hi = f <= t ? t : f;
+    if (ds === lo && ds === hi) classes.push('drp-day--start','drp-day--end');
+    else if (ds === lo) classes.push('drp-day--start');
+    else if (ds === hi) classes.push('drp-day--end');
+    else if (ds > lo && ds < hi) classes.push('drp-day--in-range');
+  } else if (f && ds === f) {
+    classes.push('drp-day--start');
+  }
+  return classes.join(' ');
+}
+function drpUpdateDayClasses() {
+  document.querySelectorAll('.drp-day[data-d]').forEach(el => {
+    el.className = drpGetDayClasses(el.dataset.d);
+  });
+}
+function drpRenderCal(year, month, side) {
+  const MN = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const DN = ['Pt','Sa','Çr','Pe','Cu','Ct','Pz'];
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month + 1, 0);
+  const startDow = (firstDay.getDay() + 6) % 7;
+  const endDow   = (lastDay.getDay() + 6) % 7;
+  const curY = new Date().getFullYear();
+  const yearOpts = Array.from({length: curY - 2014 + 3}, (_,i) => 2015+i)
+    .map(y => `<option value="${y}"${y===year?' selected':''}>${y}</option>`).join('');
+  const monthOpts = MN.map((m,i) => `<option value="${i}"${i===month?' selected':''}>${m}</option>`).join('');
+  const prevBtn = side==='left'
+    ? `<button class="drp-nav" onclick="drpNav(-1)">&#8249;</button>`
+    : `<span class="drp-nav-ph"></span>`;
+  const nextBtn = side==='right'
+    ? `<button class="drp-nav" onclick="drpNav(1)">&#8250;</button>`
+    : `<span class="drp-nav-ph"></span>`;
+  let grid = '';
+  for (let i=0; i<startDow; i++) {
+    const d = new Date(year, month, i-startDow+1);
+    const ds = drpDateStr(d);
+    grid += `<div class="drp-day drp-day--other" data-d="${ds}" onmouseenter="drpHover('${ds}')" onmouseleave="drpHoverEnd()" onclick="drpClick('${ds}')">${d.getDate()}</div>`;
+  }
+  for (let d=1; d<=lastDay.getDate(); d++) {
+    const ds = drpDateStr(new Date(year, month, d));
+    grid += `<div class="${drpGetDayClasses(ds)}" data-d="${ds}" onmouseenter="drpHover('${ds}')" onmouseleave="drpHoverEnd()" onclick="drpClick('${ds}')">${d}</div>`;
+  }
+  if (endDow < 6) {
+    for (let i=1; i<=6-endDow; i++) {
+      const d = new Date(year, month+1, i);
+      const ds = drpDateStr(d);
+      grid += `<div class="drp-day drp-day--other" data-d="${ds}" onmouseenter="drpHover('${ds}')" onmouseleave="drpHoverEnd()" onclick="drpClick('${ds}')">${i}</div>`;
+    }
+  }
+  return `<div class="drp-cal">
+    <div class="drp-cal-hd">
+      ${prevBtn}
+      <select class="drp-sel" onchange="drpSetCalMonth('${side}',+this.value)">${monthOpts}</select>
+      <select class="drp-sel" onchange="drpSetCalYear('${side}',+this.value)">${yearOpts}</select>
+      ${nextBtn}
+    </div>
+    <div class="drp-dow-row">${DN.map(d=>`<div class="drp-dow">${d}</div>`).join('')}</div>
+    <div class="drp-cal-grid">${grid}</div>
+  </div>`;
+}
+function renderDrpCals() {
+  const cals = document.getElementById('drp-cals');
+  if (!cals) return;
+  let ry = _drpLY, rm = _drpLM + 1;
+  if (rm > 11) { rm = 0; ry++; }
+  cals.innerHTML = drpRenderCal(_drpLY, _drpLM, 'left') + drpRenderCal(ry, rm, 'right');
+}
+function drpNav(dir) {
+  _drpLM += dir;
+  if (_drpLM < 0)  { _drpLM = 11; _drpLY--; }
+  if (_drpLM > 11) { _drpLM = 0;  _drpLY++; }
+  renderDrpCals();
+}
+function drpSetCalMonth(side, month) {
+  if (side === 'left') {
+    _drpLM = month;
+  } else {
+    _drpLM = month - 1;
+    if (_drpLM < 0) { _drpLM = 11; _drpLY--; }
+  }
+  renderDrpCals();
+}
+function drpSetCalYear(side, year) {
+  if (side === 'left') {
+    _drpLY = year;
+  } else {
+    _drpLY = (_drpLM === 11) ? year - 1 : year;
+  }
+  renderDrpCals();
+}
+function drpHover(ds) {
+  _drpHover = ds;
+  if (_drpStep === 'to') drpUpdateDayClasses();
+}
+function drpHoverEnd() {
+  _drpHover = null;
+  if (_drpStep === 'to') drpUpdateDayClasses();
+}
+function drpClick(ds) {
+  if (_drpStep === 'from') {
+    _drpFrom = ds; _drpTo = null; _drpStep = 'to';
+    drpUpdateDayClasses(); drpUpdateTrigger();
+  } else {
+    if (ds < _drpFrom) { _drpTo = _drpFrom; _drpFrom = ds; }
+    else { _drpTo = ds; }
+    _drpStep = 'from';
+    drpUpdateDayClasses(); drpUpdateTrigger(); closeDrp();
+  }
+}
+function drpPreset(type) {
+  const now = new Date(), today = drpDateStr(now);
+  if (type === 'today') {
+    _drpFrom = _drpTo = today;
+  } else if (type === 'yesterday') {
+    const y = new Date(now); y.setDate(y.getDate()-1);
+    _drpFrom = _drpTo = drpDateStr(y);
+  } else if (type === '7d') {
+    const s = new Date(now); s.setDate(s.getDate()-6);
+    _drpFrom = drpDateStr(s); _drpTo = today;
+  } else if (type === '30d') {
+    const s = new Date(now); s.setDate(s.getDate()-29);
+    _drpFrom = drpDateStr(s); _drpTo = today;
+  } else if (type === 'this_month') {
+    _drpFrom = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+    _drpTo = today;
+  } else if (type === 'last_month') {
+    const s = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    const e = new Date(now.getFullYear(), now.getMonth(), 0);
+    _drpFrom = drpDateStr(s); _drpTo = drpDateStr(e);
+  } else if (type === 'all') {
+    const dates = state.services.map(s=>s.date).filter(Boolean).sort();
+    _drpFrom = dates.length ? dates[0] : `${now.getFullYear()}-01-01`;
+    _drpTo = today;
+  }
+  _drpStep = 'from';
+  if (_drpFrom) { const p=_drpFrom.split('-'); _drpLY=+p[0]; _drpLM=+p[1]-1; }
+  drpUpdateTrigger();
+  document.querySelectorAll('.drp-preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderDrpCals();
+  closeDrp();
+}
+
 function buildRaporMs(prefix, people, allLabel) {
   const panel = document.getElementById(`${prefix}-ms-panel`);
   if (!panel) return;
@@ -6239,6 +6441,16 @@ function renderSettings() {
 }
 
 async function saveSettings() {
+  // Oranlar değişmeden önce rates'i olmayan eski kayıtları mevcut oranlarla dondur
+  const currentRates = {
+    kdvRate:          state.settings.kdvRate          ?? 20,
+    faaliyetRate:     state.settings.faaliyetRate     ?? 10,
+    donerSermayeRate: state.settings.donerSermayeRate ?? 7,
+    teacherShare:     state.settings.teacherShare     ?? 70,
+    studentShare:     state.settings.studentShare     ?? 30,
+  };
+  state.services.forEach(s => { if (!s.rates) s.rates = { ...currentRates }; });
+
   state.settings.workshopName = document.getElementById('setting-workshop-name').value.trim() || 'Atölye';
   state.settings.faaliyetRate = Number(document.getElementById('setting-faaliyet-rate').value) || 0;
   state.settings.donerSermayeRate = Number(document.getElementById('setting-doner-sermaye-rate').value) || 0;
@@ -6953,190 +7165,6 @@ function seedTestData() {
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => goto(item.dataset.page));
 });
-
-// ============ DATE RANGE PICKER ============
-function drpDateStr(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function drpFmtDisplay(ds) {
-  if (!ds) return '';
-  const [y,m,d] = ds.split('-');
-  return `${d}/${m}/${y}`;
-}
-function drpUpdateTrigger() {
-  const lbl = document.getElementById('drp-label');
-  if (!lbl) return;
-  if (_drpFrom && _drpTo) {
-    lbl.textContent = `${drpFmtDisplay(_drpFrom)}  –  ${drpFmtDisplay(_drpTo)}`;
-  } else if (_drpFrom) {
-    lbl.textContent = `${drpFmtDisplay(_drpFrom)}  –  ...`;
-  } else {
-    lbl.textContent = 'Tarih seçin';
-  }
-}
-function drpInit() {
-  if (_drpFrom && _drpTo) { drpUpdateTrigger(); return; }
-  const now = new Date();
-  _drpLY = now.getFullYear();
-  _drpLM = now.getMonth();
-  _drpFrom = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-  _drpTo   = drpDateStr(now);
-  _drpStep = 'from';
-  drpUpdateTrigger();
-}
-function toggleDrp() {
-  const panel = document.getElementById('drp-panel');
-  if (!panel) return;
-  if (panel.classList.contains('open')) { closeDrp(); return; }
-  renderDrpCals();
-  panel.classList.add('open');
-}
-function closeDrp() {
-  const panel = document.getElementById('drp-panel');
-  if (panel) panel.classList.remove('open');
-  _drpHover = null;
-}
-function drpGetDayClasses(ds) {
-  const classes = ['drp-day'];
-  if (ds === drpDateStr(new Date())) classes.push('drp-day--today');
-  const f = _drpFrom;
-  const t = (_drpStep === 'to' && _drpHover) ? _drpHover : _drpTo;
-  if (f && t) {
-    const lo = f <= t ? f : t, hi = f <= t ? t : f;
-    if (ds === lo && ds === hi) classes.push('drp-day--start','drp-day--end');
-    else if (ds === lo) classes.push('drp-day--start');
-    else if (ds === hi) classes.push('drp-day--end');
-    else if (ds > lo && ds < hi) classes.push('drp-day--in-range');
-  } else if (f && ds === f) {
-    classes.push('drp-day--start');
-  }
-  return classes.join(' ');
-}
-function drpUpdateDayClasses() {
-  document.querySelectorAll('.drp-day[data-d]').forEach(el => {
-    el.className = drpGetDayClasses(el.dataset.d);
-  });
-}
-function drpRenderCal(year, month, side) {
-  const MN = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-  const DN = ['Pt','Sa','Çr','Pe','Cu','Ct','Pz'];
-  const firstDay = new Date(year, month, 1);
-  const lastDay  = new Date(year, month + 1, 0);
-  const startDow = (firstDay.getDay() + 6) % 7;
-  const endDow   = (lastDay.getDay() + 6) % 7;
-  const curY = new Date().getFullYear();
-  const yearOpts = Array.from({length: curY - 2014 + 3}, (_,i) => 2015+i)
-    .map(y => `<option value="${y}"${y===year?' selected':''}>${y}</option>`).join('');
-  const monthOpts = MN.map((m,i) => `<option value="${i}"${i===month?' selected':''}>${m}</option>`).join('');
-  const prevBtn = side==='left'
-    ? `<button class="drp-nav" onclick="drpNav(-1)">&#8249;</button>`
-    : `<span class="drp-nav-ph"></span>`;
-  const nextBtn = side==='right'
-    ? `<button class="drp-nav" onclick="drpNav(1)">&#8250;</button>`
-    : `<span class="drp-nav-ph"></span>`;
-  let grid = '';
-  for (let i=0; i<startDow; i++) {
-    const d = new Date(year, month, i-startDow+1);
-    const ds = drpDateStr(d);
-    grid += `<div class="drp-day drp-day--other" data-d="${ds}" onmouseenter="drpHover('${ds}')" onmouseleave="drpHoverEnd()" onclick="drpClick('${ds}')">${d.getDate()}</div>`;
-  }
-  for (let d=1; d<=lastDay.getDate(); d++) {
-    const ds = drpDateStr(new Date(year, month, d));
-    grid += `<div class="${drpGetDayClasses(ds)}" data-d="${ds}" onmouseenter="drpHover('${ds}')" onmouseleave="drpHoverEnd()" onclick="drpClick('${ds}')">${d}</div>`;
-  }
-  if (endDow < 6) {
-    for (let i=1; i<=6-endDow; i++) {
-      const d = new Date(year, month+1, i);
-      const ds = drpDateStr(d);
-      grid += `<div class="drp-day drp-day--other" data-d="${ds}" onmouseenter="drpHover('${ds}')" onmouseleave="drpHoverEnd()" onclick="drpClick('${ds}')">${i}</div>`;
-    }
-  }
-  return `<div class="drp-cal">
-    <div class="drp-cal-hd">
-      ${prevBtn}
-      <select class="drp-sel" onchange="drpSetCalMonth('${side}',+this.value)">${monthOpts}</select>
-      <select class="drp-sel" onchange="drpSetCalYear('${side}',+this.value)">${yearOpts}</select>
-      ${nextBtn}
-    </div>
-    <div class="drp-dow-row">${DN.map(d=>`<div class="drp-dow">${d}</div>`).join('')}</div>
-    <div class="drp-cal-grid">${grid}</div>
-  </div>`;
-}
-function renderDrpCals() {
-  const cals = document.getElementById('drp-cals');
-  if (!cals) return;
-  let ry = _drpLY, rm = _drpLM + 1;
-  if (rm > 11) { rm = 0; ry++; }
-  cals.innerHTML = drpRenderCal(_drpLY, _drpLM, 'left') + drpRenderCal(ry, rm, 'right');
-}
-function drpNav(dir) {
-  _drpLM += dir;
-  if (_drpLM < 0)  { _drpLM = 11; _drpLY--; }
-  if (_drpLM > 11) { _drpLM = 0;  _drpLY++; }
-  renderDrpCals();
-}
-function drpSetCalMonth(side, month) {
-  if (side === 'left') { _drpLM = month; }
-  else { _drpLM = month - 1; if (_drpLM < 0) { _drpLM = 11; _drpLY--; } }
-  renderDrpCals();
-}
-function drpSetCalYear(side, year) {
-  if (side === 'left') { _drpLY = year; }
-  else { _drpLY = (_drpLM === 11) ? year - 1 : year; }
-  renderDrpCals();
-}
-function drpHover(ds) {
-  _drpHover = ds;
-  if (_drpStep === 'to') drpUpdateDayClasses();
-}
-function drpHoverEnd() {
-  _drpHover = null;
-  if (_drpStep === 'to') drpUpdateDayClasses();
-}
-function drpClick(ds) {
-  if (_drpStep === 'from') {
-    _drpFrom = ds; _drpTo = null; _drpStep = 'to';
-    drpUpdateDayClasses(); drpUpdateTrigger();
-  } else {
-    if (ds < _drpFrom) { _drpTo = _drpFrom; _drpFrom = ds; }
-    else { _drpTo = ds; }
-    _drpStep = 'from';
-    drpUpdateDayClasses(); drpUpdateTrigger(); closeDrp();
-  }
-}
-function drpPreset(type) {
-  const now = new Date(), today = drpDateStr(now);
-  if (type === 'today') {
-    _drpFrom = _drpTo = today;
-  } else if (type === 'yesterday') {
-    const y = new Date(now); y.setDate(y.getDate()-1);
-    _drpFrom = _drpTo = drpDateStr(y);
-  } else if (type === '7d') {
-    const s = new Date(now); s.setDate(s.getDate()-6);
-    _drpFrom = drpDateStr(s); _drpTo = today;
-  } else if (type === '30d') {
-    const s = new Date(now); s.setDate(s.getDate()-29);
-    _drpFrom = drpDateStr(s); _drpTo = today;
-  } else if (type === 'this_month') {
-    _drpFrom = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-    _drpTo = today;
-  } else if (type === 'last_month') {
-    const s = new Date(now.getFullYear(), now.getMonth()-1, 1);
-    const e = new Date(now.getFullYear(), now.getMonth(), 0);
-    _drpFrom = drpDateStr(s); _drpTo = drpDateStr(e);
-  } else if (type === 'all') {
-    const dates = state.services.map(s=>s.date).filter(Boolean).sort();
-    _drpFrom = dates.length ? dates[0] : `${now.getFullYear()}-01-01`;
-    _drpTo = today;
-  }
-  _drpStep = 'from';
-  if (_drpFrom) { const p=_drpFrom.split('-'); _drpLY=+p[0]; _drpLM=+p[1]-1; }
-  drpUpdateTrigger();
-  document.querySelectorAll('.drp-preset-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  renderDrpCals();
-  closeDrp();
-}
 
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.vehicle-search-wrap')) {
