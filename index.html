@@ -6477,7 +6477,26 @@ function generateReport() {
 }
 
 function printReport() {
-  window.print();
+  const doc = document.querySelector('.rapor-doc');
+  if (!doc) { window.print(); return; }
+
+  const styles = Array.from(document.styleSheets)
+    .flatMap(sheet => { try { return Array.from(sheet.cssRules).map(r => r.cssText); } catch(e) { return []; } })
+    .join('\n');
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8">
+    <title>Rapor</title>
+    <style>
+      ${styles}
+      body { background: #fff !important; margin: 0; padding: 0; }
+      .rapor-doc { border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 auto !important; max-width: none !important; }
+      @page { margin: 16mm 14mm; }
+    </style>
+  </head><body>${doc.outerHTML}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); win.close(); }, 400);
 }
 
 // ============ SETTINGS ============
