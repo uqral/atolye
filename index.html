@@ -1277,6 +1277,130 @@
   z-index: 9999;
   pointer-events: none;
 }
+
+/* ============ RAPOR ============ */
+.rapor-doc {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 36px;
+  margin-top: 16px;
+  max-width: 860px;
+  color: #1a1a1a;
+  font-size: 13px;
+}
+.rapor-doc-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #1a1a1a;
+  margin-bottom: 28px;
+}
+.rapor-logo {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+}
+.rapor-doc-title { flex: 1; }
+.rapor-doc-title h1 { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+.rapor-doc-sub { font-size: 13px; color: #666; }
+.rapor-doc-meta { text-align: right; font-size: 12px; color: #555; line-height: 1.7; }
+.rapor-section { margin-bottom: 28px; }
+.rapor-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rapor-badge {
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--primary);
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.rapor-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.rapor-kpi {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.rapor-kpi--accent {
+  background: #fff5f0;
+  border-color: #f0a070;
+}
+.rapor-kpi-label { font-size: 11px; color: #666; margin-bottom: 4px; }
+.rapor-kpi-value { font-size: 16px; font-weight: 700; color: #1a1a1a; }
+.rapor-kpi--accent .rapor-kpi-value { color: #b8450b; }
+.rapor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.rapor-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #666;
+  padding: 6px 10px;
+  border-bottom: 2px solid #ddd;
+}
+.rapor-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  color: #1a1a1a;
+}
+.rapor-table--striped tbody tr:nth-child(even) td { background: #fafafa; }
+.rapor-table tfoot td {
+  border-top: 2px solid #1a1a1a;
+  border-bottom: none;
+}
+.rapor-total td { font-weight: 700; }
+.rapor-num { text-align: right; font-variant-numeric: tabular-nums; }
+.rapor-empty { color: #888; font-size: 13px; padding: 8px 0; }
+.rapor-footer {
+  margin-top: 32px;
+  padding-top: 12px;
+  border-top: 1px solid #ddd;
+  font-size: 11px;
+  color: #888;
+  text-align: center;
+}
+
+@media print {
+  .sidebar, .page-header, .no-print, #rapor-filter-section { display: none !important; }
+  .main { margin: 0 !important; padding: 0 !important; }
+  .page { padding: 0 !important; }
+  body, .main, #page-raporlar { background: #fff !important; }
+  .rapor-doc {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    box-shadow: none !important;
+  }
+  .rapor-kpi { border: 1px solid #ccc !important; background: #fff !important; }
+  .rapor-kpi--accent { background: #fff5f0 !important; }
+  @page { margin: 16mm 14mm; }
+}
 </style>
 </head>
 <body>
@@ -1325,6 +1449,10 @@
       <div class="nav-item" data-page="invoices">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
         <span class="nav-label">Faturalar</span>
+      </div>
+      <div class="nav-item" data-page="raporlar">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/><path d="M10 9H8"/></svg>
+        <span class="nav-label">Raporlar</span>
       </div>
       <div class="nav-item" data-page="settings">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -1584,6 +1712,52 @@
       <div class="section">
         <div id="parts-catalog-list"></div>
       </div>
+    </section>
+
+    <!-- Raporlar -->
+    <section id="page-raporlar" class="page hidden">
+      <div class="page-header no-print">
+        <div>
+          <h2 class="page-title">Raporlar</h2>
+          <p class="page-subtitle">Dönem bazlı personel ve servis raporu</p>
+        </div>
+        <button class="btn btn-primary" id="rapor-pdf-btn" onclick="printReport()" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
+          PDF İndir
+        </button>
+      </div>
+
+      <div class="section no-print" id="rapor-filter-section">
+        <div class="section-header"><div class="section-title">Rapor Filtresi</div></div>
+        <div class="section-body">
+          <div class="form-row form-row-2" style="max-width:560px; margin-bottom:16px;">
+            <div class="form-field">
+              <label>Başlangıç Tarihi</label>
+              <input type="date" id="rapor-from">
+            </div>
+            <div class="form-field">
+              <label>Bitiş Tarihi</label>
+              <input type="date" id="rapor-to">
+            </div>
+          </div>
+          <div class="form-row form-row-2" style="max-width:560px; margin-bottom:20px;">
+            <div class="form-field">
+              <label>Öğretmen Filtresi</label>
+              <select id="rapor-teacher-filter" style="height:40px; padding:0 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); font-size:13px; color:var(--text); width:100%;"></select>
+            </div>
+            <div class="form-field">
+              <label>Öğrenci Filtresi</label>
+              <select id="rapor-student-filter" style="height:40px; padding:0 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); font-size:13px; color:var(--text); width:100%;"></select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="generateReport()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 17H7a2 2 0 00-2 2v0a2 2 0 002 2h10a2 2 0 002-2v0a2 2 0 00-2-2h-2M12 3v14M8 7l4-4 4 4"/></svg>
+            Raporu Oluştur
+          </button>
+        </div>
+      </div>
+
+      <div id="rapor-output"></div>
     </section>
 
     <!-- Settings -->
@@ -3009,6 +3183,7 @@ function goto(page) {
   if (page === 'invoices') renderInvoices();
   if (page === 'parts') renderParts();
   if (page === 'settings') renderSettings();
+  if (page === 'raporlar') renderRaporlar();
   localStorage.setItem('atolye_last_page', page);
   window.scrollTo(0, 0);
 }
@@ -5548,6 +5723,157 @@ function renderStudentDetail() {
   }
 
   window.scrollTo(0, 0);
+}
+
+// ============ RAPORLAR ============
+function renderRaporlar() {
+  const now = new Date();
+  const fromDefault = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  const toDefault = now.toISOString().slice(0, 10);
+  const fromEl = document.getElementById('rapor-from');
+  const toEl = document.getElementById('rapor-to');
+  if (!fromEl.value) fromEl.value = fromDefault;
+  if (!toEl.value) toEl.value = toDefault;
+
+  const teacherSel = document.getElementById('rapor-teacher-filter');
+  const studentSel = document.getElementById('rapor-student-filter');
+  const prevT = teacherSel.value, prevS = studentSel.value;
+  teacherSel.innerHTML = '<option value="all">Tüm öğretmenler</option>' +
+    state.teachers.map(t => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)}</option>`).join('');
+  studentSel.innerHTML = '<option value="all">Tüm öğrenciler</option>' +
+    state.students.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join('');
+  if (prevT) teacherSel.value = prevT;
+  if (prevS) studentSel.value = prevS;
+}
+
+function generateReport() {
+  const from = document.getElementById('rapor-from').value;
+  const to = document.getElementById('rapor-to').value;
+  if (!from || !to) { showToast('Başlangıç ve bitiş tarihini girin', 'danger'); return; }
+  if (from > to) { showToast('Başlangıç tarihi bitiş tarihinden büyük olamaz', 'danger'); return; }
+
+  const teacherFilter = document.getElementById('rapor-teacher-filter').value;
+  const studentFilter = document.getElementById('rapor-student-filter').value;
+
+  const svcs = state.services.filter(s => s.date >= from && s.date <= to && s.status !== 'archived');
+
+  const tSharePct = (state.settings.teacherShare ?? 70) / 100;
+  const sSharePct = (state.settings.studentShare ?? 30) / 100;
+
+  let totalKdvMathrah = 0, totalKdv = 0, totalTutar = 0;
+  let totalFaaliyet = 0, totalDoner = 0, totalMalzeme = 0, totalIscilik = 0;
+  svcs.forEach(s => {
+    const b = calcServiceBreakdown(s);
+    totalKdvMathrah += b.kdvMathrah;
+    totalKdv += b.kdv;
+    totalTutar += b.tutar;
+    totalFaaliyet += b.faaliyet;
+    totalDoner += b.donerSermaye;
+    totalMalzeme += b.malzeme;
+    totalIscilik += b.iscilik;
+  });
+
+  const teacherStats = {}, studentStats = {};
+  svcs.forEach(s => {
+    const labor = calcServiceBreakdown(s).iscilik;
+    if (labor <= 0) return;
+    (s.teacherIds || []).forEach(id => {
+      if (!teacherStats[id]) teacherStats[id] = { pay: 0, count: 0 };
+      teacherStats[id].pay += labor * tSharePct / (s.teacherIds.length);
+      teacherStats[id].count++;
+    });
+    (s.studentIds || []).forEach(id => {
+      if (!studentStats[id]) studentStats[id] = { pay: 0, count: 0 };
+      studentStats[id].pay += labor * sSharePct / (s.studentIds.length);
+      studentStats[id].count++;
+    });
+  });
+
+  const teacherRows = Object.entries(teacherStats)
+    .filter(([id]) => teacherFilter === 'all' || id === teacherFilter)
+    .map(([id, v]) => ({ name: (state.teachers.find(t => t.id === id) || {}).name || 'Bilinmeyen', ...v }))
+    .sort((a, b) => b.pay - a.pay);
+  const studentRows = Object.entries(studentStats)
+    .filter(([id]) => studentFilter === 'all' || id === studentFilter)
+    .map(([id, v]) => ({ name: (state.students.find(s => s.id === id) || {}).name || 'Bilinmeyen', ...v }))
+    .sort((a, b) => b.pay - a.pay);
+
+  const totalTeacherPay = teacherRows.reduce((a, r) => a + r.pay, 0);
+  const totalStudentPay = studentRows.reduce((a, r) => a + r.pay, 0);
+
+  const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const fmtDate = d => { const [y,m,day] = d.split('-'); return `${parseInt(day)} ${TR_MONTHS[parseInt(m)-1]} ${y}`; };
+  const reportDate = new Date().toLocaleDateString('tr-TR', { day:'numeric', month:'long', year:'numeric' });
+  const workshopName = state.settings.workshopName || 'Atölye';
+  const tPct = state.settings.teacherShare ?? 70;
+  const sPct = state.settings.studentShare ?? 30;
+  const kdvPct = state.settings.kdvRate ?? 20;
+
+  const teacherTable = teacherRows.length === 0
+    ? `<p class="rapor-empty">Bu dönemde öğretmen verisi yok.</p>`
+    : `<table class="rapor-table rapor-table--striped">
+        <thead><tr><th>Ad Soyad</th><th class="rapor-num">Servis</th><th class="rapor-num">Alacak</th></tr></thead>
+        <tbody>${teacherRows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td class="rapor-num">${r.count}</td><td class="rapor-num">₺${fmtMoney(r.pay)}</td></tr>`).join('')}</tbody>
+        <tfoot><tr class="rapor-total"><td>Toplam — ${teacherRows.length} öğretmen</td><td class="rapor-num">${teacherRows.reduce((a,r)=>a+r.count,0)}</td><td class="rapor-num">₺${fmtMoney(totalTeacherPay)}</td></tr></tfoot>
+      </table>`;
+
+  const studentTable = studentRows.length === 0
+    ? `<p class="rapor-empty">Bu dönemde öğrenci verisi yok.</p>`
+    : `<table class="rapor-table rapor-table--striped">
+        <thead><tr><th>Ad Soyad</th><th class="rapor-num">Servis</th><th class="rapor-num">Alacak</th></tr></thead>
+        <tbody>${studentRows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td class="rapor-num">${r.count}</td><td class="rapor-num">₺${fmtMoney(r.pay)}</td></tr>`).join('')}</tbody>
+        <tfoot><tr class="rapor-total"><td>Toplam — ${studentRows.length} öğrenci</td><td class="rapor-num">${studentRows.reduce((a,r)=>a+r.count,0)}</td><td class="rapor-num">₺${fmtMoney(totalStudentPay)}</td></tr></tfoot>
+      </table>`;
+
+  document.getElementById('rapor-output').innerHTML = `
+<div class="rapor-doc">
+  <div class="rapor-doc-header">
+    ${state.settings.logoBase64 ? `<img src="${state.settings.logoBase64}" class="rapor-logo">` : ''}
+    <div class="rapor-doc-title">
+      <h1>${escapeHtml(workshopName)}</h1>
+      <div class="rapor-doc-sub">Dönem Raporu</div>
+    </div>
+    <div class="rapor-doc-meta">
+      <div>Oluşturma tarihi: ${reportDate}</div>
+      <div><strong>Dönem:</strong> ${fmtDate(from)} – ${fmtDate(to)}</div>
+    </div>
+  </div>
+
+  <div class="rapor-section">
+    <div class="rapor-section-title">Dönem Özeti</div>
+    <div class="rapor-kpi-grid">
+      <div class="rapor-kpi"><div class="rapor-kpi-label">Toplam Servis</div><div class="rapor-kpi-value">${svcs.length}</div></div>
+      <div class="rapor-kpi"><div class="rapor-kpi-label">Ciro (KDV Hariç)</div><div class="rapor-kpi-value">₺${fmtMoney(totalKdvMathrah)}</div></div>
+      <div class="rapor-kpi"><div class="rapor-kpi-label">KDV (%${kdvPct})</div><div class="rapor-kpi-value">₺${fmtMoney(totalKdv)}</div></div>
+      <div class="rapor-kpi rapor-kpi--accent"><div class="rapor-kpi-label">Toplam Ciro (KDV Dahil)</div><div class="rapor-kpi-value">₺${fmtMoney(totalTutar)}</div></div>
+    </div>
+    <table class="rapor-table" style="margin-top:14px; max-width:400px;">
+      <tr><td>Faaliyet Payı</td><td class="rapor-num">₺${fmtMoney(totalFaaliyet)}</td></tr>
+      <tr><td>Döner Sermaye</td><td class="rapor-num">₺${fmtMoney(totalDoner)}</td></tr>
+      <tr><td>Malzeme Geliri</td><td class="rapor-num">₺${fmtMoney(totalMalzeme)}</td></tr>
+      <tr class="rapor-total"><td>Dağıtılabilir İşçilik</td><td class="rapor-num">₺${fmtMoney(totalIscilik)}</td></tr>
+    </table>
+  </div>
+
+  <div class="rapor-section">
+    <div class="rapor-section-title">Öğretmen Raporu <span class="rapor-badge">%${tPct} pay</span></div>
+    ${teacherTable}
+  </div>
+
+  <div class="rapor-section">
+    <div class="rapor-section-title">Öğrenci Raporu <span class="rapor-badge">%${sPct} pay</span></div>
+    ${studentTable}
+  </div>
+
+  <div class="rapor-footer">Bu rapor ${reportDate} tarihinde ${escapeHtml(workshopName)} Atölyesi tarafından oluşturulmuştur.</div>
+</div>`;
+
+  document.getElementById('rapor-pdf-btn').style.display = '';
+  document.getElementById('rapor-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function printReport() {
+  window.print();
 }
 
 // ============ SETTINGS ============
