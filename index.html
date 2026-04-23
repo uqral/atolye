@@ -2176,7 +2176,7 @@
           <label></label>
         </div>
       </div>
-      <div class="form-row form-row-2">
+      <div class="form-row form-row-3">
         <div class="form-field">
           <label>Alış Fiyatı (₺) <span style="font-size:11px; color:var(--text-muted); font-weight:400;">KDV hariç</span></label>
           <input type="number" id="part-buy-price" placeholder="0" step="0.01">
@@ -2184,6 +2184,10 @@
         <div class="form-field">
           <label>Satış Fiyatı (₺) <span style="font-size:11px; color:var(--text-muted); font-weight:400;">KDV hariç</span></label>
           <input type="number" id="part-sell-price" placeholder="0" step="0.01">
+        </div>
+        <div class="form-field">
+          <label>İşçilik (₺) <span style="font-size:11px; color:var(--text-muted); font-weight:400;">KDV hariç</span></label>
+          <input type="number" id="part-labor-price" placeholder="0" step="0.01">
         </div>
       </div>
     </div>
@@ -4216,7 +4220,7 @@ function renderParts() {
     return;
   }
 
-  const colMap = { name: p => p.name, brand: p => p.brand || '', category: p => p.category || '', unit: p => p.unit || '', buyPrice: p => p.buyPrice, sellPrice: p => p.sellPrice, margin: p => p.sellPrice > 0 ? (p.sellPrice - p.buyPrice) / p.sellPrice : -1, usage: p => usageCounts[p.name.toLowerCase()] || 0 };
+  const colMap = { name: p => p.name, brand: p => p.brand || '', category: p => p.category || '', unit: p => p.unit || '', buyPrice: p => p.buyPrice, sellPrice: p => p.sellPrice, laborPrice: p => p.laborPrice || 0, margin: p => p.sellPrice > 0 ? (p.sellPrice - p.buyPrice) / p.sellPrice : -1, usage: p => usageCounts[p.name.toLowerCase()] || 0 };
   const sortFn = colMap[partsSort.col] || colMap.name;
   parts = [...parts].sort((a, b) => {
     const va = sortFn(a), vb = sortFn(b);
@@ -4237,6 +4241,7 @@ function renderParts() {
       <td style="color:var(--text-muted)">${escapeHtml(p.unit || '—')}</td>
       <td class="money">₺${fmtMoney(p.buyPrice)}</td>
       <td class="money">₺${fmtMoney(p.sellPrice)}</td>
+      <td class="money">${p.laborPrice > 0 ? '₺' + fmtMoney(p.laborPrice) : '—'}</td>
       <td>${margin !== null ? margin + '%' : '—'}</td>
       <td style="color:var(--text-muted)">${usage > 0 ? usage + ' adet' : '—'}</td>
       <td style="white-space:nowrap">
@@ -4254,6 +4259,7 @@ function renderParts() {
       ${th('unit','Birim')}
       ${th('buyPrice','Alış','KDV hariç fiyat')}
       ${th('sellPrice','Satış','KDV hariç fiyat')}
+      ${th('laborPrice','İşçilik','KDV hariç işçilik ücreti')}
       ${th('margin','Marj')}
       ${th('usage','Toplam Kullanım')}
       <th></th>
@@ -4271,6 +4277,7 @@ function openPartModal(id) {
   document.getElementById('part-unit').value = part?.unit || '';
   document.getElementById('part-buy-price').value = part?.buyPrice || '';
   document.getElementById('part-sell-price').value = part?.sellPrice || '';
+  document.getElementById('part-labor-price').value = part?.laborPrice || '';
   document.getElementById('part-category').value = part?.category || '';
   openModal('part-modal');
 }
@@ -4285,6 +4292,7 @@ async function savePart() {
     unit: document.getElementById('part-unit').value.trim(),
     buyPrice: Number(document.getElementById('part-buy-price').value) || 0,
     sellPrice: Number(document.getElementById('part-sell-price').value) || 0,
+    laborPrice: Number(document.getElementById('part-labor-price').value) || 0,
     category: document.getElementById('part-category').value.trim(),
   };
   if (editingPartId) {
@@ -4299,12 +4307,14 @@ async function savePart() {
   if (_pendingPartRow) {
     const buy = _pendingPartRow.querySelector('.p-buy');
     const sell = _pendingPartRow.querySelector('.p-sell');
+    const laborInput = _pendingPartRow.querySelector('.p-labor');
     const nameInput = _pendingPartRow.querySelector('.p-name');
     const brandInput = _pendingPartRow.querySelector('.p-brand');
     if (nameInput) nameInput.value = data.name;
     if (brandInput && !brandInput.value) brandInput.value = data.brand || '';
     if (buy && !Number(buy.value)) buy.value = data.buyPrice || '';
     if (sell && !Number(sell.value)) sell.value = data.sellPrice || '';
+    if (laborInput && !Number(laborInput.value)) laborInput.value = data.laborPrice || '';
     updateServiceSummary();
     _pendingPartRow = null;
   }
@@ -4425,8 +4435,10 @@ function selectBrandSuggestion(event) {
   if (match) {
     const buyInput = tr.querySelector('.p-buy');
     const sellInput = tr.querySelector('.p-sell');
+    const laborInput = tr.querySelector('.p-labor');
     if (buyInput) buyInput.value = match.buyPrice || '';
     if (sellInput) sellInput.value = match.sellPrice || '';
+    if (laborInput) laborInput.value = match.laborPrice || '';
     updateServiceSummary();
   }
 }
@@ -4441,9 +4453,11 @@ function selectCatalogPart(event, partId) {
   const tr = input.closest('tr');
   const buyInput = tr.querySelector('.p-buy');
   const sellInput = tr.querySelector('.p-sell');
+  const laborInput = tr.querySelector('.p-labor');
   const brandInput = tr.querySelector('.p-brand');
   if (buyInput) buyInput.value = part.buyPrice || '';
   if (sellInput) sellInput.value = part.sellPrice || '';
+  if (laborInput) laborInput.value = part.laborPrice || '';
   if (brandInput) brandInput.value = part.brand || '';
   updateServiceSummary();
   dd.style.display = 'none';
@@ -5026,7 +5040,7 @@ async function saveService() {
       (cp.brand || '').toLowerCase() === (p.brand || '').toLowerCase()
     );
     if (!exists) {
-      state.parts.push({ id: uid(), name: p.name, brand: p.brand || '', unit: '', buyPrice: p.buyPrice || 0, sellPrice: p.sellPrice || 0, category: '' });
+      state.parts.push({ id: uid(), name: p.name, brand: p.brand || '', unit: '', buyPrice: p.buyPrice || 0, sellPrice: p.sellPrice || 0, laborPrice: p.labor || 0, category: '' });
       catalogUpdated = true;
     }
   }
