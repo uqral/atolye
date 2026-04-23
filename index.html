@@ -4358,17 +4358,30 @@ function showPartSuggestions(input) {
   dd._inputRef = input;
 
   const parts = state.parts || [];
-  const matches = query
-    ? parts.filter(p => p.name.toLowerCase().includes(query)).slice(0, 8)
-    : parts.slice(0, 8);
-  const exactMatch = parts.some(p => p.name.toLowerCase() === query);
 
-  let html = matches.map(p =>
-    `<div class="part-suggest-item" onmousedown="selectCatalogPart(event,'${p.id}')">
-      <span>${escapeHtml(p.name)}</span>
-      <span style="color:var(--text-muted);font-size:11px;">${p.brand ? escapeHtml(p.brand) + ' · ' : ''}₺${fmtMoney(p.sellPrice)}</span>
-    </div>`
-  ).join('');
+  // Unique names
+  const nameMap = new Map();
+  parts.forEach(p => {
+    const key = p.name.toLowerCase();
+    if (!nameMap.has(key)) nameMap.set(key, []);
+    nameMap.get(key).push(p);
+  });
+
+  const matchedEntries = [...nameMap.entries()]
+    .filter(([n]) => !query || n.includes(query))
+    .slice(0, 10);
+
+  const exactMatch = nameMap.has(query);
+
+  let html = matchedEntries.map(([, entries]) => {
+    const name = entries[0].name;
+    const hint = entries.length > 1
+      ? `<span style="color:var(--text-muted);font-size:11px;">${entries.length} marka</span>`
+      : `<span style="color:var(--text-muted);font-size:11px;">₺${fmtMoney(entries[0].sellPrice)}</span>`;
+    return `<div class="part-suggest-item" onmousedown="selectPartNameSuggestion(event,'${escapeHtml(name).replace(/'/g, "\\'")}')">
+      <span>${escapeHtml(name)}</span>${hint}
+    </div>`;
+  }).join('');
 
   if (query && !exactMatch) {
     html += `<div class="part-suggest-new" onmousedown="addToCatalogFromRow(event)">+ "${escapeHtml(input.value.trim())}" — kataloğa ekle</div>`;
@@ -4376,6 +4389,37 @@ function showPartSuggestions(input) {
 
   dd.innerHTML = html;
   dd.style.display = html ? 'block' : 'none';
+}
+
+function selectPartNameSuggestion(event, name) {
+  event.preventDefault();
+  const dd = event.currentTarget.closest('.part-suggestions');
+  const input = dd?._inputRef;
+  if (!input) return;
+  input.value = name;
+  dd.style.display = 'none';
+
+  const tr = input.closest('tr');
+  if (!tr) return;
+
+  const matches = (state.parts || []).filter(p => p.name.toLowerCase() === name.toLowerCase());
+  const brandInput = tr.querySelector('.p-brand');
+
+  if (matches.length === 1) {
+    const p = matches[0];
+    if (brandInput) brandInput.value = p.brand || '';
+    const buyInput = tr.querySelector('.p-buy');
+    const sellInput = tr.querySelector('.p-sell');
+    const laborInput = tr.querySelector('.p-labor');
+    if (buyInput) buyInput.value = p.buyPrice || '';
+    if (sellInput) sellInput.value = p.sellPrice || '';
+    if (laborInput) laborInput.value = p.laborPrice || '';
+    updateServiceSummary();
+  } else if (matches.length > 1 && brandInput) {
+    brandInput.value = '';
+    brandInput.focus();
+    showBrandSuggestions(brandInput);
+  }
 }
 
 function hidePartSuggestions(input) {
