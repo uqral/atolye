@@ -1468,6 +1468,11 @@
       <div id="student-detail-content"></div>
     </section>
 
+    <!-- Teacher detail -->
+    <section id="page-teacher-detail" class="page hidden">
+      <div id="teacher-detail-content"></div>
+    </section>
+
     <!-- Teachers -->
     <section id="page-teachers" class="page hidden">
       <div class="page-header">
@@ -4439,7 +4444,7 @@ function renderTeachers() {
     const periodCount = periodSvcs.filter(s => getSvcTeacherIds(s).includes(t.id)).length;
     const totalCount = state.services.filter(s => getSvcTeacherIds(s).includes(t.id)).length;
     const share = periodCount > 0 ? perTeacherShare : 0;
-    html += `<tr>
+    html += `<tr class="clickable" onclick="showTeacherDetail('${t.id}')">
       <td><strong>${escapeHtml(t.name)}</strong></td>
       <td>${escapeHtml(t.branch || '—')}</td>
       <td>${t.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</td>
@@ -4662,6 +4667,222 @@ function deleteStudent(id) {
 }
 
 // ============ STUDENT DETAIL ============
+// ============ TEACHER DETAIL ============
+let currentTeacherDetailId = null;
+let tdPeriod = { type: 'all', customFrom: null, customTo: null };
+let tdSvcSort = { key: 'date', dir: 'desc' };
+let tdVehSort = { key: 'count', dir: 'desc' };
+
+function getTdPeriodRange() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const ts = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  switch (tdPeriod.type) {
+    case 'day':      return { from: ts(today), to: ts(today) };
+    case 'week':     { const d = new Date(today); d.setDate(d.getDate()-((d.getDay()+6)%7)); return { from: ts(d), to: ts(today) }; }
+    case 'month':    return { from: ts(new Date(today.getFullYear(), today.getMonth(), 1)), to: ts(today) };
+    case 'quarter':  { const d = new Date(today); d.setMonth(d.getMonth()-3); d.setDate(d.getDate()+1); return { from: ts(d), to: ts(today) }; }
+    case 'halfyear': { const d = new Date(today); d.setMonth(d.getMonth()-6); d.setDate(d.getDate()+1); return { from: ts(d), to: ts(today) }; }
+    case 'year':     { const d = new Date(today); d.setFullYear(d.getFullYear()-1); d.setDate(d.getDate()+1); return { from: ts(d), to: ts(today) }; }
+    case 'custom':   return { from: tdPeriod.customFrom || null, to: tdPeriod.customTo || null };
+    default:         return { from: null, to: null };
+  }
+}
+function isInTdPeriod(dateStr) {
+  if (!dateStr) return false;
+  const { from, to } = getTdPeriodRange();
+  if (!from && !to) return true;
+  if (from && dateStr < from) return false;
+  if (to && dateStr > to) return false;
+  return true;
+}
+function getTdPeriodLabel() {
+  const { from, to } = getTdPeriodRange();
+  if (!from && !to) return 'Tüm zamanlar';
+  return `${from ? fmtDate(from) : '?'} → ${to ? fmtDate(to) : '?'}`;
+}
+function tdSetSvcSort(key) {
+  tdSvcSort = tdSvcSort.key === key ? { key, dir: tdSvcSort.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'date' ? 'desc' : 'asc' };
+  renderTeacherDetail();
+}
+function tdSetVehSort(key) {
+  tdVehSort = tdVehSort.key === key ? { key, dir: tdVehSort.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'count' ? 'desc' : 'asc' };
+  renderTeacherDetail();
+}
+
+function showTeacherDetail(id) {
+  currentTeacherDetailId = id;
+  tdPeriod = { type: 'all', customFrom: null, customTo: null };
+  tdSvcSort = { key: 'date', dir: 'desc' };
+  tdVehSort = { key: 'count', dir: 'desc' };
+  renderTeacherDetail();
+}
+
+function renderTeacherDetail() {
+  const id = currentTeacherDetailId;
+  const t = state.teachers.find(x => x.id === id);
+  if (!t) return;
+
+  const teacherSharePct = (state.settings.teacherShare ?? 70) / 100;
+
+  const allSvcs = state.services.filter(svc => getSvcTeacherIds(svc).includes(id));
+  let svcs = allSvcs.filter(svc => isInTdPeriod(svc.date));
+
+  svcs = [...svcs].sort((a, b) => {
+    let av, bv;
+    if (tdSvcSort.key === 'date') { av = a.date||''; bv = b.date||''; }
+    else if (tdSvcSort.key === 'pay') {
+      const ba = calcServiceBreakdown(a); const bb = calcServiceBreakdown(b);
+      const ta = getSvcTeacherIds(a).length || 1; const tb = getSvcTeacherIds(b).length || 1;
+      av = ba.iscilik * teacherSharePct / ta; bv = bb.iscilik * teacherSharePct / tb;
+    } else if (tdSvcSort.key === 'plate') {
+      const va = state.vehicles.find(v => v.id === a.vehicleId);
+      const vb = state.vehicles.find(v => v.id === b.vehicleId);
+      av = va?.plate||''; bv = vb?.plate||'';
+    }
+    if (av < bv) return tdSvcSort.dir === 'asc' ? -1 : 1;
+    if (av > bv) return tdSvcSort.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const vehicleIds = [...new Set(svcs.map(svc => svc.vehicleId).filter(Boolean))];
+  let workedVehicles = vehicleIds.map(vid => {
+    const v = state.vehicles.find(x => x.id === vid);
+    return v ? { ...v, _count: svcs.filter(svc => svc.vehicleId === vid).length } : null;
+  }).filter(Boolean);
+
+  workedVehicles = [...workedVehicles].sort((a, b) => {
+    let av, bv;
+    if (tdVehSort.key === 'count')    { av = a._count; bv = b._count; }
+    else if (tdVehSort.key === 'plate')    { av = a.plate||''; bv = b.plate||''; }
+    else if (tdVehSort.key === 'brand')    { av = (a.brand||'')+' '+(a.model||''); bv = (b.brand||'')+' '+(b.model||''); }
+    else if (tdVehSort.key === 'customer') { av = a.customerName||''; bv = b.customerName||''; }
+    if (av < bv) return tdVehSort.dir === 'asc' ? -1 : 1;
+    if (av > bv) return tdVehSort.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const periodPay = svcs.reduce((acc, svc) => {
+    const teacherCount = getSvcTeacherIds(svc).length || 1;
+    return acc + calcServiceBreakdown(svc).iscilik * teacherSharePct / teacherCount;
+  }, 0);
+
+  const si = k => tdSvcSort.key === k ? (tdSvcSort.dir === 'desc' ? ' ↓' : ' ↑') : '';
+  const vi = k => tdVehSort.key === k ? (tdVehSort.dir === 'desc' ? ' ↓' : ' ↑') : '';
+
+  const isCustom = tdPeriod.type === 'custom';
+  const periodBarHtml = `<div class="period-bar" id="td-period-bar">
+    <span class="period-bar-label">Dönem</span>
+    <div class="period-chips">
+      ${PERIOD_OPTIONS.map(o => `<div class="period-chip ${tdPeriod.type===o.key?'active':''}" data-tdperiod="${o.key}">${o.label}</div>`).join('')}
+    </div>
+    ${isCustom ? `<div class="period-custom">
+      <input type="date" id="td-pc-from" value="${tdPeriod.customFrom||''}">
+      <span>—</span>
+      <input type="date" id="td-pc-to" value="${tdPeriod.customTo||''}">
+    </div>` : `<span class="period-range-info">${getTdPeriodLabel()}</span>`}
+  </div>`;
+
+  let svcHtml = '';
+  if (svcs.length === 0) {
+    svcHtml = `<div class="empty"><h3>Bu dönemde kayıt yok</h3><p>Farklı bir dönem seçin.</p></div>`;
+  } else {
+    svcHtml = `<table class="table"><thead><tr>
+      <th style="cursor:pointer" onclick="tdSetSvcSort('date')">Tarih${si('date')}</th>
+      <th style="cursor:pointer" onclick="tdSetSvcSort('plate')">Araç${si('plate')}</th>
+      <th>Yapılan İşlem</th>
+      <th style="cursor:pointer" onclick="tdSetSvcSort('pay')">Pay${si('pay')}</th>
+      <th></th>
+    </tr></thead><tbody>`;
+    svcs.forEach(svc => {
+      const v = state.vehicles.find(vx => vx.id === svc.vehicleId);
+      const teacherCount = getSvcTeacherIds(svc).length || 1;
+      const pay = calcServiceBreakdown(svc).iscilik * teacherSharePct / teacherCount;
+      svcHtml += `<tr class="clickable" onclick="showServiceDetail('${svc.id}')">
+        <td>${fmtDate(svc.date)}</td>
+        <td>${v ? `<span class="plate">${escapeHtml(v.plate)}</span> <span style="color:var(--text-muted);font-size:12px;">${escapeHtml((v.brand||'')+' '+(v.model||''))}</span>` : '—'}</td>
+        <td>${escapeHtml((svc.description||'').substring(0,70))}${(svc.description||'').length>70?'…':''}</td>
+        <td class="money">₺${fmtMoney(pay)}</td>
+        <td>›</td>
+      </tr>`;
+    });
+    svcHtml += `</tbody></table>`;
+  }
+
+  let vehiclesHtml = '';
+  if (workedVehicles.length > 0) {
+    vehiclesHtml = `<div class="section">
+      <div class="section-header"><div class="section-title">Çalıştığı Araçlar</div><span style="font-size:12px;color:var(--text-muted)">${workedVehicles.length} farklı araç</span></div>
+      <table class="table"><thead><tr>
+        <th style="cursor:pointer" onclick="tdSetVehSort('plate')">Plaka${vi('plate')}</th>
+        <th style="cursor:pointer" onclick="tdSetVehSort('brand')">Araç${vi('brand')}</th>
+        <th style="cursor:pointer" onclick="tdSetVehSort('customer')">Müşteri${vi('customer')}</th>
+        <th style="cursor:pointer;text-align:right" onclick="tdSetVehSort('count')">Servis${vi('count')}</th>
+      </tr></thead><tbody>`;
+    workedVehicles.forEach(v => {
+      vehiclesHtml += `<tr class="clickable" onclick="showVehicleDetail('${v.id}')">
+        <td><span class="plate">${escapeHtml(v.plate)}</span></td>
+        <td>${escapeHtml((v.brand||'')+' '+(v.model||''))}</td>
+        <td>${escapeHtml(v.customerName||'—')}</td>
+        <td style="text-align:right">${v._count} servis</td>
+      </tr>`;
+    });
+    vehiclesHtml += `</tbody></table></div>`;
+  }
+
+  document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+  document.getElementById('page-teacher-detail').classList.remove('hidden');
+
+  document.getElementById('teacher-detail-content').innerHTML = `
+    <div class="page-header">
+      <div>
+        <button class="btn btn-sm" onclick="goto('teachers')" style="margin-bottom:8px;">‹ Öğretmenler</button>
+        <h2 class="page-title">${escapeHtml(t.name)}</h2>
+        <p class="page-subtitle">${escapeHtml(t.branch||'—')} · ${t.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</p>
+      </div>
+      <button class="btn" onclick="editTeacher('${t.id}')">Düzenle</button>
+    </div>
+
+    ${periodBarHtml}
+
+    <div class="vehicle-info-grid">
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Dönem iş</div><div class="vehicle-info-value">${svcs.length}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Toplam iş</div><div class="vehicle-info-value">${allSvcs.length}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Çalıştığı araç</div><div class="vehicle-info-value">${workedVehicles.length}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Dönem payı</div><div class="vehicle-info-value money">₺${fmtMoney(periodPay)}</div></div>
+    </div>
+
+    ${vehiclesHtml}
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Servis Kayıtları</div>
+        <span style="font-size:11px;color:var(--text-muted)">${svcs.length} kayıt · ${getTdPeriodLabel()}</span>
+      </div>
+      ${svcHtml}
+    </div>
+  `;
+
+  document.querySelectorAll('#td-period-bar .period-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      tdPeriod.type = chip.dataset.tdperiod;
+      if (tdPeriod.type === 'custom' && !tdPeriod.customFrom) {
+        const d = new Date();
+        tdPeriod.customFrom = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+        tdPeriod.customTo = todayStr();
+      }
+      renderTeacherDetail();
+    });
+  });
+  if (isCustom) {
+    const fe = document.getElementById('td-pc-from');
+    const te = document.getElementById('td-pc-to');
+    if (fe) fe.addEventListener('change', () => { tdPeriod.customFrom = fe.value; renderTeacherDetail(); });
+    if (te) te.addEventListener('change', () => { tdPeriod.customTo = te.value; renderTeacherDetail(); });
+  }
+
+  window.scrollTo(0, 0);
+}
+
 let currentStudentDetailId = null;
 let sdPeriod = { type: 'all', customFrom: null, customTo: null };
 let sdSvcSort = { key: 'date', dir: 'desc' };
