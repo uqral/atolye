@@ -2640,8 +2640,9 @@ function renderDashboard() {
   const periodOptLabel = PERIOD_OPTIONS.find(o => o.key === periodFilter.type)?.label || 'Dönem';
   document.getElementById('stat-revenue-label').textContent = `${periodOptLabel} gelir`;
   document.getElementById('stat-jobs-label').textContent = `${periodOptLabel} iş sayısı`;
+  const periodKdvDahil = periodSvcs.reduce((a, s) => a + calcServiceBreakdown(s).tutar, 0);
   document.getElementById('stat-revenue').textContent = '₺' + fmtMoney(periodRevenue);
-  document.getElementById('stat-revenue-sub').textContent = `Net dağıtılabilir: ₺${fmtMoney(periodNet)}`;
+  document.getElementById('stat-revenue-sub').textContent = `KDV dahil: ₺${fmtMoney(periodKdvDahil)}`;
   document.getElementById('stat-jobs').textContent = periodSvcs.length;
   document.getElementById('stat-jobs-sub').textContent = `${state.services.length} toplam kayıt`;
   document.getElementById('stat-vehicles').textContent = state.vehicles.length;
