@@ -291,14 +291,35 @@
   .table tr.clickable:hover { background: var(--surface-alt); }
   .plate {
     display: inline-block;
-    font-family: 'Consolas', monospace;
-    font-weight: 600;
-    background: #2a2824;
-    color: #fff176;
-    padding: 3px 8px;
-    border-radius: 3px;
-    letter-spacing: 1px;
+    position: relative;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-weight: 700;
+    background: #fff;
+    color: #111;
+    border: 1.5px solid #999;
+    border-radius: 4px;
+    letter-spacing: 1.5px;
     font-size: 12px;
+    padding: 3px 8px 3px 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    vertical-align: middle;
+    line-height: 1.4;
+  }
+  .plate::before {
+    content: 'TR';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 20px;
+    background: #003399;
+    color: #fff;
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    font-family: Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px 0 0 2px;
   }
 
   /* Forms */
@@ -944,7 +965,7 @@
     .section { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .table { min-width: 600px; font-size: 12px; }
     .table th, .table td { padding: 8px 10px; }
-    .plate { font-size: 11px; padding: 2px 6px; }
+    .plate { font-size: 11px; padding: 2px 6px 2px 26px; }
 
     /* Section header */
     .section-header { padding: 10px 14px; }
@@ -4365,7 +4386,7 @@ function showInvoiceModal(invoiceId) {
       <div class="invoice-meta">
         <div class="invoice-meta-block">
           <div class="invoice-meta-label">Araç</div>
-          <div class="invoice-meta-value"><span style="font-family: monospace; font-weight:700; background:#222; color:#fff; padding:2px 6px; border-radius:3px; font-size:12px;">${escapeHtml(inv.vehicle?.plate || '—')}</span> ${escapeHtml([inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '')}</div>
+          <div class="invoice-meta-value"><span class="plate">${escapeHtml(inv.vehicle?.plate || '—')}</span> ${escapeHtml([inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '')}</div>
         </div>
         <div class="invoice-meta-block">
           <div class="invoice-meta-label">Müşteri</div>
