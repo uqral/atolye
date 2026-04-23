@@ -1667,7 +1667,7 @@
           <div class="stat-value" id="stat-vehicles">0</div>
           <div class="stat-sub" id="stat-vehicles-sub">Kayıtlı</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" style="cursor:pointer" onclick="showStudentPayInfo()">
           <div class="stat-label">Aktif öğrenci</div>
           <div class="stat-value" id="stat-students">0</div>
           <div class="stat-sub" id="stat-students-sub">—</div>
@@ -2123,6 +2123,16 @@
 </div>
 
 <!-- Part Modal -->
+<div class="modal-backdrop" id="student-pay-info-modal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Öğrenci Pay Tahmini</h3>
+      <button class="modal-close" onclick="closeModal('student-pay-info-modal')">×</button>
+    </div>
+    <div class="modal-body" id="student-pay-info-body"></div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="pay-detail-modal">
   <div class="modal" style="max-width:480px;">
     <div class="modal-header">
@@ -3412,6 +3422,7 @@ function renderDashboard() {
   const activeStudentIds = new Set();
   periodSvcs.forEach(s => (s.studentIds || []).forEach(id => activeStudentIds.add(id)));
   const perPersonShare = activeStudentIds.size > 0 ? periodNet / activeStudentIds.size : 0;
+  window._dashStudentPayInfo = { periodLabor, periodProfit, periodNet, activeStudentIds, perPersonShare };
 
   const periodOptLabel = PERIOD_OPTIONS.find(o => o.key === periodFilter.type)?.label || 'Dönem';
   document.getElementById('stat-revenue-label').textContent = `${periodOptLabel} gelir`;
@@ -4070,6 +4081,50 @@ function partsSortBy(col) {
 }
 
 let _thInfoPopup = null;
+function showStudentPayInfo() {
+  const info = window._dashStudentPayInfo;
+  if (!info) return;
+  const { periodLabor, periodProfit, periodNet, activeStudentIds, perPersonShare } = info;
+
+  document.getElementById('student-pay-info-body').innerHTML = `
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">
+      Bu dönemde en az bir serviste görev alan <strong>${activeStudentIds.size} öğrenciye</strong> yapılan
+      tahmini eşit dağılım hesabıdır.
+    </p>
+    <table class="table" style="margin-bottom:16px;">
+      <tbody>
+        <tr>
+          <td style="color:var(--text-muted)">Dönem işçilik geliri</td>
+          <td class="money">₺${fmtMoney(periodLabor)}</td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted)">Dönem parça kârı</td>
+          <td class="money">₺${fmtMoney(periodProfit)}</td>
+        </tr>
+        <tr style="font-weight:700;border-top:2px solid var(--border)">
+          <td>Toplam dağıtılabilir net</td>
+          <td class="money" style="color:var(--accent)">₺${fmtMoney(periodNet)}</td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted)">Dönemde çalışan öğrenci</td>
+          <td style="font-weight:600">${activeStudentIds.size} kişi</td>
+        </tr>
+        <tr style="font-weight:700">
+          <td>Kişi başı tahmini pay</td>
+          <td class="money" style="color:var(--success)">₺${fmtMoney(perPersonShare)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="background:var(--warning-soft);border:1px solid var(--warning);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--text-muted);line-height:1.6;">
+      <strong style="color:var(--warning)">⚠ Tahmini hesap</strong><br>
+      Bu rakam toplam net gelirin dönemde çalışan öğrenci sayısına eşit bölünmesiyle elde edilir.
+      Gerçekte her öğrencinin payı katıldığı servis sayısına, o servislerdeki işçilik tutarına
+      ve öğrenci payı oranına (%${state.settings.studentShare ?? 30}) göre farklılık gösterir.
+      Bireysel kırılımlı doğru hesap için <strong>Gelir Paneli</strong>'ni kullanın.
+    </div>`;
+  openModal('student-pay-info-modal');
+}
+
 function showPayDetailPopup(type) {
   const isTeacher = type === 'teacher';
   const stats = isTeacher ? (window._lastTeacherStats || {}) : (window._lastStudentStats || {});
