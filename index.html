@@ -3296,7 +3296,7 @@ function getSvcTeacherIds(s) {
 }
 
 function serviceLaborTotal(srv) {
-  return (Number(srv.labor) || 0) + (srv.parts || []).reduce((a, p) => a + (Number(p.labor) || 0), 0);
+  return (Number(srv.labor) || 0) + (srv.parts || []).reduce((a, p) => a + (Number(p.qty) || 1) * (Number(p.labor) || 0), 0);
 }
 
 function serviceTotal(srv) {
@@ -5087,10 +5087,10 @@ function updateServiceSummary() {
     const buy = Number(tr.querySelector('.p-buy').value) || 0;
     const sell = Number(tr.querySelector('.p-sell').value) || 0;
     const partLabor = Number(tr.querySelector('.p-labor').value) || 0;
-    const lineTotal = qty * sell + partLabor;
+    const lineTotal = qty * sell + qty * partLabor;
     partsTotal += qty * sell;
     buyTotal += qty * buy;
-    partsLaborTotal += partLabor;
+    partsLaborTotal += qty * partLabor;
     tr.querySelector('.p-line-total').textContent = fmtMoney(lineTotal);
   });
   const totalLabor = partsLaborTotal;
@@ -5185,7 +5185,8 @@ function showServiceDetail(id) {
       <th>Parça</th><th>Marka</th><th style="text-align:right">Adet</th><th style="text-align:right">Birim</th><th style="text-align:right">İşçilik</th><th style="text-align:right">Toplam</th>
     </tr></thead><tbody>`;
     s.parts.forEach(p => {
-      const lineTotal = (Number(p.qty) || 0) * (Number(p.sellPrice) || 0) + (Number(p.labor) || 0);
+      const qty = Number(p.qty) || 0;
+      const lineTotal = qty * (Number(p.sellPrice) || 0) + qty * (Number(p.labor) || 0);
       partsHtml += `<tr>
         <td>${escapeHtml(p.name)}</td>
         <td style="color:var(--text-muted)">${escapeHtml(p.brand || '—')}</td>
@@ -5380,13 +5381,14 @@ function showInvoiceModal(invoiceId) {
   const inv = state.invoices.find(x => x.id === invoiceId);
   if (!inv) return;
 
-  const partsLaborTotal = (inv.parts || []).reduce((a, p) => a + (Number(p.labor) || 0), 0);
+  const partsLaborTotal = (inv.parts || []).reduce((a, p) => a + (Number(p.qty) || 1) * (Number(p.labor) || 0), 0);
   const partsTotal = (inv.parts || []).reduce((a, p) => a + (Number(p.qty) || 0) * (Number(p.sellPrice) || 0), 0);
   const totalLabor = (Number(inv.labor) || 0) + partsLaborTotal;
 
   let partsRows = '';
   (inv.parts || []).forEach(p => {
-    const lineTotal = (Number(p.qty) || 0) * (Number(p.sellPrice) || 0) + (Number(p.labor) || 0);
+    const pqty = Number(p.qty) || 0;
+    const lineTotal = pqty * (Number(p.sellPrice) || 0) + pqty * (Number(p.labor) || 0);
     partsRows += `<tr>
       <td>${escapeHtml(p.name || '')}</td>
       <td style="color:#888">${escapeHtml(p.brand || '—')}</td>
@@ -5929,15 +5931,21 @@ function renderTeacherDetail() {
         <th style="cursor:pointer" onclick="tdSetVehSort('customer')">Müşteri${vi('customer')}</th>
         <th style="cursor:pointer;text-align:right" onclick="tdSetVehSort('count')">Servis${vi('count')}</th>
       </tr></thead><tbody>`;
-    workedVehicles.forEach(v => {
-      vehiclesHtml += `<tr class="clickable" onclick="showVehicleDetail('${v.id}')">
+    const VEH_LIMIT = 5;
+    workedVehicles.forEach((v, i) => {
+      const extraClass = i >= VEH_LIMIT ? ' hidden veh-more-row' : '';
+      vehiclesHtml += `<tr class="clickable${extraClass}" onclick="showVehicleDetail('${v.id}')">
         <td><span class="plate">${escapeHtml(v.plate)}</span></td>
         <td>${escapeHtml((v.brand||'')+' '+(v.model||''))}</td>
         <td>${escapeHtml(v.customerName||'—')}</td>
         <td style="text-align:right">${v._count} servis</td>
       </tr>`;
     });
-    vehiclesHtml += `</tbody></table></div>`;
+    vehiclesHtml += `</tbody></table>`;
+    if (workedVehicles.length > VEH_LIMIT) {
+      vehiclesHtml += `<button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="loadMoreVehicleRows(this)">Daha fazla göster (${workedVehicles.length - VEH_LIMIT} araç daha)</button>`;
+    }
+    vehiclesHtml += `</div>`;
   }
 
   document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
@@ -6041,6 +6049,11 @@ function sdSetVehSort(key) {
     ? { key, dir: sdVehSort.dir === 'asc' ? 'desc' : 'asc' }
     : { key, dir: key === 'count' ? 'desc' : 'asc' };
   renderStudentDetail();
+}
+
+function loadMoreVehicleRows(btn) {
+  btn.closest('.section').querySelectorAll('tr.veh-more-row').forEach(tr => tr.classList.remove('hidden'));
+  btn.remove();
 }
 
 function showStudentDetail(id) {
@@ -6147,15 +6160,21 @@ function renderStudentDetail() {
         <th style="cursor:pointer" onclick="sdSetVehSort('customer')">Müşteri${vi('customer')}</th>
         <th style="cursor:pointer;text-align:right" onclick="sdSetVehSort('count')">Servis${vi('count')}</th>
       </tr></thead><tbody>`;
-    workedVehicles.forEach(v => {
-      vehiclesHtml += `<tr class="clickable" onclick="showVehicleDetail('${v.id}')">
+    const VEH_LIMIT = 5;
+    workedVehicles.forEach((v, i) => {
+      const extraClass = i >= VEH_LIMIT ? ' hidden veh-more-row' : '';
+      vehiclesHtml += `<tr class="clickable${extraClass}" onclick="showVehicleDetail('${v.id}')">
         <td><span class="plate">${escapeHtml(v.plate)}</span></td>
         <td>${escapeHtml((v.brand||'')+' '+(v.model||''))}</td>
         <td>${escapeHtml(v.customerName||'—')}</td>
         <td style="text-align:right">${v._count} servis</td>
       </tr>`;
     });
-    vehiclesHtml += `</tbody></table></div>`;
+    vehiclesHtml += `</tbody></table>`;
+    if (workedVehicles.length > VEH_LIMIT) {
+      vehiclesHtml += `<button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="loadMoreVehicleRows(this)">Daha fazla göster (${workedVehicles.length - VEH_LIMIT} araç daha)</button>`;
+    }
+    vehiclesHtml += `</div>`;
   }
 
   document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
@@ -7574,7 +7593,7 @@ init();
 // HTTPS veya localhost gerekir — file:// üzerinde çalışmaz
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
   const swCode = `
-    const CACHE_NAME = 'atolye-cache-v3';
+    const CACHE_NAME = 'atolye-cache-v4';
     const APP_URL = self.registration.scope;
 
     self.addEventListener('install', e => {
