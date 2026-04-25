@@ -6924,12 +6924,12 @@ async function sendToDeveloper() {
           workshop: state.settings.workshopName || 'Atölye',
           data: state
         };
-        const res = await fetch(TELEMETRY_URL, {
+        await fetch(TELEMETRY_URL, {
           method: 'POST',
+          mode: 'no-cors',
           body: JSON.stringify(payload)
         });
-        if (res.ok) showToast('Veriler geliştiriciye gönderildi', 'success');
-        else throw new Error('HTTP ' + res.status);
+        showToast('Veriler geliştiriciye gönderildi', 'success');
       } catch (e) {
         showToast('Gönderilemedi: ' + e.message, 'danger');
       }
