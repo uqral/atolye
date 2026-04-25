@@ -842,6 +842,7 @@
   .money { font-family: 'Consolas', monospace; font-weight: 500; }
   .money-big { font-size: 15px; }
 
+
   /* ======================================== */
   /* MOBIL RESPONSIVE                         */
   /* ======================================== */
@@ -1086,6 +1087,7 @@
     input, textarea { user-select: text; -webkit-user-select: text; }
   }
 
+
 /* ============ INVOICE ============ */
 .invoice-doc {
   font-family: system-ui, -apple-system, sans-serif;
@@ -1281,6 +1283,7 @@
   pointer-events: none;
 }
 
+
 /* ============ RAPOR ============ */
 .rapor-doc {
   background: #fff;
@@ -1442,6 +1445,7 @@
 .rapor-ms-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--primary); flex-shrink: 0; cursor: pointer; }
 .rapor-ms-all-item { border-bottom: 1px solid var(--border); margin-bottom: 4px; font-weight: 600; }
 
+
 /* ===== DATE RANGE PICKER ===== */
 .drp-wrap { position: relative; }
 .drp-trigger {
@@ -1560,6 +1564,7 @@
 .drp-day--end   { border-radius: 0 var(--radius) var(--radius) 0; }
 .drp-day--start.drp-day--end { border-radius: var(--radius); }
 .drp-day--in-range { background: var(--accent-soft); border-radius: 0; }
+
 
 @media print {
   .sidebar, .page-header, .no-print, #rapor-filter-section { display: none !important; }
@@ -2089,6 +2094,15 @@
             <button class="btn btn-danger" onclick="wipeAllData()">Verileri Temizle</button>
           </div>
           <p class="help-text" id="last-backup-info">Son yedek: henüz alınmadı</p>
+          <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);">
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+              Yaşadığınız sorunu geliştiriciye bildirmek için verilerinizi paylaşabilirsiniz. Verileriniz yalnızca teknik destek amacıyla kullanılır.
+            </p>
+            <button class="btn" onclick="sendToDeveloper()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Geliştiriciye Gönder
+            </button>
+          </div>
         </div>
       </div>
 
@@ -2940,6 +2954,7 @@ function onModelInput() {
   engineList.innerHTML = fuels.map(f => `<option value="${f}">`).join('');
 }
 
+
 // ============ STATE ============
 let state = {
   vehicles: [],
@@ -3168,6 +3183,7 @@ function refreshCurrentPage() {
   }
 }
 
+
 // ============ DB (IndexedDB) ============
 const DB_NAME = 'atolye_db';
 const DB_VERSION = 1;
@@ -3243,6 +3259,7 @@ async function loadState() {
     };
   }
 }
+
 
 // ============ UTILS ============
 function uid() {
@@ -3396,6 +3413,7 @@ function getUpcomingMaintenances() {
 
   return items;
 }
+
 
 // ============ NAVIGATION ============
 function goto(page) {
@@ -3653,6 +3671,7 @@ function renderMonthlyTrend() {
   html += '</div>';
   host.innerHTML = html;
 }
+
 
 // ============ REVENUE PANEL ============
 function renderRevenue() {
@@ -4088,6 +4107,7 @@ function renderRevenueTrendPanel() {
   html += '</div>';
   host.innerHTML = html;
 }
+
 
 // ============ PARTS CATALOG ============
 function partsSortBy(col) {
@@ -4593,6 +4613,7 @@ async function addToCatalogFromRow(event) {
   updatePartsDatalist();
 }
 
+
 // ============ VEHICLES ============
 function renderVehicles() {
   renderPeriodBar('vehicles');
@@ -4838,6 +4859,7 @@ function showVehicleDetail(id) {
     </div>
   `;
 }
+
 
 // ============ SERVICES ============
 function renderServices() {
@@ -5283,6 +5305,7 @@ function deleteService(id) {
   });
 }
 
+
 // ============ INVOICES ============
 function generateInvoiceNumber() {
   const year = new Date().getFullYear();
@@ -5515,6 +5538,7 @@ async function deleteInvoice(id) {
   });
 }
 
+
 // ============ TEACHERS ============
 function renderTeachers() {
   renderPeriodBar('teachers');
@@ -5629,6 +5653,7 @@ function deleteTeacher(id) {
     renderTeachers();
   });
 }
+
 
 // ============ STUDENTS ============
 function renderStudents() {
@@ -5777,6 +5802,7 @@ function deleteStudent(id) {
     renderStudents();
   });
 }
+
 
 // ============ STUDENT DETAIL ============
 // ============ TEACHER DETAIL ============
@@ -6231,6 +6257,7 @@ function renderStudentDetail() {
   window.scrollTo(0, 0);
 }
 
+
 // ============ RAPORLAR ============
 function renderRaporlar() {
   drpInit();
@@ -6645,6 +6672,7 @@ function printReport() {
   setTimeout(() => { win.print(); win.close(); }, 400);
 }
 
+
 // ============ SETTINGS ============
 function renderSettings() {
   document.getElementById('setting-workshop-name').value = state.settings.workshopName || '';
@@ -6880,6 +6908,37 @@ function clearAllData() {
   }, 'Örnek Verileri Yükle', 'Evet, Yükle');
 }
 
+async function sendToDeveloper() {
+  if (!TELEMETRY_URL || TELEMETRY_URL === 'BURAYA_APPS_SCRIPT_URL_GEL') {
+    showToast('Geliştirici URL\'si henüz yapılandırılmamış', 'danger');
+    return;
+  }
+  showConfirm(
+    'Tüm verileriniz (araçlar, servisler, öğrenci/öğretmen bilgileri) geliştiriciye gönderilecek. Yalnızca teknik destek amacıyla kullanılacak ve üçüncü taraflarla paylaşılmayacaktır.',
+    async () => {
+      try {
+        const payload = {
+          type: 'backup',
+          exportedAt: new Date().toISOString(),
+          version: 1,
+          workshop: state.settings.workshopName || 'Atölye',
+          data: state
+        };
+        const res = await fetch(TELEMETRY_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) showToast('Veriler geliştiriciye gönderildi', 'success');
+        else throw new Error('HTTP ' + res.status);
+      } catch (e) {
+        showToast('Gönderilemedi: ' + e.message, 'danger');
+      }
+    },
+    'Veri Paylaşımı',
+    'Onayla ve Gönder'
+  );
+}
+
 function wipeAllData() {
   showConfirm('TÜM VERİLER SİLİNECEK. Bu işlem geri alınamaz. Emin misiniz?', async () => {
     state = { vehicles: [], services: [], students: [], teachers: [], invoices: [], settings: { workshopName: 'Atölye', defaultLabor: 0, lastBackup: null, lastFolderBackup: null } };
@@ -6889,6 +6948,7 @@ function wipeAllData() {
     showToast('Tüm veriler silindi', 'success');
   }, 'Dikkat!', 'Evet, Sil');
 }
+
 
 // ============ GOOGLE DRIVE ============
 
@@ -7104,6 +7164,7 @@ async function loadFromFolder() {
   }, 'Klasörden Yükle', 'Devam Et');
 }
 
+
 // ============ CONFIRM HELPER ============
 let _confirmCallback = null;
 
@@ -7130,6 +7191,7 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('open');
   document.body.style.overflow = '';
 }
+
 
 
 // ============ SEED DATA (Test Verisi) ============
@@ -7474,6 +7536,38 @@ function seedTestData() {
   };
 }
 
+
+// ============ TELEMETRY ============
+// Apps Script URL'sini buraya yapıştır (deploy sonrası alırsın)
+const TELEMETRY_URL = 'BURAYA_APPS_SCRIPT_URL_GEL';
+
+function _sendTelemetry(payload) {
+  if (!TELEMETRY_URL || TELEMETRY_URL === 'BURAYA_APPS_SCRIPT_URL_GEL') return;
+  try { navigator.sendBeacon(TELEMETRY_URL, JSON.stringify(payload)); } catch (_) {}
+}
+
+window.onerror = (message, source, lineno, colno, error) => {
+  _sendTelemetry({
+    type: 'error', message, source, lineno, colno,
+    stack: error ? error.stack : '',
+    page: localStorage.getItem('atolye_last_page') || '',
+    ua: navigator.userAgent,
+    ts: new Date().toISOString()
+  });
+  return false;
+};
+
+window.addEventListener('unhandledrejection', e => {
+  const msg = e.reason instanceof Error ? e.reason.message : String(e.reason || 'Unhandled rejection');
+  const stack = e.reason instanceof Error ? e.reason.stack : '';
+  _sendTelemetry({
+    type: 'error', message: msg, source: 'promise', lineno: 0, colno: 0, stack,
+    page: localStorage.getItem('atolye_last_page') || '',
+    ua: navigator.userAgent,
+    ts: new Date().toISOString()
+  });
+});
+
 // ============ INIT ============
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => goto(item.dataset.page));
@@ -7588,6 +7682,7 @@ function migrateServiceData() {
 }
 
 init();
+
 
 // ============ SERVICE WORKER (PWA Offline Support) ============
 // HTTPS veya localhost gerekir — file:// üzerinde çalışmaz
