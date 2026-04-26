@@ -2080,6 +2080,14 @@
           <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
             İnternet bağlantısı olmadan çalışmak için güncel uygulama dosyasını indirin. Her deploy sonrası bu dosya otomatik güncellenir — internete erişiminiz olduğunda yeniden indirmeniz yeterli.
           </p>
+          <div id="version-info" style="display:flex; align-items:center; gap:12px; margin-bottom:14px; font-size:13px;">
+            <span>Bu sürüm: <strong id="current-version">—</strong></span>
+            <span id="version-status" style="color: var(--text-muted)"></span>
+            <button class="btn btn-sm" onclick="checkLatestVersion()" id="version-check-btn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6M21 12a9 9 0 01-15 6.7L3 16"/></svg>
+              Güncelleme Kontrol Et
+            </button>
+          </div>
           <button class="btn" onclick="downloadOfflineCopy()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
             Çevrimdışı Kopyayı İndir
@@ -2546,6 +2554,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
+const APP_VERSION = '2026.04.26';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -6839,6 +6848,39 @@ function renderSettings() {
   `;
 
   updateInstallStatus();
+
+  const cvEl = document.getElementById('current-version');
+  if (cvEl) cvEl.textContent = typeof APP_VERSION !== 'undefined' ? APP_VERSION : '—';
+}
+
+async function checkLatestVersion() {
+  const statusEl = document.getElementById('version-status');
+  const btn = document.getElementById('version-check-btn');
+  if (!statusEl) return;
+  statusEl.style.color = 'var(--text-muted)';
+  statusEl.textContent = 'Kontrol ediliyor…';
+  btn.disabled = true;
+  try {
+    const res = await fetch('https://uqral.github.io/atolye/index.html', { cache: 'no-store' });
+    if (!res.ok) throw new Error('Sunucuya ulaşılamadı');
+    const text = await res.text();
+    const match = text.match(/const APP_VERSION\s*=\s*'([^']+)'/);
+    if (!match) throw new Error('Sürüm bilgisi okunamadı');
+    const latest = match[1];
+    const current = typeof APP_VERSION !== 'undefined' ? APP_VERSION : null;
+    if (!current || latest > current) {
+      statusEl.style.color = 'var(--danger, #c0392b)';
+      statusEl.textContent = `Yeni sürüm mevcut: ${latest}`;
+    } else {
+      statusEl.style.color = 'var(--success, #27ae60)';
+      statusEl.textContent = 'Güncel — en son sürüm kullanılıyor';
+    }
+  } catch (e) {
+    statusEl.style.color = 'var(--text-muted)';
+    statusEl.textContent = 'Kontrol edilemedi: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 async function saveSettings() {
