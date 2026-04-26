@@ -2554,7 +2554,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1603';
+const APP_VERSION = '2026.04.26.1605';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -5760,20 +5760,25 @@ function renderStudents() {
 
   // Dönem servisleri
   const periodSvcs = state.services.filter(s => isInPeriod(s.date));
-  const periodLabor = periodSvcs.reduce((a, s) => a + serviceLaborTotal(s), 0);
-  const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
-  const periodNet = periodLabor + periodProfit;
 
-  // Dönem içinde katılım sayıları (orantılı dağıtım)
+  // Dönem içinde katılım sayıları
   const activeIds = new Set();
-  let totalWorkUnits = 0;
   const studentWorkCount = {};
   periodSvcs.forEach(s => (s.studentIds || []).forEach(id => {
     activeIds.add(id);
-    totalWorkUnits++;
     studentWorkCount[id] = (studentWorkCount[id] || 0) + 1;
   }));
-  const unitValue = totalWorkUnits > 0 ? periodNet / totalWorkUnits : 0;
+
+  // Her öğrenci için detay sayfasıyla aynı formülle dönem payı hesapla
+  const studentPeriodPay = {};
+  periodSvcs.forEach(svc => {
+    const studentIds = svc.studentIds || [];
+    if (studentIds.length === 0) return;
+    const sPct = (svc.studentShare ?? state.settings.studentShare ?? 30) / 100;
+    const pay = calcServiceBreakdown(svc).iscilik * sPct / studentIds.length;
+    studentIds.forEach(id => { studentPeriodPay[id] = (studentPeriodPay[id] || 0) + pay; });
+  });
+  const periodNet = Object.values(studentPeriodPay).reduce((a, v) => a + v, 0);
 
   const sorted = [...state.students].filter(s => {
     if (q) {
@@ -5819,7 +5824,7 @@ function renderStudents() {
   pageListStu.forEach(s => {
     const periodCount = studentWorkCount[s.id] || 0;
     const totalCount = state.services.filter(svc => (svc.studentIds || []).includes(s.id)).length;
-    const share = periodCount > 0 ? periodCount * unitValue : 0;
+    const share = studentPeriodPay[s.id] || 0;
     html += `<tr class="clickable" onclick="showStudentDetail('${s.id}')">
       <td><strong>${escapeHtml(s.name)}</strong></td>
       <td>${escapeHtml(s.class || '—')}</td>
