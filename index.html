@@ -2562,7 +2562,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1618';
+const APP_VERSION = '2026.04.26.1620';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -3803,7 +3803,7 @@ function renderRevenue() {
     .slice(0, 5);
 
   // Öğretmen listesi render — sadece dönemde pay alanlar
-  const REV_SHOW_LIMIT = 5;
+  const REV_SHOW_LIMIT = 10;
   const teacherRowsData = [...state.teachers]
     .sort((a, b) => (teacherStats[b.id]?.pay || 0) - (teacherStats[a.id]?.pay || 0))
     .filter(t => (teacherStats[t.id]?.pay || 0) > 0);
@@ -3836,8 +3836,9 @@ function renderRevenue() {
     const stat = studentStats[s.id];
     const pay = stat?.pay || 0;
     const count = stat?.count || 0;
-    const extra = i >= REV_SHOW_LIMIT ? ' class="rev-extra-student" style="display:none"' : '';
-    return `<tr class="clickable"${extra} onclick="showStudentDetail('${s.id}')">
+    const extraCls = i >= REV_SHOW_LIMIT ? ' rev-extra-student' : '';
+    const hidden = i >= REV_SHOW_LIMIT ? ' style="display:none"' : '';
+    return `<tr class="clickable${extraCls}"${hidden} onclick="showStudentDetail('${s.id}')">
       <td><strong>${escapeHtml(s.name)}</strong></td>
       <td>${escapeHtml(s.class || '—')}</td>
       <td>${s.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</td>
