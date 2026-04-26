@@ -2074,6 +2074,22 @@
 
       <div class="section">
         <div class="section-header">
+          <div class="section-title">Çevrimdışı Kullanım</div>
+        </div>
+        <div class="section-body">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+            İnternet bağlantısı olmadan çalışmak için güncel uygulama dosyasını indirin. Her deploy sonrası bu dosya otomatik güncellenir — internete erişiminiz olduğunda yeniden indirmeniz yeterli.
+          </p>
+          <button class="btn" onclick="downloadOfflineCopy()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Çevrimdışı Kopyayı İndir
+          </button>
+          <p class="help-text">İndirilen <strong>atolye.html</strong> dosyasını tarayıcıda açarak internet olmadan kullanabilirsiniz.</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
           <div class="section-title">Veri yedekleme</div>
         </div>
         <div class="section-body">
@@ -6843,6 +6859,24 @@ function updateInstallStatus() {
     el.innerHTML = '⚠️ <span style="color: var(--warning)">Dosya yerel olarak açıldığı için PWA özellikleri pasif. Bir web adresinden açıldığında aktifleşir.</span>';
   } else {
     el.innerHTML = '🟢 <span style="color: var(--text-muted)">Bu sayfa ana ekrana eklenebilir durumda. Yukarıdaki adımları izleyin.</span>';
+  }
+}
+
+async function downloadOfflineCopy() {
+  try {
+    const res = await fetch('https://uqral.github.io/atolye/index.html');
+    if (!res.ok) throw new Error('Sunucuya ulaşılamadı');
+    const html = await res.text();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'atolye.html';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Çevrimdışı kopya indirildi', 'success');
+  } catch (e) {
+    showToast('İndirme başarısız: ' + e.message, 'danger');
   }
 }
 
