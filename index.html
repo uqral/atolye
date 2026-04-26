@@ -2554,7 +2554,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1525';
+const APP_VERSION = '2026.04.26.1529';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -5739,6 +5739,7 @@ function renderStudents() {
   }
 
   const q = (document.getElementById('student-search')?.value || '').toLowerCase().trim();
+  const isAllPeriod = periodFilter.type === 'all';
 
   // Dönem servisleri
   const periodSvcs = state.services.filter(s => isInPeriod(s.date));
@@ -5758,15 +5759,25 @@ function renderStudents() {
   const unitValue = totalWorkUnits > 0 ? periodNet / totalWorkUnits : 0;
 
   const sorted = [...state.students].filter(s => {
-    if (!q) return true;
-    return (s.name || '').toLowerCase().includes(q) || (s.class || '').toLowerCase().includes(q);
+    if (q) {
+      const match = (s.name || '').toLowerCase().includes(q) || (s.class || '').toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    // Dönem filtresi: "tümü" değilse, sadece o dönemde iş yapan öğrenciler
+    if (!isAllPeriod && !activeIds.has(s.id)) return false;
+    return true;
   }).sort((a, b) => {
     if (a.active !== b.active) return a.active ? -1 : 1;
     return a.name.localeCompare(b.name, 'tr');
   });
 
   if (sorted.length === 0) {
-    host.innerHTML = `<div class="empty"><h3>Öğrenci bulunamadı</h3><p>Arama kriterinize uyan öğrenci yok.</p></div>`;
+    const msg = q
+      ? 'Arama kriterinize uyan öğrenci yok.'
+      : isAllPeriod
+        ? 'Henüz öğrenci kaydı bulunamadı.'
+        : 'Seçilen dönemde iş yapan öğrenci yok. "Tümü" seçerek tüm öğrencileri görebilirsiniz.';
+    host.innerHTML = `<div class="empty"><h3>Öğrenci bulunamadı</h3><p>${msg}</p></div>`;
     return;
   }
 
@@ -5875,7 +5886,6 @@ function deleteStudent(id) {
     renderStudents();
   });
 }
-
 
 // ============ STUDENT DETAIL ============
 // ============ TEACHER DETAIL ============
