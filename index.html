@@ -1832,6 +1832,14 @@
       <div class="section">
         <div id="teachers-list"></div>
       </div>
+
+      <div class="section" id="teachers-pay-section" style="display:none">
+        <div class="section-header">
+          <div class="section-title">Dönem pay dağılımı</div>
+          <span id="teachers-pay-subtitle" style="font-size: 11px; color: var(--text-muted);"></span>
+        </div>
+        <div id="teachers-pay-table"></div>
+      </div>
     </section>
 
     <!-- Invoices -->
@@ -2554,7 +2562,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1605';
+const APP_VERSION = '2026.04.26.1608';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -5688,6 +5696,31 @@ function renderTeachers() {
   });
   html += `</tbody></table>`;
   host.innerHTML = html;
+
+  // Pay dağılımı tablosu
+  const paySection = document.getElementById('teachers-pay-section');
+  const payTableHost = document.getElementById('teachers-pay-table');
+  const paySubtitle = document.getElementById('teachers-pay-subtitle');
+
+  const payRows = [...state.teachers]
+    .sort((a, b) => (teacherPeriodPay[b.id] || 0) - (teacherPeriodPay[a.id] || 0))
+    .map(t => {
+      const pay = teacherPeriodPay[t.id] || 0;
+      const count = periodSvcs.filter(s => getSvcTeacherIds(s).includes(t.id)).length;
+      return `<tr>
+        <td><strong>${escapeHtml(t.name)}</strong></td>
+        <td>${escapeHtml(t.branch || '—')}</td>
+        <td>${count}</td>
+        <td class="money">${pay > 0 ? '<strong style="color: var(--success)">₺' + fmtMoney(pay) + '</strong>' : '<span style="color: var(--text-light)">—</span>'}</td>
+      </tr>`;
+    }).join('');
+
+  paySubtitle.textContent = `İşçilik × %${state.settings.teacherShare ?? 70} — servise eşit bölüşüm`;
+  payTableHost.innerHTML = `<table class="table">
+    <thead><tr><th>Ad Soyad</th><th>Branş</th><th>Servis</th><th>Pay</th></tr></thead>
+    <tbody>${payRows || '<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">Bu dönemde öğretmen atanmış servis yok</td></tr>'}</tbody>
+  </table>`;
+  paySection.style.display = '';
 }
 
 function openTeacherModal() {
