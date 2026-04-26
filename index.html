@@ -2562,7 +2562,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1611';
+const APP_VERSION = '2026.04.26.1618';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -3802,37 +3802,58 @@ function renderRevenue() {
     .sort((a, b) => b[1].total - a[1].total)
     .slice(0, 5);
 
-  // Öğretmen listesi render
-  const teacherRows = [...state.teachers]
+  // Öğretmen listesi render — sadece dönemde pay alanlar
+  const REV_SHOW_LIMIT = 5;
+  const teacherRowsData = [...state.teachers]
     .sort((a, b) => (teacherStats[b.id]?.pay || 0) - (teacherStats[a.id]?.pay || 0))
-    .map(t => {
-      const stat = teacherStats[t.id];
-      const pay = stat?.pay || 0;
-      const count = stat?.count || 0;
-      return `<tr>
-        <td><strong>${escapeHtml(t.name)}</strong></td>
-        <td>${escapeHtml(t.branch || '—')}</td>
-        <td>${count}</td>
-        <td class="money">${pay > 0 ? '<strong style="color: var(--success)">₺' + fmtMoney(pay) + '</strong>' : '<span style="color: var(--text-light)">—</span>'}</td>
-      </tr>`;
-    }).join('');
+    .filter(t => (teacherStats[t.id]?.pay || 0) > 0);
+  let teacherRows = teacherRowsData.map((t, i) => {
+    const stat = teacherStats[t.id];
+    const pay = stat?.pay || 0;
+    const count = stat?.count || 0;
+    const extra = i >= REV_SHOW_LIMIT ? ' class="rev-extra-teacher" style="display:none"' : '';
+    return `<tr${extra}>
+      <td><strong>${escapeHtml(t.name)}</strong></td>
+      <td>${escapeHtml(t.branch || '—')}</td>
+      <td>${count}</td>
+      <td class="money"><strong style="color: var(--success)">₺${fmtMoney(pay)}</strong></td>
+    </tr>`;
+  }).join('');
+  if (teacherRowsData.length > REV_SHOW_LIMIT) {
+    teacherRows += `<tr id="rev-teacher-more"><td colspan="4" style="text-align:center; padding:10px 8px;">
+      <button class="btn btn-sm" onclick="document.querySelectorAll('.rev-extra-teacher').forEach(r=>r.style.display=''); document.getElementById('rev-teacher-more').remove()">Daha fazla göster (${teacherRowsData.length - REV_SHOW_LIMIT} kişi daha)</button>
+    </td></tr>`;
+  }
+  if (!teacherRowsData.length) {
+    teacherRows = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">Bu dönemde öğretmen atanmış servis yok</td></tr>';
+  }
 
-  // Öğrenci listesi render
-  const studentRows = [...state.students]
+  // Öğrenci listesi render — sadece dönemde pay alanlar
+  const studentRowsData = [...state.students]
     .sort((a, b) => (studentStats[b.id]?.pay || 0) - (studentStats[a.id]?.pay || 0))
-    .map(s => {
-      const stat = studentStats[s.id];
-      const pay = stat?.pay || 0;
-      const count = stat?.count || 0;
-      return `<tr class="clickable" onclick="showStudentDetail('${s.id}')">
-        <td><strong>${escapeHtml(s.name)}</strong></td>
-        <td>${escapeHtml(s.class || '—')}</td>
-        <td>${s.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</td>
-        <td>${count}</td>
-        <td class="money">${pay > 0 ? '<strong style="color: var(--success)">₺' + fmtMoney(pay) + '</strong>' : '<span style="color: var(--text-light)">—</span>'}</td>
-        <td style="color: var(--text-muted)">›</td>
-      </tr>`;
-    }).join('');
+    .filter(s => (studentStats[s.id]?.pay || 0) > 0);
+  let studentRows = studentRowsData.map((s, i) => {
+    const stat = studentStats[s.id];
+    const pay = stat?.pay || 0;
+    const count = stat?.count || 0;
+    const extra = i >= REV_SHOW_LIMIT ? ' class="rev-extra-student" style="display:none"' : '';
+    return `<tr class="clickable"${extra} onclick="showStudentDetail('${s.id}')">
+      <td><strong>${escapeHtml(s.name)}</strong></td>
+      <td>${escapeHtml(s.class || '—')}</td>
+      <td>${s.active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Pasif</span>'}</td>
+      <td>${count}</td>
+      <td class="money"><strong style="color: var(--success)">₺${fmtMoney(pay)}</strong></td>
+      <td style="color: var(--text-muted)">›</td>
+    </tr>`;
+  }).join('');
+  if (studentRowsData.length > REV_SHOW_LIMIT) {
+    studentRows += `<tr id="rev-student-more"><td colspan="6" style="text-align:center; padding:10px 8px;">
+      <button class="btn btn-sm" onclick="document.querySelectorAll('.rev-extra-student').forEach(r=>r.style.display=''); document.getElementById('rev-student-more').remove()">Daha fazla göster (${studentRowsData.length - REV_SHOW_LIMIT} kişi daha)</button>
+    </td></tr>`;
+  }
+  if (!studentRowsData.length) {
+    studentRows = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted)">Bu dönemde öğrenci atanmış servis yok</td></tr>';
+  }
 
   const donerSermaye = state.settings.donerSermaye || 0;
 
