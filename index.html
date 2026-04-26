@@ -5208,11 +5208,16 @@ function showServiceDetail(id) {
   const s = state.services.find(x => x.id === id);
   if (!s) return;
   const v = state.vehicles.find(vx => vx.id === s.vehicleId);
-  const studentNames = (s.studentIds || [])
+  const students = (s.studentIds || [])
     .map(sid => state.students.find(st => st.id === sid))
-    .filter(Boolean)
-    .map(st => st.name);
+    .filter(Boolean);
   const teachers = getSvcTeacherIds(s).map(id => state.teachers.find(t => t.id === id)).filter(Boolean);
+
+  const labor = serviceLaborTotal(s);
+  const teacherPct = (s.teacherShare ?? state.settings.teacherShare ?? 70) / 100;
+  const studentPct = (s.studentShare ?? state.settings.studentShare ?? 30) / 100;
+  const teacherPerPerson = labor > 0 && teachers.length > 0 ? labor * teacherPct / teachers.length : 0;
+  const studentPerPerson = labor > 0 && students.length > 0 ? labor * studentPct / students.length : 0;
 
   const partsSum = servicePartsSum(s);
   const total = serviceTotal(s);
@@ -5258,7 +5263,7 @@ function showServiceDetail(id) {
       </div>
       <div class="summary-item">
         <div class="summary-item-label">İşçilik <span style="font-size:10px; color:var(--text-muted); font-weight:400;">(KDV hariç)</span></div>
-        <div class="summary-item-value money">₺${fmtMoney(serviceLaborTotal(s))}</div>
+        <div class="summary-item-value money">₺${fmtMoney(labor)}</div>
       </div>
       <div class="summary-item">
         <div class="summary-item-label">Genel Toplam <span style="font-size:10px; color:var(--text-muted); font-weight:400;">(KDV hariç)</span></div>
@@ -5270,14 +5275,51 @@ function showServiceDetail(id) {
       </div>
     </div>
 
-    ${teachers.length > 0 ? `<div style="margin-top: 14px;">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 500; margin-bottom: 6px;">Sorumlu Öğretmenler</div>
-      <div>${teachers.map(t => `<span class="badge badge-muted" style="margin-right: 6px; padding: 4px 10px;">${escapeHtml(t.name)}${t.branch ? ' · ' + escapeHtml(t.branch) : ''}</span>`).join('')}</div>
-    </div>` : ''}
-
-    ${studentNames.length > 0 ? `<div style="margin-top: 14px;">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 500; margin-bottom: 6px;">Çalışan Öğrenciler</div>
-      <div>${studentNames.map(n => `<span class="badge badge-success" style="margin-right: 6px; padding: 4px 10px;">${escapeHtml(n)}</span>`).join('')}</div>
+    ${(teachers.length > 0 || students.length > 0) ? `<div style="margin-top: 14px; display:flex; flex-direction:column; gap:6px;">
+      ${teachers.length > 0 ? (() => {
+        const teacherTotal = teacherPerPerson * teachers.length;
+        const uid = 'sdt-teachers-' + s.id;
+        return `<div style="border:1px solid var(--border-light); border-radius:var(--radius); overflow:hidden;">
+          <div onclick="var el=document.getElementById('${uid}');var ch=this.querySelector('.chevron');if(el.style.display==='none'){el.style.display='flex';ch.style.transform='rotate(180deg)'}else{el.style.display='none';ch.style.transform=''}" style="display:flex; align-items:center; justify-content:space-between; padding:9px 12px; background:var(--bg-card); cursor:pointer; user-select:none;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-card)'">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); font-weight:500;">Sorumlu Öğretmenler</span>
+              <span style="font-size:11px; color:var(--text-muted);">${teachers.length} kişi</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              ${teacherTotal > 0 ? `<span style="font-family:Consolas,monospace; font-size:13px; font-weight:700;">₺${fmtMoney(teacherTotal)}</span>` : ''}
+              <span class="chevron" style="color:var(--text-muted); font-size:12px; transition:transform .2s;">▾</span>
+            </div>
+          </div>
+          <div id="${uid}" style="display:none; flex-direction:column; border-top:1px solid var(--border-light);">${teachers.map(t => `
+            <div onclick="closeModal('service-detail-modal');showTeacherDetail('${t.id}')" style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg); cursor:pointer; border-bottom:1px solid var(--border-light);" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg)'">
+              <span style="font-size:13px;">${escapeHtml(t.name)}${t.branch ? `<span style="color:var(--text-muted); font-size:12px;"> · ${escapeHtml(t.branch)}</span>` : ''} <span style="font-size:11px; color:var(--accent);">↗</span></span>
+              ${teacherPerPerson > 0 ? `<span style="font-family:Consolas,monospace; font-size:13px; font-weight:600;">₺${fmtMoney(teacherPerPerson)}</span>` : ''}
+            </div>`).join('')}
+          </div>
+        </div>`;
+      })() : ''}
+      ${students.length > 0 ? (() => {
+        const studentTotal = studentPerPerson * students.length;
+        const uid = 'sdt-students-' + s.id;
+        return `<div style="border:1px solid var(--border-light); border-radius:var(--radius); overflow:hidden;">
+          <div onclick="var el=document.getElementById('${uid}');var ch=this.querySelector('.chevron');if(el.style.display==='none'){el.style.display='flex';ch.style.transform='rotate(180deg)'}else{el.style.display='none';ch.style.transform=''}" style="display:flex; align-items:center; justify-content:space-between; padding:9px 12px; background:var(--bg-card); cursor:pointer; user-select:none;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg-card)'">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); font-weight:500;">Çalışan Öğrenciler</span>
+              <span style="font-size:11px; color:var(--text-muted);">${students.length} kişi</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              ${studentTotal > 0 ? `<span style="font-family:Consolas,monospace; font-size:13px; font-weight:700; color:var(--success);">₺${fmtMoney(studentTotal)}</span>` : ''}
+              <span class="chevron" style="color:var(--text-muted); font-size:12px; transition:transform .2s;">▾</span>
+            </div>
+          </div>
+          <div id="${uid}" style="display:none; flex-direction:column; border-top:1px solid var(--border-light);">${students.map(st => `
+            <div onclick="closeModal('service-detail-modal');showStudentDetail('${st.id}')" style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg); cursor:pointer; border-bottom:1px solid var(--border-light);" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='var(--bg)'">
+              <span style="font-size:13px;">${escapeHtml(st.name)} <span style="font-size:11px; color:var(--accent);">↗</span></span>
+              ${studentPerPerson > 0 ? `<span style="font-family:Consolas,monospace; font-size:13px; font-weight:600; color:var(--success);">₺${fmtMoney(studentPerPerson)}</span>` : ''}
+            </div>`).join('')}
+          </div>
+        </div>`;
+      })() : ''}
     </div>` : ''}
 
     ${(s.nextServiceDate || s.nextService) ? `<div style="margin-top: 14px; padding: 10px 14px; background: var(--warning-soft); border-radius: var(--radius); font-size: 13px;"><strong>Sonraki bakım:</strong> ${[
@@ -5347,7 +5389,7 @@ async function createInvoice(serviceId) {
     createdAt: new Date().toISOString(),
     workshopName: state.settings.workshopName || 'Atölye',
     date: s.date,
-    vehicle: v ? { plate: v.plate, brand: v.brand, model: v.model, customerName: v.customerName, phone: v.phone, tc: v.customerTC || '', address: v.address || '' } : {},
+    vehicle: v ? { plate: v.plate, brand: v.brand, model: v.model, customerName: v.customerName, phone: v.phone, tc: v.customerTC || '', address: v.address || '', km: s.km || '' } : {},
     description: s.description,
     parts: JSON.parse(JSON.stringify(s.parts || [])),
     labor: s.labor || 0,
@@ -5458,7 +5500,7 @@ function showInvoiceModal(invoiceId) {
       <div class="invoice-meta">
         <div class="invoice-meta-block">
           <div class="invoice-meta-label">Araç</div>
-          <div class="invoice-meta-value"><span class="plate">${escapeHtml(inv.vehicle?.plate || '—')}</span> ${escapeHtml([inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '')}</div>
+          <div class="invoice-meta-value"><span class="plate">${escapeHtml(inv.vehicle?.plate || '—')}</span> ${escapeHtml([inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '')}${inv.vehicle?.km ? '<br><span style="font-size:12px;color:#666;">KM: ' + Number(inv.vehicle.km).toLocaleString('tr-TR') + '</span>' : ''}</div>
         </div>
         <div class="invoice-meta-block">
           <div class="invoice-meta-label">Müşteri</div>
