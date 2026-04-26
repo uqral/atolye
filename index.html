@@ -2554,7 +2554,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1545';
+const APP_VERSION = '2026.04.26.1603';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -5624,12 +5624,18 @@ function renderTeachers() {
   const isAllPeriod = periodFilter.type === 'all';
 
   const periodSvcs = state.services.filter(s => isInPeriod(s.date));
-  const periodLabor = periodSvcs.reduce((a, s) => a + serviceLaborTotal(s), 0);
-  const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
-  const periodNet = periodLabor + periodProfit;
-
   const activeTeacherIds = new Set(periodSvcs.flatMap(s => getSvcTeacherIds(s)));
-  const perTeacherShare = activeTeacherIds.size > 0 ? periodNet / activeTeacherIds.size : 0;
+
+  // Her öğretmen için detay sayfasıyla aynı formülle dönem payı hesapla
+  const teacherPeriodPay = {};
+  periodSvcs.forEach(svc => {
+    const teacherIds = getSvcTeacherIds(svc);
+    if (teacherIds.length === 0) return;
+    const tPct = ((svc.rates || state.settings).teacherShare ?? 70) / 100;
+    const pay = calcServiceBreakdown(svc).iscilik * tPct / teacherIds.length;
+    teacherIds.forEach(tid => { teacherPeriodPay[tid] = (teacherPeriodPay[tid] || 0) + pay; });
+  });
+  const periodNet = Object.values(teacherPeriodPay).reduce((a, v) => a + v, 0);
 
   const sorted = [...state.teachers].filter(t => {
     // Dönem filtresi: "tümü" değilse, sadece o dönemde görev alan öğretmenler
@@ -5654,8 +5660,7 @@ function renderTeachers() {
         <strong style="color: var(--text); font-size: 13px;">${activeTeacherIds.size} öğretmen</strong> bu dönemde görev aldı · ${getPeriodLabel()}
       </div>
       <div style="font-size: 12px; color: var(--text-muted);">
-        Toplam net: <strong class="money" style="color: var(--accent); font-size: 13px;">₺${fmtMoney(periodNet)}</strong>
-        · Kişi başı pay: <strong class="money" style="color: var(--success); font-size: 13px;">₺${fmtMoney(perTeacherShare)}</strong>
+        Toplam Dönem Payı: <strong class="money" style="color: var(--accent); font-size: 13px;">₺${fmtMoney(periodNet)}</strong>
       </div>
     </div>
     <table class="table"><thead><tr>
@@ -5665,7 +5670,7 @@ function renderTeachers() {
   sorted.forEach(t => {
     const periodCount = periodSvcs.filter(s => getSvcTeacherIds(s).includes(t.id)).length;
     const totalCount = state.services.filter(s => getSvcTeacherIds(s).includes(t.id)).length;
-    const share = periodCount > 0 ? perTeacherShare : 0;
+    const share = teacherPeriodPay[t.id] || 0;
     html += `<tr class="clickable" onclick="showTeacherDetail('${t.id}')">
       <td><strong>${escapeHtml(t.name)}</strong></td>
       <td>${escapeHtml(t.branch || '—')}</td>
