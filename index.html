@@ -2410,8 +2410,8 @@
             <div class="summary-item-value money"><span id="sum-labor">0</span> ₺</div>
           </div>
           <div class="summary-item">
-            <div class="summary-item-label">Parça kârı</div>
-            <div class="summary-item-value money"><span id="sum-profit">0</span> ₺</div>
+            <div class="summary-item-label">Malzeme alış <span style="font-size:10px; color:var(--text-muted); font-weight:400;">(KDV hariç)</span></div>
+            <div class="summary-item-value money"><span id="sum-buy">0</span> ₺</div>
           </div>
           <div class="summary-item">
             <div class="summary-item-label">Genel toplam</div>
@@ -5141,11 +5141,10 @@ function updateServiceSummary() {
     tr.querySelector('.p-line-total').textContent = fmtMoney(lineTotal);
   });
   const totalLabor = partsLaborTotal;
-  const profit = partsTotal - buyTotal;
   const total = partsTotal + totalLabor;
   document.getElementById('sum-parts').textContent = fmtMoney(partsTotal);
   document.getElementById('sum-labor').textContent = fmtMoney(totalLabor);
-  document.getElementById('sum-profit').textContent = fmtMoney(profit);
+  document.getElementById('sum-buy').textContent = fmtMoney(buyTotal);
   document.getElementById('sum-total').textContent = fmtMoney(total);
 }
 
