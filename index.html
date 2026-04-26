@@ -1675,10 +1675,10 @@
           <div class="stat-value" id="stat-vehicles">0</div>
           <div class="stat-sub" id="stat-vehicles-sub">Kayıtlı</div>
         </div>
-        <div class="stat-card" style="cursor:pointer" onclick="showStudentPayInfo()">
-          <div class="stat-label">Aktif öğrenci</div>
-          <div class="stat-value" id="stat-students">0</div>
-          <div class="stat-sub" id="stat-students-sub">—</div>
+        <div class="stat-card">
+          <div class="stat-label" id="stat-malzeme-label">Malzeme maliyeti</div>
+          <div class="stat-value money" id="stat-malzeme">₺0</div>
+          <div class="stat-sub" id="stat-malzeme-sub">KDV hariç</div>
         </div>
         <div class="stat-card" id="stat-teacher-pay-card" style="cursor:pointer;background:var(--success-soft);border-color:var(--success)" onclick="showPayDetailPopup('teacher')">
           <div class="stat-label" id="stat-teacher-pay-label">Öğretmen payı (%70) ↗</div>
@@ -2562,7 +2562,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1608';
+const APP_VERSION = '2026.04.26.1611';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -3484,12 +3484,7 @@ function renderDashboard() {
   const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
   const periodNet = periodLabor + periodProfit;
 
-  // Kişi başı pay: seçilen dönemdeki işlerde katılan her öğrenci için
-  // basitleştirilmiş dağıtım: toplam net / bu dönemde en az bir işte çalışmış öğrenci sayısı
-  const activeStudentIds = new Set();
-  periodSvcs.forEach(s => (s.studentIds || []).forEach(id => activeStudentIds.add(id)));
-  const perPersonShare = activeStudentIds.size > 0 ? periodNet / activeStudentIds.size : 0;
-  window._dashStudentPayInfo = { periodLabor, periodProfit, periodNet, activeStudentIds, perPersonShare };
+  const periodMalzemeMaliyet = periodSvcs.reduce((a, s) => a + calcServiceBreakdown(s).malzemeBuyCost, 0);
 
   const periodOptLabel = PERIOD_OPTIONS.find(o => o.key === periodFilter.type)?.label || 'Dönem';
   document.getElementById('stat-revenue-label').textContent = `${periodOptLabel} gelir`;
@@ -3501,11 +3496,9 @@ function renderDashboard() {
   document.getElementById('stat-jobs-sub').textContent = `${state.services.length} toplam kayıt`;
   document.getElementById('stat-vehicles').textContent = state.vehicles.length;
   document.getElementById('stat-vehicles-sub').textContent = 'Kayıtlı';
-  const allActiveStudents = state.students.filter(s => s.active).length;
-  document.getElementById('stat-students').textContent = allActiveStudents;
-  document.getElementById('stat-students-sub').textContent = activeStudentIds.size > 0
-    ? `Pay: ₺${fmtMoney(perPersonShare)} (${activeStudentIds.size} kişiye)`
-    : `${state.students.length} toplam`;
+  document.getElementById('stat-malzeme-label').textContent = `${periodOptLabel} malzeme maliyeti`;
+  document.getElementById('stat-malzeme').textContent = '₺' + fmtMoney(periodMalzemeMaliyet);
+  document.getElementById('stat-malzeme-sub').textContent = 'KDV hariç alış fiyatı';
 
   // Öğretmen / Öğrenci pay kartları
   const dashTeacherStats = {}, dashStudentStats = {};
