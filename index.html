@@ -5462,6 +5462,8 @@ function showInvoiceModal(invoiceId) {
   const inv = state.invoices.find(x => x.id === invoiceId);
   if (!inv) return;
 
+  const invKm = inv.vehicle?.km || state.services.find(s => s.id === inv.serviceId)?.km || '';
+
   const partsLaborTotal = (inv.parts || []).reduce((a, p) => a + (Number(p.qty) || 1) * (Number(p.labor) || 0), 0);
   const partsTotal = (inv.parts || []).reduce((a, p) => a + (Number(p.qty) || 0) * (Number(p.sellPrice) || 0), 0);
   const totalLabor = (Number(inv.labor) || 0) + partsLaborTotal;
@@ -5500,7 +5502,7 @@ function showInvoiceModal(invoiceId) {
       <div class="invoice-meta">
         <div class="invoice-meta-block">
           <div class="invoice-meta-label">Araç</div>
-          <div class="invoice-meta-value"><span class="plate">${escapeHtml(inv.vehicle?.plate || '—')}</span> ${escapeHtml([inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '')}${inv.vehicle?.km ? '<br><span style="font-size:12px;color:#666;">KM: ' + Number(inv.vehicle.km).toLocaleString('tr-TR') + '</span>' : ''}</div>
+          <div class="invoice-meta-value"><span class="plate">${escapeHtml(inv.vehicle?.plate || '—')}</span> ${escapeHtml([inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '')}${invKm ? '<br><span style="font-size:12px;color:#666;">KM: ' + Number(invKm).toLocaleString('tr-TR') + '</span>' : ''}</div>
         </div>
         <div class="invoice-meta-block">
           <div class="invoice-meta-label">Müşteri</div>
