@@ -5223,10 +5223,11 @@ function showServiceDetail(id) {
   const teachers = getSvcTeacherIds(s).map(id => state.teachers.find(t => t.id === id)).filter(Boolean);
 
   const labor = serviceLaborTotal(s);
+  const netIscilik = calcServiceBreakdown(s).iscilik;
   const teacherPct = (s.teacherShare ?? state.settings.teacherShare ?? 70) / 100;
   const studentPct = (s.studentShare ?? state.settings.studentShare ?? 30) / 100;
-  const teacherPerPerson = labor > 0 && teachers.length > 0 ? labor * teacherPct / teachers.length : 0;
-  const studentPerPerson = labor > 0 && students.length > 0 ? labor * studentPct / students.length : 0;
+  const teacherPerPerson = netIscilik > 0 && teachers.length > 0 ? netIscilik * teacherPct / teachers.length : 0;
+  const studentPerPerson = netIscilik > 0 && students.length > 0 ? netIscilik * studentPct / students.length : 0;
 
   const partsSum = servicePartsSum(s);
   const total = serviceTotal(s);
