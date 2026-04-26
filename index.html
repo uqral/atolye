@@ -2554,7 +2554,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1400';
+const APP_VERSION = '2026.04.26.1408';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -5400,6 +5400,7 @@ async function createInvoice(serviceId) {
     createdAt: new Date().toISOString(),
     workshopName: state.settings.workshopName || 'Atölye',
     date: s.date,
+    vehicleId: v?.id || '',
     vehicle: v ? { plate: v.plate, brand: v.brand, model: v.model, customerName: v.customerName, phone: v.phone, tc: v.customerTC || '', address: v.address || '', km: s.km || '' } : {},
     description: s.description,
     parts: JSON.parse(JSON.stringify(s.parts || [])),
@@ -5443,10 +5444,11 @@ function renderInvoices() {
   pageListI.forEach(inv => {
     const plate = inv.vehicle?.plate || '—';
     const vehicleLabel = [inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '—';
+    const resolvedVehicleId = inv.vehicleId || state.services.find(s => s.id === inv.serviceId)?.vehicleId || '';
     html += `<tr>
-      <td><strong>${escapeHtml(inv.number)}</strong></td>
+      <td><strong onclick="event.stopPropagation();showInvoiceModal('${inv.id}')" title="Fatura detayını aç" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;">${escapeHtml(inv.number)}</strong></td>
       <td>${fmtDate(inv.date)}</td>
-      <td><span class="plate">${escapeHtml(plate)}</span> ${escapeHtml(vehicleLabel)}</td>
+      <td>${resolvedVehicleId ? `<span onclick="event.stopPropagation();showVehicleDetail('${resolvedVehicleId}')" title="Araç detayına git" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;"><span class="plate">${escapeHtml(plate)}</span> ${escapeHtml(vehicleLabel)}</span>` : `<span class="plate">${escapeHtml(plate)}</span> ${escapeHtml(vehicleLabel)}`}</td>
       <td>${escapeHtml(inv.vehicle?.customerName || '—')}</td>
       <td style="text-align:right" class="money">₺${fmtMoney(inv.total)}</td>
       <td>
