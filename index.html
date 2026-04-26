@@ -2414,8 +2414,8 @@
             <div class="summary-item-value money"><span id="sum-buy">0</span> ₺</div>
           </div>
           <div class="summary-item">
-            <div class="summary-item-label">Genel toplam</div>
-            <div class="summary-item-value big money"><span id="sum-total">0</span> ₺</div>
+            <div class="summary-item-label">Genel toplam <span style="font-size:10px; color:var(--text-muted); font-weight:400;">(KDV hariç)</span></div>
+            <div class="summary-item-value big money"><span id="sum-total">0</span> ₺<div style="font-size:11px; color:var(--text-muted); font-weight:400; margin-top:2px;">KDV dahil: <span id="sum-total-kdv">0</span> ₺</div></div>
           </div>
         </div>
       </div>
@@ -5142,10 +5142,12 @@ function updateServiceSummary() {
   });
   const totalLabor = partsLaborTotal;
   const total = partsTotal + totalLabor;
+  const kdvRate = (state.settings.kdvRate ?? 20) / 100;
   document.getElementById('sum-parts').textContent = fmtMoney(partsTotal);
   document.getElementById('sum-labor').textContent = fmtMoney(totalLabor);
   document.getElementById('sum-buy').textContent = fmtMoney(buyTotal);
   document.getElementById('sum-total').textContent = fmtMoney(total);
+  document.getElementById('sum-total-kdv').textContent = fmtMoney(total * (1 + kdvRate));
 }
 
 async function saveService() {
