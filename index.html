@@ -2562,7 +2562,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1625';
+const APP_VERSION = '2026.04.26.1628';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -6085,12 +6085,14 @@ function renderTeacherDetail() {
       <th style="cursor:pointer" onclick="tdSetSvcSort('pay')">Pay${si('pay')}</th>
       <th></th>
     </tr></thead><tbody>`;
-    svcs.forEach(svc => {
+    const SVC_LIMIT = 10;
+    svcs.forEach((svc, i) => {
       const v = state.vehicles.find(vx => vx.id === svc.vehicleId);
       const teacherCount = getSvcTeacherIds(svc).length || 1;
       const tPct = ((svc.rates || state.settings).teacherShare ?? 70) / 100;
       const pay = calcServiceBreakdown(svc).iscilik * tPct / teacherCount;
-      svcHtml += `<tr class="clickable" onclick="showServiceDetail('${svc.id}')">
+      const extraClass = i >= SVC_LIMIT ? ' hidden svc-more-row' : '';
+      svcHtml += `<tr class="clickable${extraClass}" onclick="showServiceDetail('${svc.id}')">
         <td>${fmtDate(svc.date)}</td>
         <td>${v ? `<span class="plate">${escapeHtml(v.plate)}</span> <span style="color:var(--text-muted);font-size:12px;">${escapeHtml((v.brand||'')+' '+(v.model||''))}</span>` : '—'}</td>
         <td>${escapeHtml((svc.description||'').substring(0,70))}${(svc.description||'').length>70?'…':''}</td>
@@ -6099,6 +6101,9 @@ function renderTeacherDetail() {
       </tr>`;
     });
     svcHtml += `</tbody></table>`;
+    if (svcs.length > SVC_LIMIT) {
+      svcHtml += `<div style="padding:12px 16px;border-top:1px solid var(--border)"><button class="btn btn-sm" style="width:100%" onclick="loadMoreSvcRows(this)">Daha fazla göster (${svcs.length - SVC_LIMIT} kayıt daha)</button></div>`;
+    }
   }
 
   let vehiclesHtml = '';
@@ -6233,7 +6238,12 @@ function sdSetVehSort(key) {
 
 function loadMoreVehicleRows(btn) {
   btn.closest('.section').querySelectorAll('tr.veh-more-row').forEach(tr => tr.classList.remove('hidden'));
-  btn.remove();
+  btn.closest('div').remove();
+}
+
+function loadMoreSvcRows(btn) {
+  btn.closest('.section').querySelectorAll('tr.svc-more-row').forEach(tr => tr.classList.remove('hidden'));
+  btn.closest('div').remove();
 }
 
 function showStudentDetail(id) {
@@ -6324,12 +6334,14 @@ function renderStudentDetail() {
       <th style="cursor:pointer" onclick="sdSetSvcSort('pay')">Pay${si('pay')}</th>
       <th></th>
     </tr></thead><tbody>`;
-    svcs.forEach(svc => {
+    const SVC_LIMIT = 10;
+    svcs.forEach((svc, i) => {
       const v = state.vehicles.find(vx => vx.id === svc.vehicleId);
       const sc = (svc.studentIds || []).length || 1;
       const sp = (svc.studentShare ?? state.settings.studentShare ?? 30) / 100;
       const pay = calcServiceBreakdown(svc).iscilik * sp / sc;
-      svcHtml += `<tr class="clickable" onclick="showServiceDetail('${svc.id}')">
+      const extraClass = i >= SVC_LIMIT ? ' hidden svc-more-row' : '';
+      svcHtml += `<tr class="clickable${extraClass}" onclick="showServiceDetail('${svc.id}')">
         <td>${fmtDate(svc.date)}</td>
         <td>${v ? `<span class="plate">${escapeHtml(v.plate)}</span> <span style="color:var(--text-muted);font-size:12px;">${escapeHtml((v.brand||'')+' '+(v.model||''))}</span>` : '—'}</td>
         <td>${escapeHtml((svc.description||'').substring(0,70))}${(svc.description||'').length>70?'…':''}</td>
@@ -6338,6 +6350,9 @@ function renderStudentDetail() {
       </tr>`;
     });
     svcHtml += `</tbody></table>`;
+    if (svcs.length > SVC_LIMIT) {
+      svcHtml += `<div style="padding:12px 16px;border-top:1px solid var(--border)"><button class="btn btn-sm" style="width:100%" onclick="loadMoreSvcRows(this)">Daha fazla göster (${svcs.length - SVC_LIMIT} kayıt daha)</button></div>`;
+    }
   }
 
   let vehiclesHtml = '';
