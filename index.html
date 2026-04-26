@@ -5511,7 +5511,7 @@ function showInvoiceModal(invoiceId) {
       <div class="invoice-meta">
         <div class="invoice-meta-block">
           <div class="invoice-meta-label">Araç</div>
-          <div class="invoice-meta-value"><span class="plate">${escapeHtml(inv.vehicle?.plate || '—')}</span> ${escapeHtml([inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ') || '')}${invKm ? '<br><span style="font-size:12px;color:#666;">KM: ' + Number(invKm).toLocaleString('tr-TR') + '</span>' : ''}</div>
+          <div class="invoice-meta-value"><span class="plate">${escapeHtml(inv.vehicle?.plate || '—')}</span>${[inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).length ? '<br>' + escapeHtml([inv.vehicle?.brand, inv.vehicle?.model].filter(Boolean).join(' ')) : ''}${invKm ? '<br><span style="font-size:12px;color:#666;">KM: ' + invKm + '</span>' : ''}</div>
         </div>
         <div class="invoice-meta-block">
           <div class="invoice-meta-label">Müşteri</div>
