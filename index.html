@@ -2554,7 +2554,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1533';
+const APP_VERSION = '2026.04.26.1538';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -5621,6 +5621,8 @@ function renderTeachers() {
     return;
   }
 
+  const isAllPeriod = periodFilter.type === 'all';
+
   const periodSvcs = state.services.filter(s => isInPeriod(s.date));
   const periodLabor = periodSvcs.reduce((a, s) => a + serviceLaborTotal(s), 0);
   const periodProfit = periodSvcs.reduce((a, s) => a + servicePartsProfit(s), 0);
@@ -5629,10 +5631,22 @@ function renderTeachers() {
   const activeTeacherIds = new Set(periodSvcs.flatMap(s => getSvcTeacherIds(s)));
   const perTeacherShare = activeTeacherIds.size > 0 ? periodNet / activeTeacherIds.size : 0;
 
-  const sorted = [...state.teachers].sort((a, b) => {
+  const sorted = [...state.teachers].filter(t => {
+    // Dönem filtresi: "tümü" değilse, sadece o dönemde görev alan öğretmenler
+    if (!isAllPeriod && !activeTeacherIds.has(t.id)) return false;
+    return true;
+  }).sort((a, b) => {
     if (a.active !== b.active) return a.active ? -1 : 1;
     return a.name.localeCompare(b.name, 'tr');
   });
+
+  if (sorted.length === 0) {
+    const msg = isAllPeriod
+      ? 'Henüz öğretmen kaydı bulunamadı.'
+      : 'Seçilen dönemde görev alan öğretmen yok. "Tümü" seçerek tüm öğretmenleri görebilirsiniz.';
+    host.innerHTML = `<div class="empty"><h3>Öğretmen bulunamadı</h3><p>${msg}</p></div>`;
+    return;
+  }
 
   let html = `
     <div style="padding: 12px 16px; background: var(--surface-alt); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
@@ -5725,7 +5739,6 @@ function deleteTeacher(id) {
     renderTeachers();
   });
 }
-
 
 // ============ STUDENTS ============
 function renderStudents() {
