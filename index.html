@@ -2554,7 +2554,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1529';
+const APP_VERSION = '2026.04.26.1533';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -4374,7 +4374,7 @@ async function savePart() {
 function deletePart(id) {
   const part = (state.parts || []).find(p => p.id === id);
   if (!part) return;
-  confirmDo(`"${part.name}" parçasını katalogdan silmek istiyor musunuz?`, async () => {
+  showConfirm(`"${part.name}" parçasını katalogdan silmek istiyor musunuz?`, async () => {
     state.parts = state.parts.filter(p => p.id !== id);
     await saveState();
     showToast('Parça silindi', 'success');
@@ -4637,7 +4637,6 @@ async function addToCatalogFromRow(event) {
   showToast(`"${name}" kataloğa eklendi — fiyatları Parçalar sayfasından girebilirsiniz`, 'success');
   updatePartsDatalist();
 }
-
 
 // ============ VEHICLES ============
 function renderVehicles() {
