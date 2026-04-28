@@ -1709,6 +1709,14 @@
 
       <div class="section">
         <div class="section-header">
+          <div class="section-title" id="dashboard-vehicles-title">Bu dönemdeki araçlar</div>
+          <span id="dashboard-vehicles-count" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+        <div id="dashboard-vehicles"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
           <div class="section-title">Son servis kayıtları</div>
           <button class="btn btn-sm" onclick="goto('services')">Tümünü gör</button>
         </div>
@@ -2171,6 +2179,20 @@
   </main>
 </div>
 
+<!-- Dashboard Vehicle Detail Modal -->
+<div class="modal-backdrop" id="dashboard-vehicle-modal" onclick="if(event.target===this)closeModal('dashboard-vehicle-modal')">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="dashboard-vehicle-modal-title">Araç Detayı</h3>
+      <button class="modal-close" onclick="closeModal('dashboard-vehicle-modal')">×</button>
+    </div>
+    <div class="modal-body" id="dashboard-vehicle-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm" id="dashboard-vehicle-modal-goto" onclick="">Araç sayfasına git →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Part Modal -->
 <div class="modal-backdrop" id="student-pay-info-modal">
   <div class="modal" style="max-width:440px;">
@@ -2461,6 +2483,16 @@
             </select>
           </div>
         </div>
+        <div class="form-row form-row-2">
+          <div class="form-field">
+            <label>TC Kimlik No</label>
+            <input type="text" id="stu-tc" placeholder="11 haneli TC No" maxlength="11">
+          </div>
+          <div class="form-field">
+            <label>IBAN</label>
+            <input type="text" id="stu-iban" placeholder="TR00 0000 0000 0000 0000 0000 00" maxlength="32">
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -2494,6 +2526,16 @@
               <option value="true">Aktif</option>
               <option value="false">Pasif</option>
             </select>
+          </div>
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-field">
+            <label>TC Kimlik No</label>
+            <input type="text" id="tch-tc" placeholder="11 haneli TC No" maxlength="11">
+          </div>
+          <div class="form-field">
+            <label>IBAN</label>
+            <input type="text" id="tch-iban" placeholder="TR00 0000 0000 0000 0000 0000 00" maxlength="32">
           </div>
         </div>
       </div>
@@ -2562,7 +2604,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.26.1628';
+const APP_VERSION = '2026.04.28.1822';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -3539,6 +3581,9 @@ function renderDashboard() {
   const dashSub = document.getElementById('dashboard-date');
   dashSub.textContent += ` · ${getPeriodLabel()}`;
 
+  // Bu dönemdeki araçlar
+  renderDashboardVehicles(periodSvcs);
+
   // Yaklaşan bakımlar
   renderUpcomingMaintenance();
 
@@ -3696,6 +3741,107 @@ function renderMonthlyTrend() {
   });
   html += '</div>';
   host.innerHTML = html;
+}
+
+function renderDashboardVehicles(periodSvcs) {
+  const host = document.getElementById('dashboard-vehicles');
+  const titleEl = document.getElementById('dashboard-vehicles-title');
+  const countEl = document.getElementById('dashboard-vehicles-count');
+  if (!host) return;
+
+  const periodOptLabel = PERIOD_OPTIONS.find(o => o.key === periodFilter.type)?.label || 'Dönem';
+  if (titleEl) titleEl.textContent = `${periodOptLabel} servis yapılan araçlar`;
+
+  if (periodSvcs.length === 0) {
+    if (countEl) countEl.textContent = '';
+    host.innerHTML = `<div class="empty"><h3>Bu dönemde kayıt yok</h3><p>Farklı bir dönem seçebilir veya yeni kayıt ekleyebilirsiniz.</p></div>`;
+    return;
+  }
+
+  const byVehicle = {};
+  periodSvcs.forEach(s => {
+    if (!byVehicle[s.vehicleId]) byVehicle[s.vehicleId] = { svcs: [], total: 0, lastDate: '' };
+    byVehicle[s.vehicleId].svcs.push(s);
+    byVehicle[s.vehicleId].total += serviceTotal(s);
+    if (!byVehicle[s.vehicleId].lastDate || s.date > byVehicle[s.vehicleId].lastDate)
+      byVehicle[s.vehicleId].lastDate = s.date;
+  });
+
+  const vehicleEntries = Object.entries(byVehicle)
+    .sort((a, b) => b[1].lastDate.localeCompare(a[1].lastDate));
+
+  if (countEl) countEl.textContent = `${vehicleEntries.length} araç`;
+
+  let vhtml = `<table class="table"><thead><tr>
+    <th>Plaka</th><th>Araç</th><th>Müşteri</th><th style="text-align:center">Servis</th><th>Son Tarih</th><th>Dönem Toplamı</th><th></th>
+  </tr></thead><tbody>`;
+  vehicleEntries.forEach(([vid, data]) => {
+    const v = state.vehicles.find(x => x.id === vid);
+    vhtml += `<tr class="clickable" onclick="showDashboardVehicleModal('${vid}')">
+      <td>${v ? `<span class="plate">${escapeHtml(v.plate)}</span>` : '—'}</td>
+      <td>${v ? escapeHtml((v.brand || '') + ' ' + (v.model || '')) : '—'}</td>
+      <td>${v ? escapeHtml(v.customerName || '—') : '—'}</td>
+      <td style="text-align:center">${data.svcs.length}</td>
+      <td>${fmtDate(data.lastDate)}</td>
+      <td class="money">₺${fmtMoney(data.total)}</td>
+      <td>›</td>
+    </tr>`;
+  });
+  vhtml += `</tbody></table>`;
+  host.innerHTML = vhtml;
+}
+
+function showDashboardVehicleModal(vehicleId) {
+  const v = state.vehicles.find(x => x.id === vehicleId);
+  if (!v) return;
+
+  const periodSvcsForV = state.services.filter(s => s.vehicleId === vehicleId && isInPeriod(s.date))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const allSvcs = state.services.filter(s => s.vehicleId === vehicleId);
+  const periodTotal = periodSvcsForV.reduce((a, s) => a + serviceTotal(s), 0);
+  const allTotal = allSvcs.reduce((a, s) => a + serviceTotal(s), 0);
+
+  const periodOptLabel = PERIOD_OPTIONS.find(o => o.key === periodFilter.type)?.label || 'Dönem';
+
+  let svcHtml = '';
+  if (periodSvcsForV.length === 0) {
+    svcHtml = `<div class="empty" style="padding:16px 0"><p>Bu dönemde servis kaydı yok.</p></div>`;
+  } else {
+    svcHtml = `<table class="table"><thead><tr>
+      <th>Tarih</th><th>Km</th><th>İşlem</th><th>Tutar</th><th></th>
+    </tr></thead><tbody>`;
+    periodSvcsForV.forEach(s => {
+      svcHtml += `<tr class="clickable" onclick="closeModal('dashboard-vehicle-modal');showServiceDetail('${s.id}')">
+        <td>${fmtDate(s.date)}</td>
+        <td>${s.km ? Number(s.km).toLocaleString('tr-TR') : '—'}</td>
+        <td>${escapeHtml((s.description || '').substring(0, 55))}${(s.description || '').length > 55 ? '…' : ''}</td>
+        <td class="money">₺${fmtMoney(serviceTotal(s))}</td>
+        <td>›</td>
+      </tr>`;
+    });
+    svcHtml += `</tbody></table>`;
+  }
+
+  const titleEl = document.getElementById('dashboard-vehicle-modal-title');
+  if (titleEl) titleEl.textContent = `${v.plate} — ${((v.brand || '') + ' ' + (v.model || '')).trim()}`;
+
+  const gotoBtn = document.getElementById('dashboard-vehicle-modal-goto');
+  if (gotoBtn) gotoBtn.onclick = () => { closeModal('dashboard-vehicle-modal'); showVehicleDetail(vehicleId); };
+
+  document.getElementById('dashboard-vehicle-modal-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px;">
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Müşteri</div><div class="vehicle-info-value">${escapeHtml(v.customerName || '—')}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Telefon</div><div class="vehicle-info-value">${v.phone ? `<a href="tel:${escapeHtml(v.phone.replace(/\s/g,''))}">${escapeHtml(v.phone)}</a>` : '—'}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Yıl</div><div class="vehicle-info-value">${escapeHtml(v.year || '—')}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Motor</div><div class="vehicle-info-value">${escapeHtml(v.engine || '—')}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">${periodOptLabel} toplam</div><div class="vehicle-info-value money" style="color:var(--primary)">₺${fmtMoney(periodTotal)}</div></div>
+      <div class="vehicle-info-item"><div class="vehicle-info-label">Genel toplam</div><div class="vehicle-info-value money">₺${fmtMoney(allTotal)}</div></div>
+    </div>
+    <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px;">${periodOptLabel} servisleri (${periodSvcsForV.length})</div>
+    ${svcHtml}
+  `;
+
+  openModal('dashboard-vehicle-modal');
 }
 
 
@@ -5746,6 +5892,8 @@ function openTeacherModal() {
   document.getElementById('tch-name').value = '';
   document.getElementById('tch-branch').value = '';
   document.getElementById('tch-active').value = 'true';
+  document.getElementById('tch-tc').value = '';
+  document.getElementById('tch-iban').value = '';
   openModal('teacher-modal');
   setTimeout(() => document.getElementById('tch-name').focus(), 50);
 }
@@ -5758,6 +5906,8 @@ function editTeacher(id) {
   document.getElementById('tch-name').value = t.name || '';
   document.getElementById('tch-branch').value = t.branch || '';
   document.getElementById('tch-active').value = String(t.active);
+  document.getElementById('tch-tc').value = t.tc || '';
+  document.getElementById('tch-iban').value = t.iban || '';
   openModal('teacher-modal');
 }
 
@@ -5767,7 +5917,9 @@ async function saveTeacher() {
   const data = {
     name,
     branch: document.getElementById('tch-branch').value.trim(),
-    active: document.getElementById('tch-active').value === 'true'
+    active: document.getElementById('tch-active').value === 'true',
+    tc: document.getElementById('tch-tc').value.trim(),
+    iban: document.getElementById('tch-iban').value.trim()
   };
   if (editingTeacherId) {
     const t = state.teachers.find(x => x.id === editingTeacherId);
@@ -5907,6 +6059,8 @@ function openStudentModal() {
   document.getElementById('stu-name').value = '';
   document.getElementById('stu-class').value = '';
   document.getElementById('stu-active').value = 'true';
+  document.getElementById('stu-tc').value = '';
+  document.getElementById('stu-iban').value = '';
   openModal('student-modal');
   setTimeout(() => document.getElementById('stu-name').focus(), 50);
 }
@@ -5919,6 +6073,8 @@ function editStudent(id) {
   document.getElementById('stu-name').value = s.name || '';
   document.getElementById('stu-class').value = s.class || '';
   document.getElementById('stu-active').value = String(s.active);
+  document.getElementById('stu-tc').value = s.tc || '';
+  document.getElementById('stu-iban').value = s.iban || '';
   openModal('student-modal');
 }
 
@@ -5928,7 +6084,9 @@ async function saveStudent() {
   const data = {
     name,
     class: document.getElementById('stu-class').value.trim(),
-    active: document.getElementById('stu-active').value === 'true'
+    active: document.getElementById('stu-active').value === 'true',
+    tc: document.getElementById('stu-tc').value.trim(),
+    iban: document.getElementById('stu-iban').value.trim()
   };
   if (editingStudentId) {
     const s = state.students.find(x => x.id === editingStudentId);
@@ -6747,11 +6905,17 @@ function generateReport() {
 
   const teacherRows = Object.entries(teacherStats)
     .filter(([id]) => !teacherIds || teacherIds.has(id))
-    .map(([id, v]) => ({ name: (state.teachers.find(t => t.id === id) || {}).name || 'Bilinmeyen', ...v }))
+    .map(([id, v]) => {
+      const t = state.teachers.find(t => t.id === id) || {};
+      return { name: t.name || 'Bilinmeyen', tc: t.tc || '', iban: t.iban || '', ...v };
+    })
     .sort((a, b) => b.pay - a.pay);
   const studentRows = Object.entries(studentStats)
     .filter(([id]) => !studentIds || studentIds.has(id))
-    .map(([id, v]) => ({ name: (state.students.find(s => s.id === id) || {}).name || 'Bilinmeyen', ...v }))
+    .map(([id, v]) => {
+      const s = state.students.find(s => s.id === id) || {};
+      return { name: s.name || 'Bilinmeyen', tc: s.tc || '', iban: s.iban || '', ...v };
+    })
     .sort((a, b) => b.pay - a.pay);
 
   const totalTeacherPay = teacherRows.reduce((a, r) => a + r.pay, 0);
@@ -6765,20 +6929,61 @@ function generateReport() {
   const sPct = state.settings.studentShare ?? 30;
   const kdvPct = state.settings.kdvRate ?? 20;
 
+  const tHasTc   = teacherRows.some(r => r.tc);
+  const tHasIban = teacherRows.some(r => r.iban);
+  const sHasTc   = studentRows.some(r => r.tc);
+  const sHasIban = studentRows.some(r => r.iban);
+
   const teacherTable = teacherRows.length === 0
     ? `<p class="rapor-empty">Bu dönemde öğretmen verisi yok.</p>`
     : `<table class="rapor-table rapor-table--striped">
-        <thead><tr><th>Ad Soyad</th><th class="rapor-num">Servis</th><th class="rapor-num">Alacak</th></tr></thead>
-        <tbody>${teacherRows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td class="rapor-num">${r.count}</td><td class="rapor-num">₺${fmtMoney(r.pay)}</td></tr>`).join('')}</tbody>
-        <tfoot><tr class="rapor-total"><td>Toplam — ${teacherRows.length} öğretmen</td><td class="rapor-num">${teacherRows.reduce((a,r)=>a+r.count,0)}</td><td class="rapor-num">₺${fmtMoney(totalTeacherPay)}</td></tr></tfoot>
+        <thead><tr>
+          <th>Ad Soyad</th>
+          ${tHasTc   ? '<th>TC Kimlik No</th>' : ''}
+          ${tHasIban ? '<th>IBAN</th>' : ''}
+          <th class="rapor-num">Servis</th>
+          <th class="rapor-num">Alacak</th>
+        </tr></thead>
+        <tbody>${teacherRows.map(r => `<tr>
+          <td>${escapeHtml(r.name)}</td>
+          ${tHasTc   ? `<td>${escapeHtml(r.tc)}</td>` : ''}
+          ${tHasIban ? `<td style="font-family:monospace;font-size:11px">${escapeHtml(r.iban)}</td>` : ''}
+          <td class="rapor-num">${r.count}</td>
+          <td class="rapor-num">₺${fmtMoney(r.pay)}</td>
+        </tr>`).join('')}</tbody>
+        <tfoot><tr class="rapor-total">
+          <td>Toplam — ${teacherRows.length} öğretmen</td>
+          ${tHasTc   ? '<td></td>' : ''}
+          ${tHasIban ? '<td></td>' : ''}
+          <td class="rapor-num">${teacherRows.reduce((a,r)=>a+r.count,0)}</td>
+          <td class="rapor-num">₺${fmtMoney(totalTeacherPay)}</td>
+        </tr></tfoot>
       </table>`;
 
   const studentTable = studentRows.length === 0
     ? `<p class="rapor-empty">Bu dönemde öğrenci verisi yok.</p>`
     : `<table class="rapor-table rapor-table--striped">
-        <thead><tr><th>Ad Soyad</th><th class="rapor-num">Servis</th><th class="rapor-num">Alacak</th></tr></thead>
-        <tbody>${studentRows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td class="rapor-num">${r.count}</td><td class="rapor-num">₺${fmtMoney(r.pay)}</td></tr>`).join('')}</tbody>
-        <tfoot><tr class="rapor-total"><td>Toplam — ${studentRows.length} öğrenci</td><td class="rapor-num">${studentRows.reduce((a,r)=>a+r.count,0)}</td><td class="rapor-num">₺${fmtMoney(totalStudentPay)}</td></tr></tfoot>
+        <thead><tr>
+          <th>Ad Soyad</th>
+          ${sHasTc   ? '<th>TC Kimlik No</th>' : ''}
+          ${sHasIban ? '<th>IBAN</th>' : ''}
+          <th class="rapor-num">Servis</th>
+          <th class="rapor-num">Alacak</th>
+        </tr></thead>
+        <tbody>${studentRows.map(r => `<tr>
+          <td>${escapeHtml(r.name)}</td>
+          ${sHasTc   ? `<td>${escapeHtml(r.tc)}</td>` : ''}
+          ${sHasIban ? `<td style="font-family:monospace;font-size:11px">${escapeHtml(r.iban)}</td>` : ''}
+          <td class="rapor-num">${r.count}</td>
+          <td class="rapor-num">₺${fmtMoney(r.pay)}</td>
+        </tr>`).join('')}</tbody>
+        <tfoot><tr class="rapor-total">
+          <td>Toplam — ${studentRows.length} öğrenci</td>
+          ${sHasTc   ? '<td></td>' : ''}
+          ${sHasIban ? '<td></td>' : ''}
+          <td class="rapor-num">${studentRows.reduce((a,r)=>a+r.count,0)}</td>
+          <td class="rapor-num">₺${fmtMoney(totalStudentPay)}</td>
+        </tr></tfoot>
       </table>`;
 
   document.getElementById('rapor-output').innerHTML = `
