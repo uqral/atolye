@@ -1927,6 +1927,14 @@
       <div class="section no-print" id="rapor-filter-section">
         <div class="section-header"><div class="section-title">Rapor Filtresi</div></div>
         <div class="section-body">
+          <div class="form-field" style="margin-bottom:16px; max-width:560px;">
+            <label>Rapor Tipi</label>
+            <select id="rapor-type" onchange="onRaporTypeChange()">
+              <option value="genel">Dönem Özet Raporu</option>
+              <option value="ogrenci">Öğrenci Hak Ediş Listesi</option>
+              <option value="ogretmen">Öğretmen Hak Ediş Listesi</option>
+            </select>
+          </div>
           <div class="form-field" style="margin-bottom:16px; max-width:560px; position:relative;">
             <label>Dönem</label>
             <div class="drp-wrap" id="rapor-drp">
@@ -1949,8 +1957,8 @@
               </div>
             </div>
           </div>
-          <div class="form-row form-row-2" style="max-width:560px; margin-bottom:20px;">
-            <div class="form-field">
+          <div class="form-row form-row-2" style="max-width:560px; margin-bottom:20px;" id="rapor-person-filters">
+            <div class="form-field" id="rapor-teacher-filter-wrap">
               <label>Öğretmen Filtresi</label>
               <div class="rapor-ms" id="rapor-teacher-ms">
                 <div class="rapor-ms-trigger" onclick="toggleRaporMs('rapor-teacher-ms')">
@@ -1960,7 +1968,7 @@
                 <div class="rapor-ms-panel" id="rapor-teacher-ms-panel"></div>
               </div>
             </div>
-            <div class="form-field">
+            <div class="form-field" id="rapor-student-filter-wrap">
               <label>Öğrenci Filtresi</label>
               <div class="rapor-ms" id="rapor-student-ms">
                 <div class="rapor-ms-trigger" onclick="toggleRaporMs('rapor-student-ms')">
@@ -2604,7 +2612,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.28.1822';
+const APP_VERSION = '2026.04.28.1827';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -6862,7 +6870,29 @@ function getRaporMsIds(prefix) {
   return ids.length > 0 ? new Set(ids) : null;
 }
 
+function onRaporTypeChange() {
+  const type = document.getElementById('rapor-type').value;
+  const teacherWrap = document.getElementById('rapor-teacher-filter-wrap');
+  const studentWrap = document.getElementById('rapor-student-filter-wrap');
+  if (type === 'ogrenci') {
+    teacherWrap.style.display = 'none';
+    studentWrap.style.display = '';
+  } else if (type === 'ogretmen') {
+    teacherWrap.style.display = '';
+    studentWrap.style.display = 'none';
+  } else {
+    teacherWrap.style.display = '';
+    studentWrap.style.display = '';
+  }
+  document.getElementById('rapor-output').innerHTML = '';
+  document.getElementById('rapor-pdf-btn').style.display = 'none';
+}
+
 function generateReport() {
+  const type = document.getElementById('rapor-type')?.value || 'genel';
+  if (type === 'ogrenci') { generateStudentPayReport(); return; }
+  if (type === 'ogretmen') { generateTeacherPayReport(); return; }
+
   const from = _drpFrom, to = _drpTo;
   if (!from || !to) { showToast('Dönem seçin', 'danger'); return; }
 
@@ -7027,6 +7057,187 @@ function generateReport() {
   </div>
 
   <div class="rapor-footer">Bu rapor ${reportDate} tarihinde ${escapeHtml(workshopName)} Atölyesi tarafından oluşturulmuştur.</div>
+</div>`;
+
+  document.getElementById('rapor-pdf-btn').style.display = '';
+  document.getElementById('rapor-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function generateStudentPayReport() {
+  const from = _drpFrom, to = _drpTo;
+  if (!from || !to) { showToast('Dönem seçin', 'danger'); return; }
+
+  const filterIds = getRaporMsIds('rapor-student');
+  const svcs = state.services.filter(s => s.date >= from && s.date <= to && s.status !== 'archived');
+  const sSharePct = (state.settings.studentShare ?? 30) / 100;
+
+  const stats = {};
+  svcs.forEach(s => {
+    const labor = calcServiceBreakdown(s).iscilik;
+    if (labor <= 0) return;
+    (s.studentIds || []).forEach(id => {
+      if (!stats[id]) stats[id] = { pay: 0, count: 0 };
+      stats[id].pay += labor * sSharePct / s.studentIds.length;
+      stats[id].count++;
+    });
+  });
+
+  const rows = Object.entries(stats)
+    .filter(([id]) => !filterIds || filterIds.has(id))
+    .map(([id, v]) => {
+      const s = state.students.find(s => s.id === id) || {};
+      return { name: s.name || 'Bilinmeyen', class: s.class || '', tc: s.tc || '', iban: s.iban || '', ...v };
+    })
+    .sort((a, b) => b.pay - a.pay);
+
+  const hasTc   = rows.some(r => r.tc);
+  const hasIban = rows.some(r => r.iban);
+  const hasClass = rows.some(r => r.class);
+
+  const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const fmtDate = d => { const [y,m,day] = d.split('-'); return `${parseInt(day)} ${TR_MONTHS[parseInt(m)-1]} ${y}`; };
+  const reportDate = new Date().toLocaleDateString('tr-TR', { day:'numeric', month:'long', year:'numeric' });
+  const workshopName = state.settings.workshopName || 'Atölye';
+  const sPct = state.settings.studentShare ?? 30;
+  const totalPay = rows.reduce((a, r) => a + r.pay, 0);
+
+  const bodyRows = rows.length === 0
+    ? `<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:20px">Bu dönemde öğrenci verisi yok.</td></tr>`
+    : rows.map((r, i) => `<tr>
+        <td style="color:var(--text-muted);width:32px">${i + 1}</td>
+        <td><strong>${escapeHtml(r.name)}</strong></td>
+        ${hasClass ? `<td>${escapeHtml(r.class)}</td>` : ''}
+        ${hasTc    ? `<td>${escapeHtml(r.tc) || '<span style="color:var(--text-light)">—</span>'}</td>` : ''}
+        ${hasIban  ? `<td style="font-family:monospace;font-size:11px">${escapeHtml(r.iban) || '<span style="color:var(--text-light)">—</span>'}</td>` : ''}
+        <td class="rapor-num">${r.count}</td>
+        <td class="rapor-num"><strong>₺${fmtMoney(r.pay)}</strong></td>
+      </tr>`).join('');
+
+  document.getElementById('rapor-output').innerHTML = `
+<div class="rapor-doc">
+  <div class="rapor-doc-header">
+    ${state.settings.logoBase64 ? `<img src="${state.settings.logoBase64}" class="rapor-logo">` : ''}
+    <div class="rapor-doc-title">
+      <h1>${escapeHtml(workshopName)}</h1>
+      <div class="rapor-doc-sub">Öğrenci Hak Ediş Listesi</div>
+    </div>
+    <div class="rapor-doc-meta">
+      <div>Oluşturma tarihi: ${reportDate}</div>
+      <div><strong>Dönem:</strong> ${fmtDate(from)} – ${fmtDate(to)}</div>
+    </div>
+  </div>
+  <div class="rapor-section">
+    <div class="rapor-section-title">Öğrenci Hak Ediş Tablosu <span class="rapor-badge">%${sPct} pay</span></div>
+    <table class="rapor-table rapor-table--striped">
+      <thead><tr>
+        <th>#</th>
+        <th>Ad Soyad</th>
+        ${hasClass ? '<th>Sınıf / No</th>' : ''}
+        ${hasTc    ? '<th>TC Kimlik No</th>' : ''}
+        ${hasIban  ? '<th>IBAN</th>' : ''}
+        <th class="rapor-num">Servis</th>
+        <th class="rapor-num">Hak Ediş</th>
+      </tr></thead>
+      <tbody>${bodyRows}</tbody>
+      <tfoot><tr class="rapor-total">
+        <td colspan="${2 + (hasClass?1:0) + (hasTc?1:0) + (hasIban?1:0)}">Toplam — ${rows.length} öğrenci</td>
+        <td class="rapor-num">${rows.reduce((a,r)=>a+r.count,0)}</td>
+        <td class="rapor-num">₺${fmtMoney(totalPay)}</td>
+      </tr></tfoot>
+    </table>
+  </div>
+  <div class="rapor-footer">Bu rapor ${reportDate} tarihinde ${escapeHtml(workshopName)} tarafından oluşturulmuştur.</div>
+</div>`;
+
+  document.getElementById('rapor-pdf-btn').style.display = '';
+  document.getElementById('rapor-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function generateTeacherPayReport() {
+  const from = _drpFrom, to = _drpTo;
+  if (!from || !to) { showToast('Dönem seçin', 'danger'); return; }
+
+  const filterIds = getRaporMsIds('rapor-teacher');
+  const svcs = state.services.filter(s => s.date >= from && s.date <= to && s.status !== 'archived');
+  const tSharePct = (state.settings.teacherShare ?? 70) / 100;
+
+  const stats = {};
+  svcs.forEach(s => {
+    const labor = calcServiceBreakdown(s).iscilik;
+    if (labor <= 0) return;
+    const tIds = getSvcTeacherIds(s);
+    tIds.forEach(id => {
+      if (!stats[id]) stats[id] = { pay: 0, count: 0 };
+      stats[id].pay += labor * tSharePct / tIds.length;
+      stats[id].count++;
+    });
+  });
+
+  const rows = Object.entries(stats)
+    .filter(([id]) => !filterIds || filterIds.has(id))
+    .map(([id, v]) => {
+      const t = state.teachers.find(t => t.id === id) || {};
+      return { name: t.name || 'Bilinmeyen', branch: t.branch || '', tc: t.tc || '', iban: t.iban || '', ...v };
+    })
+    .sort((a, b) => b.pay - a.pay);
+
+  const hasTc     = rows.some(r => r.tc);
+  const hasIban   = rows.some(r => r.iban);
+  const hasBranch = rows.some(r => r.branch);
+
+  const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const fmtDate = d => { const [y,m,day] = d.split('-'); return `${parseInt(day)} ${TR_MONTHS[parseInt(m)-1]} ${y}`; };
+  const reportDate = new Date().toLocaleDateString('tr-TR', { day:'numeric', month:'long', year:'numeric' });
+  const workshopName = state.settings.workshopName || 'Atölye';
+  const tPct = state.settings.teacherShare ?? 70;
+  const totalPay = rows.reduce((a, r) => a + r.pay, 0);
+
+  const bodyRows = rows.length === 0
+    ? `<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:20px">Bu dönemde öğretmen verisi yok.</td></tr>`
+    : rows.map((r, i) => `<tr>
+        <td style="color:var(--text-muted);width:32px">${i + 1}</td>
+        <td><strong>${escapeHtml(r.name)}</strong></td>
+        ${hasBranch ? `<td>${escapeHtml(r.branch)}</td>` : ''}
+        ${hasTc     ? `<td>${escapeHtml(r.tc) || '<span style="color:var(--text-light)">—</span>'}</td>` : ''}
+        ${hasIban   ? `<td style="font-family:monospace;font-size:11px">${escapeHtml(r.iban) || '<span style="color:var(--text-light)">—</span>'}</td>` : ''}
+        <td class="rapor-num">${r.count}</td>
+        <td class="rapor-num"><strong>₺${fmtMoney(r.pay)}</strong></td>
+      </tr>`).join('');
+
+  document.getElementById('rapor-output').innerHTML = `
+<div class="rapor-doc">
+  <div class="rapor-doc-header">
+    ${state.settings.logoBase64 ? `<img src="${state.settings.logoBase64}" class="rapor-logo">` : ''}
+    <div class="rapor-doc-title">
+      <h1>${escapeHtml(workshopName)}</h1>
+      <div class="rapor-doc-sub">Öğretmen Hak Ediş Listesi</div>
+    </div>
+    <div class="rapor-doc-meta">
+      <div>Oluşturma tarihi: ${reportDate}</div>
+      <div><strong>Dönem:</strong> ${fmtDate(from)} – ${fmtDate(to)}</div>
+    </div>
+  </div>
+  <div class="rapor-section">
+    <div class="rapor-section-title">Öğretmen Hak Ediş Tablosu <span class="rapor-badge">%${tPct} pay</span></div>
+    <table class="rapor-table rapor-table--striped">
+      <thead><tr>
+        <th>#</th>
+        <th>Ad Soyad</th>
+        ${hasBranch ? '<th>Branş</th>' : ''}
+        ${hasTc     ? '<th>TC Kimlik No</th>' : ''}
+        ${hasIban   ? '<th>IBAN</th>' : ''}
+        <th class="rapor-num">Servis</th>
+        <th class="rapor-num">Hak Ediş</th>
+      </tr></thead>
+      <tbody>${bodyRows}</tbody>
+      <tfoot><tr class="rapor-total">
+        <td colspan="${2 + (hasBranch?1:0) + (hasTc?1:0) + (hasIban?1:0)}">Toplam — ${rows.length} öğretmen</td>
+        <td class="rapor-num">${rows.reduce((a,r)=>a+r.count,0)}</td>
+        <td class="rapor-num">₺${fmtMoney(totalPay)}</td>
+      </tr></tfoot>
+    </table>
+  </div>
+  <div class="rapor-footer">Bu rapor ${reportDate} tarihinde ${escapeHtml(workshopName)} tarafından oluşturulmuştur.</div>
 </div>`;
 
   document.getElementById('rapor-pdf-btn').style.display = '';
