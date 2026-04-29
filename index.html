@@ -1933,6 +1933,7 @@
               <option value="genel">Dönem Özet Raporu</option>
               <option value="ogrenci">Öğrenci Hak Ediş Listesi</option>
               <option value="ogretmen">Öğretmen Hak Ediş Listesi</option>
+              <option value="parca">Parça Kullanım Raporu</option>
             </select>
           </div>
           <div class="form-field" style="margin-bottom:16px; max-width:560px; position:relative;">
@@ -1976,6 +1977,22 @@
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
                 </div>
                 <div class="rapor-ms-panel" id="rapor-student-ms-panel"></div>
+              </div>
+            </div>
+          </div>
+          <div id="rapor-part-filter-wrap" style="display:none; max-width:560px; margin-bottom:20px;">
+            <div class="form-row form-row-2">
+              <div class="form-field">
+                <label>Kategori</label>
+                <select id="rapor-part-category">
+                  <option value="">Tüm Kategoriler</option>
+                </select>
+              </div>
+              <div class="form-field" style="display:flex; align-items:flex-end; padding-bottom:4px;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:500;">
+                  <input type="checkbox" id="rapor-part-summary-only" style="width:16px;height:16px;cursor:pointer;">
+                  Sadece özet göster
+                </label>
               </div>
             </div>
           </div>
@@ -2612,7 +2629,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.29.2112';
+const APP_VERSION = '2026.04.29.2120';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -6608,6 +6625,11 @@ function renderRaporlar() {
   drpInit();
   buildRaporMs('rapor-teacher', state.teachers, 'Tüm öğretmenler');
   buildRaporMs('rapor-student', state.students, 'Tüm öğrenciler');
+  const catSel = document.getElementById('rapor-part-category');
+  if (catSel) {
+    const cats = [...new Set((state.parts || []).map(p => p.category).filter(Boolean))].sort();
+    catSel.innerHTML = '<option value="">Tüm Kategoriler</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  }
 }
 
 // ============ DATE RANGE PICKER ============
@@ -6874,15 +6896,24 @@ function onRaporTypeChange() {
   const type = document.getElementById('rapor-type').value;
   const teacherWrap = document.getElementById('rapor-teacher-filter-wrap');
   const studentWrap = document.getElementById('rapor-student-filter-wrap');
-  if (type === 'ogrenci') {
-    teacherWrap.style.display = 'none';
-    studentWrap.style.display = '';
-  } else if (type === 'ogretmen') {
-    teacherWrap.style.display = '';
-    studentWrap.style.display = 'none';
+  const personFilters = document.getElementById('rapor-person-filters');
+  const partWrap = document.getElementById('rapor-part-filter-wrap');
+  if (type === 'parca') {
+    personFilters.style.display = 'none';
+    partWrap.style.display = '';
   } else {
-    teacherWrap.style.display = '';
-    studentWrap.style.display = '';
+    personFilters.style.display = '';
+    partWrap.style.display = 'none';
+    if (type === 'ogrenci') {
+      teacherWrap.style.display = 'none';
+      studentWrap.style.display = '';
+    } else if (type === 'ogretmen') {
+      teacherWrap.style.display = '';
+      studentWrap.style.display = 'none';
+    } else {
+      teacherWrap.style.display = '';
+      studentWrap.style.display = '';
+    }
   }
   document.getElementById('rapor-output').innerHTML = '';
   document.getElementById('rapor-pdf-btn').style.display = 'none';
@@ -6892,6 +6923,7 @@ function generateReport() {
   const type = document.getElementById('rapor-type')?.value || 'genel';
   if (type === 'ogrenci') { generateStudentPayReport(); return; }
   if (type === 'ogretmen') { generateTeacherPayReport(); return; }
+  if (type === 'parca') { generatePartReport(); return; }
 
   const from = _drpFrom, to = _drpTo;
   if (!from || !to) { showToast('Dönem seçin', 'danger'); return; }
@@ -7238,6 +7270,147 @@ function generateTeacherPayReport() {
     </table>
   </div>
   <div class="rapor-footer">Bu rapor ${reportDate} tarihinde ${escapeHtml(workshopName)} tarafından oluşturulmuştur.</div>
+</div>`;
+
+  document.getElementById('rapor-pdf-btn').style.display = '';
+  document.getElementById('rapor-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function generatePartReport() {
+  const from = _drpFrom, to = _drpTo;
+  if (!from || !to) { showToast('Dönem seçin', 'danger'); return; }
+
+  const categoryFilter = document.getElementById('rapor-part-category')?.value || '';
+  const summaryOnly = document.getElementById('rapor-part-summary-only')?.checked || false;
+
+  const svcs = state.services.filter(s => s.date >= from && s.date <= to && s.status !== 'archived');
+
+  const partMap = {};
+  svcs.forEach(svc => {
+    const vehicle = state.vehicles.find(v => v.id === svc.vehicleId);
+    const plate = vehicle ? vehicle.plate : '?';
+    (svc.parts || []).forEach(p => {
+      if (!p.name) return;
+      const catalogEntry = (state.parts || []).find(cp =>
+        cp.name.toLowerCase() === p.name.toLowerCase() &&
+        (cp.brand || '').toLowerCase() === (p.brand || '').toLowerCase()
+      );
+      const category = catalogEntry?.category || '';
+      if (categoryFilter && category !== categoryFilter) return;
+      const key = `${p.name}|||${p.brand || ''}`;
+      if (!partMap[key]) {
+        partMap[key] = { name: p.name, brand: p.brand || '', category, totalQty: 0, totalBuyCost: 0, totalSellRevenue: 0, services: [] };
+      }
+      const qty = parseFloat(p.qty) || 1;
+      const buyPrice = parseFloat(p.buyPrice) || 0;
+      const sellPrice = parseFloat(p.sellPrice) || 0;
+      partMap[key].totalQty += qty;
+      partMap[key].totalBuyCost += qty * buyPrice;
+      partMap[key].totalSellRevenue += qty * sellPrice;
+      partMap[key].services.push({ date: svc.date, plate, description: svc.description || '', qty, buyPrice, sellPrice });
+    });
+  });
+
+  const rows = Object.values(partMap).sort((a, b) => b.totalSellRevenue - a.totalSellRevenue);
+
+  if (rows.length === 0) {
+    document.getElementById('rapor-output').innerHTML = '<p style="padding:24px;color:#888">Bu dönemde parça verisi yok.</p>';
+    document.getElementById('rapor-pdf-btn').style.display = 'none';
+    return;
+  }
+
+  const hasCategory = rows.some(r => r.category);
+  const hasBrand = rows.some(r => r.brand);
+  const totalQty = rows.reduce((a, r) => a + r.totalQty, 0);
+  const totalBuy = rows.reduce((a, r) => a + r.totalBuyCost, 0);
+  const totalSell = rows.reduce((a, r) => a + r.totalSellRevenue, 0);
+  const fmtQty = q => q % 1 === 0 ? q : q.toFixed(2);
+
+  const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const fmtDate = d => { const [y,m,day] = d.split('-'); return `${parseInt(day)} ${TR_MONTHS[parseInt(m)-1]} ${y}`; };
+  const reportDate = new Date().toLocaleDateString('tr-TR', { day:'numeric', month:'long', year:'numeric' });
+  const workshopName = state.settings.workshopName || 'Atölye';
+
+  const colCount = 4 + (hasBrand ? 1 : 0) + (hasCategory ? 1 : 0);
+  const summaryTable = `<table class="rapor-table rapor-table--striped">
+    <thead><tr>
+      <th>Parça Adı</th>
+      ${hasBrand ? '<th>Marka</th>' : ''}
+      ${hasCategory ? '<th>Kategori</th>' : ''}
+      <th class="rapor-num">Toplam Adet</th>
+      <th class="rapor-num">Alış Toplamı</th>
+      <th class="rapor-num">Satış Toplamı</th>
+      <th class="rapor-num">Brüt Kâr</th>
+    </tr></thead>
+    <tbody>${rows.map(r => `<tr>
+      <td>${escapeHtml(r.name)}</td>
+      ${hasBrand ? `<td>${escapeHtml(r.brand)}</td>` : ''}
+      ${hasCategory ? `<td>${escapeHtml(r.category)}</td>` : ''}
+      <td class="rapor-num">${fmtQty(r.totalQty)}</td>
+      <td class="rapor-num">₺${fmtMoney(r.totalBuyCost)}</td>
+      <td class="rapor-num">₺${fmtMoney(r.totalSellRevenue)}</td>
+      <td class="rapor-num">₺${fmtMoney(r.totalSellRevenue - r.totalBuyCost)}</td>
+    </tr>`).join('')}</tbody>
+    <tfoot><tr class="rapor-total">
+      <td colspan="${colCount - 3}">Toplam — ${rows.length} parça türü</td>
+      <td class="rapor-num">${fmtQty(totalQty)}</td>
+      <td class="rapor-num">₺${fmtMoney(totalBuy)}</td>
+      <td class="rapor-num">₺${fmtMoney(totalSell)}</td>
+      <td class="rapor-num">₺${fmtMoney(totalSell - totalBuy)}</td>
+    </tr></tfoot>
+  </table>`;
+
+  let detailHtml = '';
+  if (!summaryOnly) {
+    detailHtml = `<div class="rapor-section">
+      <div class="rapor-section-title">Servis Detayları</div>
+      ${rows.map(r => `<div style="margin-top:20px;">
+        <div style="font-weight:600; font-size:13px; margin-bottom:6px; padding:6px 8px; background:var(--bg-alt,#f5f5f5); border-radius:4px;">
+          ${escapeHtml(r.name)}${r.brand ? ` <span style="font-weight:400;color:var(--text-muted)">· ${escapeHtml(r.brand)}</span>` : ''}
+          ${r.category ? `<span style="font-weight:400;color:var(--text-muted);font-size:11px;"> · ${escapeHtml(r.category)}</span>` : ''}
+        </div>
+        <table class="rapor-table">
+          <thead><tr>
+            <th>Tarih</th>
+            <th>Plaka</th>
+            <th>Servis Açıklaması</th>
+            <th class="rapor-num">Adet</th>
+            <th class="rapor-num">Alış Fiyatı</th>
+            <th class="rapor-num">Satış Fiyatı</th>
+          </tr></thead>
+          <tbody>${r.services.sort((a,b) => a.date < b.date ? -1 : 1).map(sv => `<tr>
+            <td>${fmtDate(sv.date)}</td>
+            <td><span class="plate">${escapeHtml(sv.plate)}</span></td>
+            <td>${escapeHtml(sv.description)}</td>
+            <td class="rapor-num">${fmtQty(sv.qty)}</td>
+            <td class="rapor-num">₺${fmtMoney(sv.buyPrice)}</td>
+            <td class="rapor-num">₺${fmtMoney(sv.sellPrice)}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  document.getElementById('rapor-output').innerHTML = `
+<div class="rapor-doc">
+  <div class="rapor-doc-header">
+    ${state.settings.logoBase64 ? `<img src="${state.settings.logoBase64}" class="rapor-logo">` : ''}
+    <div class="rapor-doc-title">
+      <h1>${escapeHtml(workshopName)}</h1>
+      <div class="rapor-doc-sub">Parça Kullanım Raporu</div>
+    </div>
+    <div class="rapor-doc-meta">
+      <div>Oluşturma tarihi: ${reportDate}</div>
+      <div><strong>Dönem:</strong> ${fmtDate(from)} – ${fmtDate(to)}</div>
+      ${categoryFilter ? `<div><strong>Kategori:</strong> ${escapeHtml(categoryFilter)}</div>` : ''}
+    </div>
+  </div>
+  <div class="rapor-section">
+    <div class="rapor-section-title">Parça Özeti</div>
+    ${summaryTable}
+  </div>
+  ${detailHtml}
+  <div class="rapor-footer">Bu rapor ${reportDate} tarihinde ${escapeHtml(workshopName)} Atölyesi tarafından oluşturulmuştur.</div>
 </div>`;
 
   document.getElementById('rapor-pdf-btn').style.display = '';
