@@ -2612,7 +2612,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.28.1827';
+const APP_VERSION = '2026.04.29.2112';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -6977,7 +6977,7 @@ function generateReport() {
         <tbody>${teacherRows.map(r => `<tr>
           <td>${escapeHtml(r.name)}</td>
           ${tHasTc   ? `<td>${escapeHtml(r.tc)}</td>` : ''}
-          ${tHasIban ? `<td style="font-family:monospace;font-size:11px">${escapeHtml(r.iban)}</td>` : ''}
+          ${tHasIban ? `<td style="font-family:inherit">${escapeHtml(r.iban)}</td>` : ''}
           <td class="rapor-num">${r.count}</td>
           <td class="rapor-num">₺${fmtMoney(r.pay)}</td>
         </tr>`).join('')}</tbody>
@@ -7003,7 +7003,7 @@ function generateReport() {
         <tbody>${studentRows.map(r => `<tr>
           <td>${escapeHtml(r.name)}</td>
           ${sHasTc   ? `<td>${escapeHtml(r.tc)}</td>` : ''}
-          ${sHasIban ? `<td style="font-family:monospace;font-size:11px">${escapeHtml(r.iban)}</td>` : ''}
+          ${sHasIban ? `<td style="font-family:inherit">${escapeHtml(r.iban)}</td>` : ''}
           <td class="rapor-num">${r.count}</td>
           <td class="rapor-num">₺${fmtMoney(r.pay)}</td>
         </tr>`).join('')}</tbody>
@@ -7108,7 +7108,7 @@ function generateStudentPayReport() {
         <td><strong>${escapeHtml(r.name)}</strong></td>
         ${hasClass ? `<td>${escapeHtml(r.class)}</td>` : ''}
         ${hasTc    ? `<td>${escapeHtml(r.tc) || '<span style="color:var(--text-light)">—</span>'}</td>` : ''}
-        ${hasIban  ? `<td style="font-family:monospace;font-size:11px">${escapeHtml(r.iban) || '<span style="color:var(--text-light)">—</span>'}</td>` : ''}
+        ${hasIban  ? `<td style="font-family:inherit">${escapeHtml(r.iban) || '<span style="color:var(--text-light)">—</span>'}</td>` : ''}
         <td class="rapor-num">${r.count}</td>
         <td class="rapor-num"><strong>₺${fmtMoney(r.pay)}</strong></td>
       </tr>`).join('');
@@ -7199,7 +7199,7 @@ function generateTeacherPayReport() {
         <td><strong>${escapeHtml(r.name)}</strong></td>
         ${hasBranch ? `<td>${escapeHtml(r.branch)}</td>` : ''}
         ${hasTc     ? `<td>${escapeHtml(r.tc) || '<span style="color:var(--text-light)">—</span>'}</td>` : ''}
-        ${hasIban   ? `<td style="font-family:monospace;font-size:11px">${escapeHtml(r.iban) || '<span style="color:var(--text-light)">—</span>'}</td>` : ''}
+        ${hasIban   ? `<td style="font-family:inherit">${escapeHtml(r.iban) || '<span style="color:var(--text-light)">—</span>'}</td>` : ''}
         <td class="rapor-num">${r.count}</td>
         <td class="rapor-num"><strong>₺${fmtMoney(r.pay)}</strong></td>
       </tr>`).join('');
