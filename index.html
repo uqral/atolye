@@ -2629,7 +2629,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.29.2120';
+const APP_VERSION = '2026.04.30.1611';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -5125,20 +5125,16 @@ function renderServices() {
       </div>
     </div>
     <table class="table"><thead><tr>
-      <th>Tarih</th><th>Plaka</th><th>Araç</th><th>İşlem</th><th>Öğrenci</th><th>Tutar</th><th></th>
+      <th>Tarih</th><th>Plaka</th><th>Araç</th><th>İşlem</th><th>Müşteri</th><th>Tutar</th><th></th>
     </tr></thead><tbody>`;
   pageListS.forEach(s => {
-    const studentNames = (s.studentIds || [])
-      .map(sid => state.students.find(st => st.id === sid))
-      .filter(Boolean)
-      .map(st => st.name.split(' ')[0])
-      .join(', ');
+    const customerName = s.vehicle?.customerName || '—';
     html += `<tr class="clickable" onclick="showServiceDetail('${s.id}')">
       <td>${fmtDate(s.date)}</td>
       <td>${s.vehicle ? `<span class="plate">${escapeHtml(s.vehicle.plate)}</span>` : '<span class="badge badge-muted">silinmiş</span>'}</td>
       <td>${s.vehicle ? escapeHtml((s.vehicle.brand || '') + ' ' + (s.vehicle.model || '')) : '—'}</td>
       <td>${escapeHtml((s.description || '').substring(0, 50))}${(s.description || '').length > 50 ? '…' : ''}</td>
-      <td style="font-size: 12px; color: var(--text-muted);">${escapeHtml(studentNames || '—')}</td>
+      <td style="font-size: 12px; color: var(--text-muted);">${escapeHtml(customerName)}</td>
       <td class="money"><strong>₺${fmtMoney(serviceTotal(s))}</strong><div style="font-size:10px; color:var(--text-muted); font-weight:400;">KDV dahil: ₺${fmtMoney(serviceTotal(s) * (1 + (state.settings.kdvRate ?? 20) / 100))}</div></td>
       <td>›</td>
     </tr>`;
