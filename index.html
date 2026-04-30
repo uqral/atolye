@@ -2629,7 +2629,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.30.1611';
+const APP_VERSION = '2026.04.30.1615';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -5447,7 +5447,7 @@ function showServiceDetail(id) {
   document.getElementById('service-detail-body').innerHTML = `
     <div class="vehicle-info-grid" style="margin-bottom: 16px;">
       <div class="vehicle-info-item"><div class="vehicle-info-label">Tarih</div><div class="vehicle-info-value">${fmtDate(s.date)}</div></div>
-      <div class="vehicle-info-item">${v ? `<div class="vehicle-info-label">Araç</div><div class="vehicle-info-value clickable" onclick="closeModal('service-detail-modal');showVehicleDetail('${v.id}')" style="cursor:pointer;" title="Araç detayına git"><span class="plate">${escapeHtml(v.plate)}</span> ${escapeHtml((v.brand||'') + ' ' + (v.model||''))} <span style="font-size:11px;color:var(--accent)">↗</span></div>` : '<div class="vehicle-info-label">Araç</div><div class="vehicle-info-value">—</div>'}</div>
+      <div class="vehicle-info-item">${v ? `<div class="vehicle-info-label">Araç</div><div class="vehicle-info-value clickable" onclick="closeModal('service-detail-modal');showVehicleDetail('${v.id}')" style="cursor:pointer;" title="Araç detayına git"><span class="plate">${escapeHtml(v.plate)}</span><div style="font-size:13px; color:var(--text-muted); margin-top:4px;">${escapeHtml((v.brand||'') + ' ' + (v.model||''))} <span style="font-size:11px;color:var(--accent)">↗</span></div></div>` : '<div class="vehicle-info-label">Araç</div><div class="vehicle-info-value">—</div>'}</div>
       <div class="vehicle-info-item"><div class="vehicle-info-label">Kilometre</div><div class="vehicle-info-value">${s.km ? Number(s.km).toLocaleString('tr-TR') + ' km' : '—'}</div></div>
     </div>
 
