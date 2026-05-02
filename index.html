@@ -2629,7 +2629,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.04.30.1616';
+const APP_VERSION = '2026.05.02.1908';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -5290,7 +5290,7 @@ function addPartRow(part) {
     <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty ?? 1}" step="1" min="0" oninput="if(this.value<0)this.value=0;updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td><input type="number" class="p-sell" placeholder="0" value="${part?.sellPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
-    <td><input type="number" class="p-labor" placeholder="0" value="${part?.labor || ''}" step="1" oninput="updateServiceSummary()"></td>
+    <td><input type="number" class="p-labor" placeholder="0" value="${part?.labor || ''}" step="0.01" oninput="updateServiceSummary()"></td>
     <td class="money p-line-total" style="text-align:right; padding-right:10px;">0</td>
     <td><button class="btn btn-icon btn-sm btn-danger" onclick="this.closest('tr').remove(); updateServiceSummary();">×</button></td>
   `;
