@@ -2757,7 +2757,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.03.1538';
+const APP_VERSION = '2026.05.03.1541';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -9270,6 +9270,8 @@ function renderStock() {
       </div>`;
   }
 
+  const wasSearchFocused = document.activeElement?.id === 'stock-search';
+
   document.getElementById('stock-content').innerHTML = `
     <div class="stats-grid" style="margin-bottom:16px;">
       <div class="stat-card">
@@ -9314,6 +9316,11 @@ function renderStock() {
 
     ${invoicesHtml}
   `;
+
+  if (wasSearchFocused) {
+    const el = document.getElementById('stock-search');
+    if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  }
 }
 </script>
 
