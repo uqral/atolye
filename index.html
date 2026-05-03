@@ -1627,6 +1627,10 @@
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
         <span class="nav-label">Parçalar</span>
       </div>
+      <div class="nav-item" data-page="stock">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+        <span class="nav-label">Stok</span>
+      </div>
       <div class="nav-item" data-page="invoices">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
         <span class="nav-label">Faturalar</span>
@@ -1909,6 +1913,21 @@
       <div class="section">
         <div id="parts-catalog-list"></div>
       </div>
+    </section>
+
+    <!-- Stok Takibi -->
+    <section id="page-stock" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Stok Takibi</h2>
+          <p class="page-subtitle">Parça stok durumu, giriş ve işlem geçmişi</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" onclick="openQuickStockModal()">+ Hızlı Giriş</button>
+          <button class="btn btn-primary" onclick="openStockInvoiceModal()">+ Faturalı Giriş</button>
+        </div>
+      </div>
+      <div id="stock-content"></div>
     </section>
 
     <!-- Raporlar -->
@@ -2626,10 +2645,119 @@
   </div>
 </div>
 
+<!-- Quick Stock Entry Modal -->
+<div class="modal-backdrop" id="quick-stock-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title">Hızlı Stok Girişi</div>
+      <button class="modal-close" onclick="closeModal('quick-stock-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label>Parça *</label>
+        <div style="position:relative;">
+          <input type="hidden" id="qstock-part-id">
+          <input type="text" id="qstock-part-name" placeholder="Parça adı ile ara..."
+            oninput="showQstockPartSuggestions()" onfocus="showQstockPartSuggestions()" onblur="hideQstockPartSuggestions()" autocomplete="off">
+        </div>
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-field">
+          <label>Miktar *</label>
+          <input type="number" id="qstock-qty" placeholder="0" min="1" step="1">
+        </div>
+        <div class="form-field">
+          <label>Birim Alış Fiyatı (₺)</label>
+          <input type="number" id="qstock-price" placeholder="0.00" min="0" step="0.01">
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Tarih *</label>
+        <input type="date" id="qstock-date">
+      </div>
+      <div class="form-field">
+        <label>Not</label>
+        <input type="text" id="qstock-notes" placeholder="İsteğe bağlı not...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('quick-stock-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="saveQuickStock()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Invoice Modal -->
+<div class="modal-backdrop" id="stock-invoice-modal">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header">
+      <div class="modal-title" id="sinv-modal-title">Yeni Stok Faturası</div>
+      <button class="modal-close" onclick="closeModal('stock-invoice-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sinv-id">
+      <div class="form-row form-row-2">
+        <div class="form-field">
+          <label>Tedarikçi</label>
+          <input type="text" id="sinv-supplier" placeholder="Tedarikçi adı...">
+        </div>
+        <div class="form-field">
+          <label>Fatura No</label>
+          <input type="text" id="sinv-invoice-no" placeholder="Fatura numarası...">
+        </div>
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-field">
+          <label>Tarih *</label>
+          <input type="date" id="sinv-date">
+        </div>
+        <div class="form-field">
+          <label>Not</label>
+          <input type="text" id="sinv-notes" placeholder="İsteğe bağlı not...">
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <table class="table">
+          <thead><tr>
+            <th>Parça</th>
+            <th style="width:80px;">Adet</th>
+            <th style="width:100px;">Birim Fiyat</th>
+            <th style="width:90px;">Toplam</th>
+            <th style="width:40px;"></th>
+          </tr></thead>
+          <tbody id="sinv-items-tbody"></tbody>
+        </table>
+        <button class="btn btn-sm" onclick="addStockInvoiceRow()" style="margin-top:8px;">+ Kalem Ekle</button>
+      </div>
+      <div style="text-align:right;margin-top:12px;font-size:15px;font-weight:700;">
+        Toplam: <span id="sinv-total" class="money">₺0</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('stock-invoice-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="saveStockInvoice()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stock History Modal -->
+<div class="modal-backdrop" id="stock-history-modal">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header">
+      <div class="modal-title" id="stock-history-title">Stok Geçmişi</div>
+      <button class="modal-close" onclick="closeModal('stock-history-modal')">&times;</button>
+    </div>
+    <div class="modal-body" id="stock-history-body"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('stock-history-modal')">Kapat</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.02.1908';
+const APP_VERSION = '2026.05.03.1538';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -3063,6 +3191,8 @@ let state = {
   teachers: [],
   invoices: [],
   parts: [],
+  stockTransactions: [],
+  stockInvoices: [],
   settings: {
     workshopName: 'Atölye',
     defaultLabor: 0,
@@ -3266,7 +3396,7 @@ function renderPeriodBar(pageKey) {
 // Aktif olan sayfayı yeniden render eder
 function refreshCurrentPage() {
   Object.keys(pageState).forEach(k => pageState[k] = 1);
-  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue', 'invoices', 'parts'];
+  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue', 'invoices', 'parts', 'stock'];
   for (const p of pages) {
     const el = document.getElementById('page-' + p);
     if (el && !el.classList.contains('hidden')) {
@@ -3278,6 +3408,7 @@ function refreshCurrentPage() {
       else if (p === 'revenue') renderRevenue();
       else if (p === 'invoices') renderInvoices();
       else if (p === 'parts') renderParts();
+      else if (p === 'stock') renderStock();
       return;
     }
   }
@@ -3531,6 +3662,7 @@ function goto(page) {
   if (page === 'revenue') renderRevenue();
   if (page === 'invoices') renderInvoices();
   if (page === 'parts') renderParts();
+  if (page === 'stock') renderStock();
   if (page === 'settings') renderSettings();
   if (page === 'raporlar') renderRaporlar();
   localStorage.setItem('atolye_last_page', page);
@@ -4544,7 +4676,7 @@ async function savePart() {
     const idx = state.parts.findIndex(p => p.id === editingPartId);
     if (idx !== -1) state.parts[idx] = { ...state.parts[idx], ...data };
   } else {
-    state.parts.push({ id: uid(), ...data });
+    state.parts.push({ id: uid(), currentStock: 0, ...data });
   }
   await saveState();
   closeModal('part-modal');
@@ -4657,6 +4789,7 @@ function selectPartNameSuggestion(event, name) {
     if (buyInput) buyInput.value = p.buyPrice || '';
     if (sellInput) sellInput.value = p.sellPrice || '';
     if (laborInput) laborInput.value = p.laborPrice || '';
+    updateStockInfoBadge(tr, p);
     updateServiceSummary();
   } else if (matches.length > 1 && brandInput) {
     brandInput.value = '';
@@ -4791,7 +4924,29 @@ function selectBrandSuggestion(event) {
     if (buyInput) buyInput.value = match.buyPrice || '';
     if (sellInput) sellInput.value = match.sellPrice || '';
     if (laborInput) laborInput.value = match.laborPrice || '';
+    updateStockInfoBadge(tr, match);
     updateServiceSummary();
+  }
+}
+
+function updateStockInfoBadge(tr, part) {
+  const badge = tr?.querySelector('.p-stock-info');
+  if (!badge) return;
+  const stock = part.currentStock || 0;
+  badge.textContent = `Stok: ${stock}`;
+  badge.style.display = 'inline';
+  if (stock < 0) {
+    badge.style.background = 'var(--danger-soft)';
+    badge.style.color = 'var(--danger)';
+  } else if (stock === 0) {
+    badge.style.background = 'var(--surface-alt)';
+    badge.style.color = 'var(--text-muted)';
+  } else if (stock < 5) {
+    badge.style.background = 'var(--warning-soft)';
+    badge.style.color = 'var(--warning)';
+  } else {
+    badge.style.background = 'var(--success-soft, #e8f5e9)';
+    badge.style.color = 'var(--success)';
   }
 }
 
@@ -5285,7 +5440,7 @@ function addPartRow(part) {
   const tbody = document.getElementById('parts-tbody');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><div class="p-name-wrap"><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}" oninput="showPartSuggestions(this)" onfocus="showPartSuggestions(this)" onblur="hidePartSuggestions(this)" onkeydown="navigateSuggestions(event,this)" autocomplete="off"></div></td>
+    <td><div class="p-name-wrap"><input type="text" class="p-name" placeholder="Parça / işçilik adı" value="${escapeHtml(part?.name || '')}" oninput="showPartSuggestions(this)" onfocus="showPartSuggestions(this)" onblur="hidePartSuggestions(this)" onkeydown="navigateSuggestions(event,this)" autocomplete="off"><span class="p-stock-info" style="display:none;font-size:10px;margin-left:4px;padding:1px 5px;border-radius:3px;vertical-align:middle;"></span></div></td>
     <td><div class="p-brand-wrap"><input type="text" class="p-brand" placeholder="Marka" value="${escapeHtml(part?.brand || '')}" oninput="showBrandSuggestions(this)" onfocus="showBrandSuggestions(this)" onblur="hideBrandSuggestions(this)" onkeydown="navigateSuggestions(event,this)" autocomplete="off"></div></td>
     <td><input type="number" class="p-qty" placeholder="1" value="${part?.qty ?? 1}" step="1" min="0" oninput="if(this.value<0)this.value=0;updateServiceSummary()"></td>
     <td><input type="number" class="p-buy" placeholder="0" value="${part?.buyPrice || ''}" step="0.01" oninput="updateServiceSummary()"></td>
@@ -5366,10 +5521,12 @@ async function saveService() {
     teacherIds
   };
 
+  let savedServiceId = editingServiceId;
   if (editingServiceId) {
     const s = state.services.find(x => x.id === editingServiceId);
     if (s) Object.assign(s, data); // rates korunur, data'ya dahil edilmedi
   } else {
+    savedServiceId = uid();
     const rates = {
       kdvRate:          state.settings.kdvRate          ?? 20,
       faaliyetRate:     state.settings.faaliyetRate     ?? 10,
@@ -5377,7 +5534,7 @@ async function saveService() {
       teacherShare:     state.settings.teacherShare     ?? 70,
       studentShare:     state.settings.studentShare     ?? 30,
     };
-    state.services.push(Object.assign({ id: uid(), createdAt: new Date().toISOString(), rates }, data));
+    state.services.push(Object.assign({ id: savedServiceId, createdAt: new Date().toISOString(), rates }, data));
   }
 
   // Yeni parça+marka kombinasyonlarını otomatik kataloğa ekle
@@ -5390,10 +5547,14 @@ async function saveService() {
       (cp.brand || '').toLowerCase() === (p.brand || '').toLowerCase()
     );
     if (!exists) {
-      state.parts.push({ id: uid(), name: p.name, brand: p.brand || '', unit: '', buyPrice: p.buyPrice || 0, sellPrice: p.sellPrice || 0, laborPrice: p.labor || 0, category: '' });
+      state.parts.push({ id: uid(), name: p.name, brand: p.brand || '', unit: '', buyPrice: p.buyPrice || 0, sellPrice: p.sellPrice || 0, laborPrice: p.labor || 0, category: '', currentStock: 0 });
       catalogUpdated = true;
     }
   }
+
+  // Stok düşümü: önce eski düşümleri geri al (düzenleme durumunda), sonra yenilerini uygula
+  if (editingServiceId) reverseServiceStockDeductions(editingServiceId);
+  applyServiceStockDeductions(savedServiceId, data.parts, data.vehicleId, data.date);
 
   await saveState();
   closeModal('service-modal');
@@ -5555,6 +5716,7 @@ function showServiceDetail(id) {
 
 function deleteService(id) {
   showConfirm('Bu servis kaydını silmek istediğinizden emin misiniz?', async () => {
+    reverseServiceStockDeductions(id);
     state.services = state.services.filter(s => s.id !== id);
     await saveState();
     closeModal('service-detail-modal');
@@ -8423,6 +8585,7 @@ async function init() {
     }
     migrateTeacherData();
     migrateServiceData();
+    migrateStockData();
     updatePartsDatalist();
     document.getElementById('brand-name').textContent = (state.settings.workshopName || 'Atölye');
     const lastPage = localStorage.getItem('atolye_last_page') || 'dashboard';
@@ -8496,6 +8659,14 @@ function migrateServiceData() {
   if (changed) saveState();
 }
 
+function migrateStockData() {
+  if (!state.stockTransactions) state.stockTransactions = [];
+  if (!state.stockInvoices) state.stockInvoices = [];
+  (state.parts || []).forEach(p => {
+    if (p.currentStock === undefined) p.currentStock = 0;
+  });
+}
+
 init();
 
 
@@ -8503,7 +8674,7 @@ init();
 // HTTPS veya localhost gerekir — file:// üzerinde çalışmaz
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
   const swCode = `
-    const CACHE_NAME = 'atolye-cache-v4';
+    const CACHE_NAME = 'atolye-cache-v5';
     const APP_URL = self.registration.scope;
 
     self.addEventListener('install', e => {
@@ -8585,6 +8756,565 @@ window.addEventListener('load', () => {
     document.body.appendChild(hint);
   }, 3000);
 });
+
+// ============================================================
+// STOK TAKİBİ
+// ============================================================
+
+function findCatalogPart(name, brand) {
+  return (state.parts || []).find(p =>
+    p.name.toLowerCase() === (name || '').toLowerCase() &&
+    (p.brand || '').toLowerCase() === (brand || '').toLowerCase()
+  );
+}
+
+function reverseServiceStockDeductions(serviceId) {
+  if (!serviceId) return;
+  const toReverse = (state.stockTransactions || []).filter(t => t.serviceId === serviceId);
+  toReverse.forEach(t => {
+    const part = (state.parts || []).find(p => p.id === t.partId);
+    if (part) part.currentStock = (part.currentStock || 0) - t.qty; // t.qty is negative, so subtracting = adding back
+  });
+  state.stockTransactions = (state.stockTransactions || []).filter(t => t.serviceId !== serviceId);
+}
+
+function applyServiceStockDeductions(serviceId, parts, vehicleId, date) {
+  if (!parts || !parts.length) return;
+  if (!state.stockTransactions) state.stockTransactions = [];
+  let anyNegative = false;
+
+  for (const p of parts) {
+    if (!p.name) continue;
+    const catalogPart = findCatalogPart(p.name, p.brand);
+    if (!catalogPart) continue;
+
+    const qty = Number(p.qty) || 0;
+    if (qty <= 0) continue;
+
+    catalogPart.currentStock = (catalogPart.currentStock || 0) - qty;
+    if (catalogPart.currentStock < 0) anyNegative = true;
+
+    state.stockTransactions.push({
+      id: uid(),
+      date: date || todayStr(),
+      createdAt: new Date().toISOString(),
+      type: 'out_service',
+      partId: catalogPart.id,
+      partName: catalogPart.name,
+      partBrand: catalogPart.brand || '',
+      qty: -qty,
+      unitPrice: p.buyPrice || 0,
+      notes: '',
+      serviceId,
+      vehicleId: vehicleId || ''
+    });
+  }
+
+  if (anyNegative) {
+    showToast('Uyarı: Bir veya daha fazla parçanın stoğu negatife düştü', 'warning');
+  }
+}
+
+// ---- Hızlı Stok Girişi ----
+
+function openQuickStockModal(partId) {
+  document.getElementById('qstock-date').value = todayStr();
+  document.getElementById('qstock-qty').value = '';
+  document.getElementById('qstock-price').value = '';
+  document.getElementById('qstock-notes').value = '';
+  document.getElementById('qstock-part-id').value = partId || '';
+
+  if (partId) {
+    const part = (state.parts || []).find(p => p.id === partId);
+    if (part) {
+      document.getElementById('qstock-part-name').value = part.name + (part.brand ? ' (' + part.brand + ')' : '');
+      document.getElementById('qstock-price').value = part.buyPrice || '';
+    }
+  } else {
+    document.getElementById('qstock-part-name').value = '';
+  }
+
+  openModal('quick-stock-modal');
+}
+
+function showQstockPartSuggestions() {
+  const input = document.getElementById('qstock-part-name');
+  const query = (input.value || '').trim().toLowerCase();
+  let dd = document.getElementById('qstock-part-dropdown');
+  if (!dd) {
+    dd = document.createElement('div');
+    dd.id = 'qstock-part-dropdown';
+    dd.className = 'part-suggestions';
+    input.parentElement.style.position = 'relative';
+    input.parentElement.appendChild(dd);
+  }
+
+  const parts = state.parts || [];
+  const matches = parts.filter(p =>
+    !query || p.name.toLowerCase().includes(query) || (p.brand || '').toLowerCase().includes(query)
+  ).slice(0, 10);
+
+  dd.innerHTML = matches.map(p => `
+    <div class="part-suggest-item" onmousedown="qstockSelectPart(event,'${p.id}')">
+      <span>${escapeHtml(p.name)}${p.brand ? ' <span style="color:var(--text-muted);font-size:11px;">(' + escapeHtml(p.brand) + ')</span>' : ''}</span>
+      <span style="color:var(--text-muted);font-size:11px;">Stok: ${p.currentStock || 0}</span>
+    </div>
+  `).join('');
+  dd.style.display = matches.length ? 'block' : 'none';
+}
+
+function hideQstockPartSuggestions() {
+  setTimeout(() => {
+    const dd = document.getElementById('qstock-part-dropdown');
+    if (dd) dd.style.display = 'none';
+  }, 150);
+}
+
+function qstockSelectPart(event, partId) {
+  event.preventDefault();
+  const part = (state.parts || []).find(p => p.id === partId);
+  if (!part) return;
+  document.getElementById('qstock-part-id').value = partId;
+  document.getElementById('qstock-part-name').value = part.name + (part.brand ? ' (' + part.brand + ')' : '');
+  if (part.buyPrice) document.getElementById('qstock-price').value = part.buyPrice;
+  const dd = document.getElementById('qstock-part-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+
+async function saveQuickStock() {
+  const partId = document.getElementById('qstock-part-id').value;
+  const qty = Number(document.getElementById('qstock-qty').value) || 0;
+  const date = document.getElementById('qstock-date').value;
+  const price = Number(document.getElementById('qstock-price').value) || 0;
+  const notes = document.getElementById('qstock-notes').value.trim();
+
+  if (!partId) { showToast('Parça seçimi zorunlu', 'danger'); return; }
+  if (qty <= 0) { showToast("Miktar 0'dan büyük olmalı", 'danger'); return; }
+  if (!date) { showToast('Tarih zorunlu', 'danger'); return; }
+
+  const part = (state.parts || []).find(p => p.id === partId);
+  if (!part) { showToast('Parça bulunamadı', 'danger'); return; }
+
+  part.currentStock = (part.currentStock || 0) + qty;
+
+  if (!state.stockTransactions) state.stockTransactions = [];
+  state.stockTransactions.push({
+    id: uid(),
+    date,
+    createdAt: new Date().toISOString(),
+    type: 'in_manual',
+    partId: part.id,
+    partName: part.name,
+    partBrand: part.brand || '',
+    qty,
+    unitPrice: price,
+    notes
+  });
+
+  await saveState();
+  closeModal('quick-stock-modal');
+  showToast('Stok girişi kaydedildi', 'success');
+  if (!document.getElementById('page-stock').classList.contains('hidden')) renderStock();
+}
+
+// ---- Faturalı Stok Girişi ----
+
+function openStockInvoiceModal(invoiceId) {
+  const editing = invoiceId ? (state.stockInvoices || []).find(i => i.id === invoiceId) : null;
+  document.getElementById('sinv-modal-title').textContent = editing ? 'Stok Faturası Düzenle' : 'Yeni Stok Faturası';
+  document.getElementById('sinv-id').value = invoiceId || '';
+  document.getElementById('sinv-supplier').value = editing?.supplier || '';
+  document.getElementById('sinv-invoice-no').value = editing?.invoiceNo || '';
+  document.getElementById('sinv-date').value = editing?.date || todayStr();
+  document.getElementById('sinv-notes').value = editing?.notes || '';
+
+  const tbody = document.getElementById('sinv-items-tbody');
+  tbody.innerHTML = '';
+  if (editing && editing.items?.length) {
+    editing.items.forEach(item => addStockInvoiceRow(item));
+  } else {
+    addStockInvoiceRow();
+  }
+
+  updateStockInvoiceTotal();
+  openModal('stock-invoice-modal');
+}
+
+function addStockInvoiceRow(item) {
+  const tbody = document.getElementById('sinv-items-tbody');
+  const tr = document.createElement('tr');
+  const partName = item ? (() => {
+    const p = (state.parts || []).find(x => x.id === item.partId);
+    return p ? p.name + (p.brand ? ' (' + p.brand + ')' : '') : (item.partName || '');
+  })() : '';
+  tr.innerHTML = `
+    <td style="position:relative;">
+      <input type="hidden" class="sinv-part-id" value="${escapeHtml(item?.partId || '')}">
+      <input type="text" class="sinv-part-name" placeholder="Parça adı..." value="${escapeHtml(partName)}"
+        oninput="showSinvPartSuggestions(this)" onfocus="showSinvPartSuggestions(this)" onblur="hideSinvPartSuggestions(this)" autocomplete="off"
+        style="width:100%;">
+    </td>
+    <td><input type="number" class="sinv-qty" placeholder="1" value="${item?.qty || ''}" min="0" step="1" oninput="updateStockInvoiceTotal()" style="width:70px;"></td>
+    <td><input type="number" class="sinv-price" placeholder="0.00" value="${item?.unitPrice || ''}" min="0" step="0.01" oninput="updateStockInvoiceTotal()" style="width:90px;"></td>
+    <td class="money sinv-line-total" style="text-align:right;">₺0</td>
+    <td><button class="btn btn-icon btn-sm btn-danger" onclick="this.closest('tr').remove();updateStockInvoiceTotal()">×</button></td>
+  `;
+  tbody.appendChild(tr);
+  updateStockInvoiceTotal();
+}
+
+function showSinvPartSuggestions(input) {
+  const query = (input.value || '').trim().toLowerCase();
+  const wrap = input.parentElement;
+  let dd = wrap.querySelector('.sinv-part-dd');
+  if (!dd) {
+    dd = document.createElement('div');
+    dd.className = 'part-suggestions sinv-part-dd';
+    wrap.appendChild(dd);
+  }
+  dd._inputRef = input;
+
+  const parts = state.parts || [];
+  const matches = parts.filter(p =>
+    !query || p.name.toLowerCase().includes(query) || (p.brand || '').toLowerCase().includes(query)
+  ).slice(0, 10);
+
+  dd.innerHTML = matches.map(p => `
+    <div class="part-suggest-item" onmousedown="selectSinvPart(event,'${p.id}')">
+      <span>${escapeHtml(p.name)}${p.brand ? ' <em style="color:var(--text-muted);font-size:11px;font-style:normal;">' + escapeHtml(p.brand) + '</em>' : ''}</span>
+      <span style="color:var(--text-muted);font-size:11px;">Stok: ${p.currentStock || 0}</span>
+    </div>
+  `).join('');
+  dd.style.display = matches.length ? 'block' : 'none';
+}
+
+function hideSinvPartSuggestions(input) {
+  setTimeout(() => {
+    const dd = input.parentElement?.querySelector('.sinv-part-dd');
+    if (dd) dd.style.display = 'none';
+  }, 150);
+}
+
+function selectSinvPart(event, partId) {
+  event.preventDefault();
+  const item = event.currentTarget;
+  const dd = item.closest('.sinv-part-dd');
+  const input = dd?._inputRef;
+  if (!input) return;
+
+  const part = (state.parts || []).find(p => p.id === partId);
+  if (!part) return;
+
+  const tr = input.closest('tr');
+  input.value = part.name + (part.brand ? ' (' + part.brand + ')' : '');
+  tr.querySelector('.sinv-part-id').value = partId;
+  if (part.buyPrice) tr.querySelector('.sinv-price').value = part.buyPrice;
+  if (dd) dd.style.display = 'none';
+  updateStockInvoiceTotal();
+}
+
+function updateStockInvoiceTotal() {
+  const rows = document.querySelectorAll('#sinv-items-tbody tr');
+  let total = 0;
+  rows.forEach(tr => {
+    const qty = Number(tr.querySelector('.sinv-qty')?.value) || 0;
+    const price = Number(tr.querySelector('.sinv-price')?.value) || 0;
+    const lineTotal = qty * price;
+    total += lineTotal;
+    const lineTotalEl = tr.querySelector('.sinv-line-total');
+    if (lineTotalEl) lineTotalEl.textContent = '₺' + fmtMoney(lineTotal);
+  });
+  const el = document.getElementById('sinv-total');
+  if (el) el.textContent = '₺' + fmtMoney(total);
+}
+
+async function saveStockInvoice() {
+  const invoiceId = document.getElementById('sinv-id').value;
+  const supplier = document.getElementById('sinv-supplier').value.trim();
+  const invoiceNo = document.getElementById('sinv-invoice-no').value.trim();
+  const date = document.getElementById('sinv-date').value;
+  const notes = document.getElementById('sinv-notes').value.trim();
+
+  if (!date) { showToast('Tarih zorunlu', 'danger'); return; }
+
+  const rows = document.querySelectorAll('#sinv-items-tbody tr');
+  const items = [];
+  rows.forEach(tr => {
+    const partId = tr.querySelector('.sinv-part-id')?.value || '';
+    const qty = Number(tr.querySelector('.sinv-qty')?.value) || 0;
+    const unitPrice = Number(tr.querySelector('.sinv-price')?.value) || 0;
+    if (!partId || qty <= 0) return;
+    const part = (state.parts || []).find(p => p.id === partId);
+    if (!part) return;
+    items.push({ partId, partName: part.name, partBrand: part.brand || '', qty, unitPrice });
+  });
+
+  if (items.length === 0) { showToast('En az bir geçerli kalem ekleyin', 'danger'); return; }
+
+  const totalAmount = items.reduce((a, i) => a + i.qty * i.unitPrice, 0);
+
+  // Düzenleme: eski stok girişlerini geri al
+  if (invoiceId) {
+    const oldInv = (state.stockInvoices || []).find(i => i.id === invoiceId);
+    if (oldInv) {
+      (oldInv.items || []).forEach(item => {
+        const part = (state.parts || []).find(p => p.id === item.partId);
+        if (part) part.currentStock = (part.currentStock || 0) - item.qty;
+      });
+      state.stockTransactions = (state.stockTransactions || []).filter(t => t.stockInvoiceId !== invoiceId);
+      state.stockInvoices = state.stockInvoices.filter(i => i.id !== invoiceId);
+    }
+  }
+
+  const newInvId = invoiceId || uid();
+  if (!state.stockTransactions) state.stockTransactions = [];
+  if (!state.stockInvoices) state.stockInvoices = [];
+
+  items.forEach(item => {
+    const part = (state.parts || []).find(p => p.id === item.partId);
+    if (part) part.currentStock = (part.currentStock || 0) + item.qty;
+    state.stockTransactions.push({
+      id: uid(),
+      date,
+      createdAt: new Date().toISOString(),
+      type: 'in_invoice',
+      partId: item.partId,
+      partName: item.partName,
+      partBrand: item.partBrand,
+      qty: item.qty,
+      unitPrice: item.unitPrice,
+      notes,
+      stockInvoiceId: newInvId
+    });
+  });
+
+  state.stockInvoices.push({
+    id: newInvId,
+    date,
+    createdAt: new Date().toISOString(),
+    invoiceNo,
+    supplier,
+    notes,
+    items,
+    totalAmount
+  });
+
+  await saveState();
+  closeModal('stock-invoice-modal');
+  showToast('Stok faturası kaydedildi', 'success');
+  if (!document.getElementById('page-stock').classList.contains('hidden')) renderStock();
+}
+
+// ---- Stok Geçmişi Modalı ----
+
+function showStockHistory(partId) {
+  const part = (state.parts || []).find(p => p.id === partId);
+  if (!part) return;
+
+  document.getElementById('stock-history-title').textContent =
+    part.name + (part.brand ? ' (' + part.brand + ')' : '') + ' — Stok Geçmişi';
+
+  const transactions = (state.stockTransactions || [])
+    .filter(t => t.partId === partId)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+  if (transactions.length === 0) {
+    document.getElementById('stock-history-body').innerHTML =
+      '<div class="empty"><p>Bu parça için henüz işlem kaydı yok.</p></div>';
+  } else {
+    // Running stock (chronological)
+    let runningStock = 0;
+    const withRunning = [...transactions].reverse().map(t => {
+      runningStock += t.qty;
+      return { ...t, running: runningStock };
+    }).reverse();
+
+    let html = `<table class="table"><thead><tr>
+      <th>Tarih</th><th>İşlem</th><th style="text-align:right">Miktar</th><th style="text-align:right">Stok</th><th>Kaynak</th>
+    </tr></thead><tbody>`;
+
+    withRunning.forEach(t => {
+      const typeLabel = t.type === 'in_manual'
+        ? '<span class="badge badge-success">Giriş (Manuel)</span>'
+        : t.type === 'in_invoice'
+          ? '<span class="badge badge-success">Giriş (Fatura)</span>'
+          : '<span class="badge badge-danger">Çıkış (Servis)</span>';
+
+      let source = t.notes || '—';
+      if (t.type === 'out_service' && t.serviceId) {
+        const svc = (state.services || []).find(s => s.id === t.serviceId);
+        const veh = svc ? (state.vehicles || []).find(v => v.id === svc.vehicleId) : null;
+        source = svc
+          ? (veh ? escapeHtml(veh.plate) + ' — ' : '') + escapeHtml((svc.description || '').substring(0, 40))
+          : t.serviceId;
+      } else if (t.type === 'in_invoice' && t.stockInvoiceId) {
+        const inv = (state.stockInvoices || []).find(i => i.id === t.stockInvoiceId);
+        source = inv
+          ? (inv.supplier || '') + (inv.invoiceNo ? ' #' + inv.invoiceNo : '') || '—'
+          : t.stockInvoiceId;
+      }
+
+      html += `<tr>
+        <td>${fmtDate(t.date)}</td>
+        <td>${typeLabel}</td>
+        <td style="text-align:right;font-family:Consolas,monospace;${t.qty > 0 ? 'color:var(--success)' : 'color:var(--danger)'}">
+          ${t.qty > 0 ? '+' : ''}${t.qty}
+        </td>
+        <td style="text-align:right;font-family:Consolas,monospace;font-weight:600;${t.running < 0 ? 'color:var(--danger)' : ''}">
+          ${t.running}
+        </td>
+        <td style="font-size:12px;color:var(--text-muted);">${source}</td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('stock-history-body').innerHTML = html;
+  }
+
+  openModal('stock-history-modal');
+}
+
+// ---- Ana Stok Sayfası ----
+
+function renderStock() {
+  const parts = state.parts || [];
+  const transactions = state.stockTransactions || [];
+
+  const negativeCount = parts.filter(p => (p.currentStock || 0) < 0).length;
+  const zeroCount = parts.filter(p => (p.currentStock || 0) === 0).length;
+  const lowCount = parts.filter(p => (p.currentStock || 0) > 0 && (p.currentStock || 0) < 5).length;
+  const okCount = parts.filter(p => (p.currentStock || 0) >= 5).length;
+
+  const filterEl = document.getElementById('stock-filter');
+  const searchEl = document.getElementById('stock-search');
+  const filter = filterEl?.value || 'all';
+  const query = (searchEl?.value || '').toLowerCase().trim();
+
+  let filtered = parts.filter(p => {
+    if (query && !p.name.toLowerCase().includes(query) && !(p.brand || '').toLowerCase().includes(query)) return false;
+    if (filter === 'zero') return (p.currentStock || 0) === 0;
+    if (filter === 'low') return (p.currentStock || 0) > 0 && (p.currentStock || 0) < 5;
+    if (filter === 'negative') return (p.currentStock || 0) < 0;
+    if (filter === 'ok') return (p.currentStock || 0) >= 5;
+    return true;
+  });
+
+  filtered.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr'));
+
+  const getLastTxDate = (partId) => {
+    const txs = transactions.filter(t => t.partId === partId);
+    if (!txs.length) return null;
+    return txs.sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0].date;
+  };
+
+  let tableHtml = '';
+  if (filtered.length === 0) {
+    tableHtml = `<div class="empty"><h3>Parça bulunamadı</h3><p>${parts.length === 0 ? 'Önce Parçalar sayfasından parça ekleyin.' : 'Seçilen filtreye uyan parça yok.'}</p></div>`;
+  } else {
+    tableHtml = `<table class="table"><thead><tr>
+      <th>Parça</th><th>Marka</th><th>Kategori</th><th>Birim</th>
+      <th style="text-align:right">Mevcut Stok</th><th>Son İşlem</th><th></th>
+    </tr></thead><tbody>`;
+
+    filtered.forEach(p => {
+      const stock = p.currentStock || 0;
+      const stockStyle = stock < 0
+        ? 'color:var(--danger);font-weight:700'
+        : stock === 0
+          ? 'color:var(--text-muted)'
+          : stock < 5
+            ? 'color:var(--warning);font-weight:600'
+            : 'color:var(--success);font-weight:600';
+      const lastDate = getLastTxDate(p.id);
+
+      tableHtml += `<tr>
+        <td>${escapeHtml(p.name)}</td>
+        <td style="color:var(--text-muted)">${escapeHtml(p.brand || '—')}</td>
+        <td style="color:var(--text-muted)">${escapeHtml(p.category || '—')}</td>
+        <td style="color:var(--text-muted)">${escapeHtml(p.unit || '—')}</td>
+        <td style="text-align:right;font-family:Consolas,monospace;${stockStyle}">${stock}</td>
+        <td style="font-size:12px;color:var(--text-muted)">${lastDate ? fmtDate(lastDate) : '—'}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-sm" onclick="openQuickStockModal('${p.id}')" style="margin-right:4px;">+ Giriş</button>
+          <button class="btn btn-sm" onclick="showStockHistory('${p.id}')">Geçmiş</button>
+        </td>
+      </tr>`;
+    });
+
+    tableHtml += '</tbody></table>';
+  }
+
+  const invoices = (state.stockInvoices || [])
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, 10);
+
+  let invoicesHtml = '';
+  if (invoices.length > 0) {
+    invoicesHtml = `
+      <div class="section" style="margin-top:24px;">
+        <div class="section-header">
+          <div class="section-title">Son Stok Faturaları</div>
+        </div>
+        <table class="table"><thead><tr>
+          <th>Tarih</th><th>Tedarikçi</th><th>Fatura No</th><th style="text-align:right">Tutar</th><th>Kalem</th><th></th>
+        </tr></thead><tbody>
+          ${invoices.map(inv => `<tr>
+            <td>${fmtDate(inv.date)}</td>
+            <td>${escapeHtml(inv.supplier || '—')}</td>
+            <td>${escapeHtml(inv.invoiceNo || '—')}</td>
+            <td class="money" style="text-align:right">₺${fmtMoney(inv.totalAmount || 0)}</td>
+            <td style="color:var(--text-muted)">${inv.items?.length || 0} kalem</td>
+            <td><button class="btn btn-sm" onclick="openStockInvoiceModal('${inv.id}')">Düzenle</button></td>
+          </tr>`).join('')}
+        </tbody></table>
+      </div>`;
+  }
+
+  document.getElementById('stock-content').innerHTML = `
+    <div class="stats-grid" style="margin-bottom:16px;">
+      <div class="stat-card">
+        <div class="stat-label">Toplam Parça</div>
+        <div class="stat-value">${parts.length}</div>
+        <div class="stat-sub">Katalogdaki parça sayısı</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Yeterli Stok</div>
+        <div class="stat-value" style="color:var(--success)">${okCount}</div>
+        <div class="stat-sub">5 ve üzeri adet</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Düşük Stok</div>
+        <div class="stat-value" style="color:var(--warning)">${lowCount}</div>
+        <div class="stat-sub">1–4 adet</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Stoksuz / Negatif</div>
+        <div class="stat-value" style="color:var(--danger)">${zeroCount + negativeCount}</div>
+        <div class="stat-sub">Sıfır veya eksi stok</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+      <div class="search-box" style="flex:1;margin-bottom:0;">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" class="search-input" id="stock-search" placeholder="Parça veya marka ile ara..." oninput="renderStock()" value="${escapeHtml(query)}">
+      </div>
+      <select id="stock-filter" onchange="renderStock()" style="height:40px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);font-size:13px;color:var(--text);min-width:160px;">
+        <option value="all" ${filter === 'all' ? 'selected' : ''}>Tüm parçalar</option>
+        <option value="ok" ${filter === 'ok' ? 'selected' : ''}>Yeterli stok (5+)</option>
+        <option value="low" ${filter === 'low' ? 'selected' : ''}>Düşük stok (1–4)</option>
+        <option value="zero" ${filter === 'zero' ? 'selected' : ''}>Sıfır stok</option>
+        <option value="negative" ${filter === 'negative' ? 'selected' : ''}>Negatif stok</option>
+      </select>
+    </div>
+
+    <div class="section">
+      ${tableHtml}
+    </div>
+
+    ${invoicesHtml}
+  `;
+}
 </script>
 
 </body>
