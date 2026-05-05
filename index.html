@@ -2966,7 +2966,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.05.1709';
+const APP_VERSION = '2026.05.05.1712';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -10456,10 +10456,16 @@ function renderInvoiceDetail() {
   const sup = inv.supplierId ? (state.suppliers || []).find(s => s.id === inv.supplierId) : null;
   const supName = sup?.name || inv.supplier || '—';
 
-  const netTotal = inv.totalNetExcl ?? inv.totalAmount ?? 0;
-  const kdvAmount = inv.totalKdv ?? Math.round(netTotal * ((state.settings.kdvRate ?? 20) / 100) * 100) / 100;
+  const items = inv.items || [];
+  const grossTotal = items.reduce((s, i) => s + (i.qty || 0) * (i.unitPrice || 0), 0);
+  const totalItemDiscount = items.reduce((s, i) => s + (i.discountAmount || 0), 0);
+  const netExcl = inv.totalNetExcl ?? inv.totalAmount ?? 0;
   const invoiceDiscount = inv.invoiceDiscount || 0;
-  const grandTotal = inv.totalAmount ?? Math.round((netTotal + kdvAmount) * 100) / 100;
+  const totalDiscount = totalItemDiscount + invoiceDiscount;
+  const netAfterAll = Math.max(0, netExcl - invoiceDiscount);
+  const kdvAmount = inv.totalKdv ?? Math.round(netExcl * ((state.settings.kdvRate ?? 20) / 100) * 100) / 100;
+  const grandTotal = inv.totalAmount ?? Math.round((netAfterAll + kdvAmount) * 100) / 100;
+  const showGross = grossTotal > 0;
 
   const invoiceTypeLabel = inv.invoiceType === 'expense' ? 'Gider Faturası' : 'Alış Faturası';
   const returnLabel = invoiceDetailReturnPage === 'supplier-detail' ? supName : 'Faturalar';
@@ -10545,11 +10551,14 @@ function renderInvoiceDetail() {
         <div style="display:flex;justify-content:flex-end;margin-top:16px;">
           <div style="min-width:240px;">
             <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);font-size:13px;">
-              <span>Mal Tutarı (KDV Hariç)</span><span>₺${fmtMoney(netTotal)}</span>
+              <span>Mal Tutarı (KDV Hariç)</span><span>₺${fmtMoney(showGross ? grossTotal : netExcl)}</span>
             </div>
-            ${invoiceDiscount > 0 ? `
+            ${totalDiscount > 0 ? `
             <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);font-size:13px;">
-              <span>İskonto</span><span>−₺${fmtMoney(invoiceDiscount)}</span>
+              <span>İskonto</span><span>−₺${fmtMoney(totalDiscount)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);font-size:13px;">
+              <span>İndirim Sonrası Tutar (KDV Hariç)</span><span>₺${fmtMoney(netAfterAll)}</span>
             </div>` : ''}
             <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);font-size:13px;">
               <span>KDV Tutarı</span><span>₺${fmtMoney(kdvAmount)}</span>
