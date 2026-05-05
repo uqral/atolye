@@ -1290,7 +1290,7 @@
   border-top: 1px solid var(--border);
 }
 .part-suggest-new:hover { background: var(--warning-soft); }
-.sinv-suggestions { width: 100%; min-width: unset; }
+.sinv-suggestions, .sinv-cat-dd, .sinv-brand-dd { width: 100%; min-width: unset; }
 
 .th-info {
   display: inline-flex;
@@ -2966,7 +2966,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.05.1705';
+const APP_VERSION = '2026.05.05.1709';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -9297,8 +9297,8 @@ function addStockInvoiceRow(item) {
 
   card.innerHTML = `
     <div style="display:grid;grid-template-columns:130px 150px 1fr 72px 80px 32px;gap:8px;align-items:end;margin-bottom:8px;">
-      <div><label style="${lbl}">Kategori</label><input type="text" class="sinv-part-category" value="${escapeHtml(selCategory)}" placeholder="Kategori..." autocomplete="off" style="${inp}"></div>
-      <div><label style="${lbl}">Marka</label><input type="text" class="sinv-part-brand" value="${escapeHtml(selBrand)}" placeholder="Marka..." autocomplete="off" style="${inp}"></div>
+      <div style="position:relative;"><label style="${lbl}">Kategori</label><input type="text" class="sinv-part-category" value="${escapeHtml(selCategory)}" placeholder="Kategori..." autocomplete="off" oninput="showSinvCatSuggestions(this)" onfocus="showSinvCatSuggestions(this)" onblur="hideSinvSimpleSuggestions(this,'sinv-cat-dd')" onkeydown="navigateSinvSimple(event,this,'sinv-cat-dd')" style="${inp}"><div class="part-suggestions sinv-cat-dd" style="display:none;"></div></div>
+      <div style="position:relative;"><label style="${lbl}">Marka</label><input type="text" class="sinv-part-brand" value="${escapeHtml(selBrand)}" placeholder="Marka..." autocomplete="off" oninput="showSinvBrandSuggestions(this)" onfocus="showSinvBrandSuggestions(this)" onblur="hideSinvSimpleSuggestions(this,'sinv-brand-dd')" onkeydown="navigateSinvSimple(event,this,'sinv-brand-dd')" style="${inp}"><div class="part-suggestions sinv-brand-dd" style="display:none;"></div></div>
       <div style="position:relative;">
         <label style="${lbl}">Parça *</label>
         <input type="hidden" class="sinv-part-id" value="${escapeHtml(selPartId)}">
@@ -9311,7 +9311,7 @@ function addStockInvoiceRow(item) {
           autocomplete="off" style="${inp}">
         <div class="part-suggestions sinv-suggestions" style="display:none;"></div>
       </div>
-      <div><label style="${lbl}">Adet</label><input type="number" class="sinv-qty" value="${item?.qty || ''}" min="0.001" step="any" placeholder="1" oninput="sinvRowCalc(this)" style="${inp}"></div>
+      <div><label style="${lbl}">Adet</label><input type="number" class="sinv-qty" value="${item?.qty ?? 1}" min="0.001" step="any" placeholder="1" oninput="sinvRowCalc(this)" style="${inp}"></div>
       <div><label style="${lbl}">KDV Oranı</label><select class="sinv-kdv-rate" onchange="sinvRowCalc(this)" style="${sel}">${kdvOptions}</select></div>
       <button type="button" onclick="this.closest('.sinv-item-card').remove();updateStockInvoiceTotal()" style="background:var(--danger);color:#fff;border:none;border-radius:var(--radius);width:32px;height:32px;cursor:pointer;font-size:18px;line-height:1;align-self:flex-end;">×</button>
     </div>
@@ -9401,6 +9401,69 @@ function navigateSinvSuggestions(event, input) {
   const dd = card?.querySelector('.sinv-suggestions');
   if (!dd || dd.style.display === 'none') return;
   const items = dd.querySelectorAll('.part-suggest-item, .part-suggest-new');
+  if (!items.length) return;
+  const active = dd.querySelector('.suggest-active');
+  let idx = active ? [...items].indexOf(active) : -1;
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (active) active.classList.remove('suggest-active');
+    items[Math.min(idx + 1, items.length - 1)].classList.add('suggest-active');
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (active) active.classList.remove('suggest-active');
+    if (idx > 0) items[idx - 1].classList.add('suggest-active');
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    if (active) active.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  } else if (event.key === 'Escape') {
+    dd.style.display = 'none';
+  }
+}
+
+function showSinvCatSuggestions(input) {
+  const card = input.closest('.sinv-item-card');
+  const dd = card.querySelector('.sinv-cat-dd');
+  if (!dd) return;
+  const query = (input.value || '').trim().toLowerCase();
+  const cats = [...new Set((state.parts || []).filter(p => !p.isLabor && p.category).map(p => p.category))]
+    .sort((a, b) => a.localeCompare(b, 'tr'))
+    .filter(c => !query || c.toLowerCase().includes(query))
+    .slice(0, 10);
+  dd.innerHTML = cats.map(c => `<div class="part-suggest-item" onmousedown="sinvPickSimple(event,this,'sinv-part-category')">${escapeHtml(c)}</div>`).join('');
+  dd.style.display = cats.length ? 'block' : 'none';
+}
+
+function showSinvBrandSuggestions(input) {
+  const card = input.closest('.sinv-item-card');
+  const dd = card.querySelector('.sinv-brand-dd');
+  if (!dd) return;
+  const query = (input.value || '').trim().toLowerCase();
+  const brands = [...new Set((state.parts || []).filter(p => !p.isLabor && p.brand).map(p => p.brand))]
+    .sort((a, b) => a.localeCompare(b, 'tr'))
+    .filter(b => !query || b.toLowerCase().includes(query))
+    .slice(0, 10);
+  dd.innerHTML = brands.map(b => `<div class="part-suggest-item" onmousedown="sinvPickSimple(event,this,'sinv-part-brand')">${escapeHtml(b)}</div>`).join('');
+  dd.style.display = brands.length ? 'block' : 'none';
+}
+
+function sinvPickSimple(event, el, targetClass) {
+  event.preventDefault();
+  const card = el.closest('.sinv-item-card');
+  card.querySelector('.' + targetClass).value = el.textContent;
+  el.closest('.part-suggestions').style.display = 'none';
+}
+
+function hideSinvSimpleSuggestions(input, ddClass) {
+  const card = input.closest('.sinv-item-card');
+  const dd = card?.querySelector('.' + ddClass);
+  setTimeout(() => { if (dd) dd.style.display = 'none'; }, 150);
+}
+
+function navigateSinvSimple(event, input, ddClass) {
+  const card = input.closest('.sinv-item-card');
+  const dd = card?.querySelector('.' + ddClass);
+  if (!dd || dd.style.display === 'none') return;
+  const items = dd.querySelectorAll('.part-suggest-item');
   if (!items.length) return;
   const active = dd.querySelector('.suggest-active');
   let idx = active ? [...items].indexOf(active) : -1;
