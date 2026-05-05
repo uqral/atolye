@@ -135,6 +135,27 @@
   }
   .nav-icon { width: 16px; height: 16px; flex-shrink: 0; }
 
+  /* Nav accordion */
+  .nav-group-header .nav-arrow { margin-left: auto; width: 14px; height: 14px; flex-shrink: 0; transition: transform 0.2s; }
+  .nav-group.open .nav-group-header .nav-arrow { transform: rotate(180deg); }
+  .nav-sub-items { display: none; flex-direction: column; }
+  .nav-group.open .nav-sub-items { display: flex; }
+  .nav-sub-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 20px 7px 36px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-sub-item::before { content: "•"; font-size: 9px; opacity: 0.5; flex-shrink: 0; }
+  .nav-sub-item:hover { background: var(--surface-alt); color: var(--text); }
+  .nav-sub-item.active { background: var(--accent-soft); color: var(--accent); border-left-color: var(--accent); }
+  .sidebar.collapsed .nav-sub-items { display: none !important; }
+  .sidebar.collapsed .nav-group-header .nav-arrow { display: none; }
+
   /* Main */
   .main {
     flex: 1;
@@ -1269,6 +1290,7 @@
   border-top: 1px solid var(--border);
 }
 .part-suggest-new:hover { background: var(--warning-soft); }
+.sinv-suggestions { width: 100%; min-width: unset; }
 
 .th-info {
   display: inline-flex;
@@ -1639,17 +1661,32 @@
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 4 4 6-6"/></svg>
         <span class="nav-label">Gelir Paneli</span>
       </div>
-      <div class="nav-item" data-page="parts">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
-        <span class="nav-label">Parçalar</span>
+      <div class="nav-group" id="nav-group-stock">
+        <div class="nav-item nav-group-header" data-group="stock">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+          <span class="nav-label">Stok</span>
+          <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="nav-sub-items">
+          <div class="nav-sub-item" data-page="parts">Parçalar</div>
+          <div class="nav-sub-item" data-page="stock-main">Stok Girişleri</div>
+          <div class="nav-sub-item" data-page="stock-status">Stok Durumu</div>
+        </div>
       </div>
-      <div class="nav-item" data-page="stock">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-        <span class="nav-label">Stok</span>
+      <div class="nav-group" id="nav-group-purchasing">
+        <div class="nav-item nav-group-header" data-group="purchasing">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M12 12v5M9.5 12h5"/></svg>
+          <span class="nav-label">Tedarikçiler</span>
+          <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="nav-sub-items">
+          <div class="nav-sub-item" data-page="suppliers">Tedarikçiler</div>
+          <div class="nav-sub-item" data-page="supplier-invoices">Faturalar</div>
+        </div>
       </div>
       <div class="nav-item" data-page="invoices">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-        <span class="nav-label">Faturalar</span>
+        <span class="nav-label">Servis Faturaları</span>
       </div>
       <div class="nav-item" data-page="raporlar">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/><path d="M10 9H8"/></svg>
@@ -1874,7 +1911,7 @@
     <section id="page-invoices" class="page hidden">
       <div class="page-header">
         <div>
-          <h2 class="page-title">Faturalar</h2>
+          <h2 class="page-title">Servis Faturaları</h2>
           <p class="page-subtitle">Proforma fatura listesi</p>
         </div>
       </div>
@@ -1925,6 +1962,7 @@
           <option value="with-price">Fiyatı girilmiş</option>
           <option value="no-price">Fiyat girilmemiş</option>
         </select>
+        <button id="parts-labor-toggle" onclick="togglePartsShowLabor()" class="btn" style="height:40px;white-space:nowrap;font-size:13px;">İşçilikleri Göster</button>
       </div>
       <div class="section">
         <div id="parts-catalog-list"></div>
@@ -1944,6 +1982,54 @@
         </div>
       </div>
       <div id="stock-content"></div>
+    </section>
+
+    <!-- Tedarikçiler -->
+    <section id="page-suppliers" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Tedarikçiler</h2>
+          <p class="page-subtitle">Fatura kesen firma listesi</p>
+        </div>
+        <button class="btn btn-primary" onclick="openSupplierModal()">+ Yeni Tedarikçi</button>
+      </div>
+      <div class="search-box" style="margin-bottom:16px;">
+        <input type="text" id="supplier-search" placeholder="Firma adı, yetkili veya etiket ara..." oninput="renderSuppliers()">
+      </div>
+      <div class="section"><div id="suppliers-list"></div></div>
+    </section>
+
+    <!-- Tedarikçi Detay -->
+    <section id="page-supplier-detail" class="page hidden">
+      <div id="supplier-detail-content"></div>
+    </section>
+
+    <!-- Fatura Detay -->
+    <section id="page-invoice-detail" class="page hidden">
+      <div id="invoice-detail-content"></div>
+    </section>
+
+    <!-- Tedarikçi Faturaları -->
+    <section id="page-supplier-invoices" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Faturalar</h2>
+          <p class="page-subtitle">Tedarikçilerden gelen tüm faturalar</p>
+        </div>
+        <button class="btn btn-primary" onclick="openStockInvoiceModal()">+ Yeni Fatura</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+        <input type="text" id="sinvoice-search" placeholder="Fatura no veya açıklama ara..." oninput="renderSupplierInvoices()" style="flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);">
+        <select id="sinvoice-filter-supplier" onchange="renderSupplierInvoices()" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);">
+          <option value="">Tüm Tedarikçiler</option>
+        </select>
+        <select id="sinvoice-filter-approval" onchange="renderSupplierInvoices()" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);">
+          <option value="">Tüm Durumlar</option>
+          <option value="approved">Onaylanan</option>
+          <option value="pending">Onay Bekleyen</option>
+        </select>
+      </div>
+      <div class="section"><div id="supplier-invoices-list"></div></div>
     </section>
 
     <!-- Raporlar -->
@@ -2332,6 +2418,11 @@
           <input type="number" id="part-max-stock" placeholder="—" min="0" step="1">
         </div>
       </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding:10px 12px;background:var(--surface-alt);border-radius:var(--radius);border:1px solid var(--border);">
+        <input type="checkbox" id="part-is-labor" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;">
+        <label for="part-is-labor" style="margin:0;cursor:pointer;font-weight:500;font-size:13px;">Bu kalem işçilik</label>
+        <span style="font-size:12px;color:var(--text-muted);">— parça kataloğu, stok ve fatura kalemlerinde gizlenir; servis formunda görünmeye devam eder</span>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('part-modal')">İptal</button>
@@ -2715,53 +2806,145 @@
 
 <!-- Stock Invoice Modal -->
 <div class="modal-backdrop" id="stock-invoice-modal">
-  <div class="modal" style="max-width:700px;">
+  <div class="modal" style="max-width:1020px;">
     <div class="modal-header">
-      <div class="modal-title" id="sinv-modal-title">Yeni Stok Faturası</div>
+      <div class="modal-title" id="sinv-modal-title">Yeni Fatura</div>
       <button class="modal-close" onclick="closeModal('stock-invoice-modal')">&times;</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="sinv-id">
       <div class="form-row form-row-2">
         <div class="form-field">
-          <label>Tedarikçi</label>
-          <input type="text" id="sinv-supplier" placeholder="Tedarikçi adı...">
+          <label>Fatura Türü</label>
+          <select id="sinv-invoice-type">
+            <option value="purchase">Alış Faturası</option>
+            <option value="expense">Gider Faturası</option>
+          </select>
         </div>
+        <div class="form-field">
+          <label>Tedarikçi</label>
+          <select id="sinv-supplier-id">
+            <option value="">— Tedarikçi seçin (opsiyonel) —</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row form-row-3">
         <div class="form-field">
           <label>Fatura No</label>
           <input type="text" id="sinv-invoice-no" placeholder="Fatura numarası...">
         </div>
-      </div>
-      <div class="form-row form-row-2">
         <div class="form-field">
           <label>Tarih *</label>
           <input type="date" id="sinv-date">
         </div>
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-field">
+          <label>Açıklama</label>
+          <input type="text" id="sinv-description" placeholder="Fatura açıklaması...">
+        </div>
         <div class="form-field">
           <label>Not</label>
-          <input type="text" id="sinv-notes" placeholder="İsteğe bağlı not...">
+          <input type="text" id="sinv-notes" placeholder="İsteğe bağlı dahili not...">
+        </div>
+      </div>
+      <div class="form-row form-row-2" style="align-items:center;">
+        <div class="form-field">
+          <label>Fatura Dosyası (PDF / Görsel, maks 5 MB)</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <label class="btn btn-sm" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;gap:4px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Dosya Seç
+              <input type="file" id="sinv-file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleSinvFile(this)">
+            </label>
+            <span id="sinv-file-name" style="font-size:13px;color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Dosya seçilmedi</span>
+            <button id="sinv-file-clear" class="btn btn-sm btn-danger" style="display:none;padding:4px 8px;" onclick="clearSinvFile()">×</button>
+          </div>
         </div>
       </div>
       <div style="margin-top:16px;">
-        <table class="table">
-          <thead><tr>
-            <th>Parça</th>
-            <th style="width:80px;">Adet</th>
-            <th style="width:100px;">Birim Fiyat</th>
-            <th style="width:90px;">Toplam</th>
-            <th style="width:40px;"></th>
-          </tr></thead>
-          <tbody id="sinv-items-tbody"></tbody>
-        </table>
+        <div id="sinv-items-list"></div>
         <button class="btn btn-sm" onclick="addStockInvoiceRow()" style="margin-top:8px;">+ Kalem Ekle</button>
       </div>
-      <div style="text-align:right;margin-top:12px;font-size:15px;font-weight:700;">
-        Toplam: <span id="sinv-total" class="money">₺0</span>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;gap:16px;flex-wrap:wrap;">
+        <div class="form-field" style="flex:0 0 220px;margin:0;">
+          <label>Fatura İskontosu (TL, KDV Hariç)</label>
+          <input type="number" id="sinv-invoice-discount" value="0" min="0" step="0.01" oninput="updateStockInvoiceTotal()">
+        </div>
+        <div style="text-align:right;line-height:2;">
+          <div style="font-size:13px;color:var(--text-muted);">Mal Tutarı (KDV Hariç): <span id="sinv-total-excl">₺0</span></div>
+          <div style="font-size:13px;color:var(--text-muted);">İskonto: <span id="sinv-total-discount">₺0</span></div>
+          <div style="font-size:13px;color:var(--text-muted);">İndirim Sonrası Tutar (KDV Hariç): <span id="sinv-total-net">₺0</span></div>
+          <div style="font-size:13px;color:var(--text-muted);">KDV Tutarı: <span id="sinv-total-vat">₺0</span></div>
+          <div style="font-size:16px;font-weight:700;border-top:2px solid var(--border);padding-top:6px;margin-top:2px;">Vergiler Dahil Toplam: <span id="sinv-total">₺0</span></div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('stock-invoice-modal')">İptal</button>
       <button class="btn btn-primary" onclick="saveStockInvoice()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supplier Modal -->
+<div class="modal-backdrop" id="supplier-modal" onclick="if(event.target===this)closeModal('supplier-modal')">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title" id="supplier-modal-title">Yeni Tedarikçi</div>
+      <button class="modal-close" onclick="closeModal('supplier-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row form-row-2">
+          <div class="form-field">
+            <label>Firma Adı *</label>
+            <input type="text" id="sup-name" placeholder="Firma adı">
+          </div>
+          <div class="form-field">
+            <label>Yetkili Ad Soyad</label>
+            <input type="text" id="sup-contact" placeholder="Yetkili kişi">
+          </div>
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-field">
+            <label>E-Posta</label>
+            <input type="email" id="sup-email" placeholder="ornek@firma.com">
+          </div>
+          <div class="form-field">
+            <label>Telefon</label>
+            <input type="text" id="sup-phone" placeholder="0555 555 5555">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Adres</label>
+          <textarea id="sup-address" rows="2" placeholder="Açık adres" style="resize:vertical;"></textarea>
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-field">
+            <label>Şehir</label>
+            <input type="text" id="sup-city" placeholder="İstanbul">
+          </div>
+          <div class="form-field">
+            <label>Vergi No</label>
+            <input type="text" id="sup-tax-id" placeholder="1234567890">
+          </div>
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-field">
+            <label>Vergi Dairesi</label>
+            <input type="text" id="sup-tax-office" placeholder="Kadıköy">
+          </div>
+          <div class="form-field">
+            <label>Etiket</label>
+            <input type="text" id="sup-tag" placeholder="yedek parça, yağ...">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('supplier-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="saveSupplier()">Kaydet</button>
     </div>
   </div>
 </div>
@@ -2783,7 +2966,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.03.2231';
+const APP_VERSION = '2026.05.05.1702';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -3219,6 +3402,8 @@ let state = {
   parts: [],
   stockTransactions: [],
   stockInvoices: [],
+  suppliers: [],
+  supplierInvoices: [],
   settings: {
     workshopName: 'Atölye',
     defaultLabor: 0,
@@ -3257,7 +3442,13 @@ let editingStudentId = null;
 let editingTeacherId = null;
 let editingPartId = null;
 let _pendingPartRow = null;
+let editingSupplierId = null;
+let editingSupplierInvoiceId = null;
+let currentSupplierId = null;
+let currentInvoiceDetailId = null;
+let invoiceDetailReturnPage = 'supplier-invoices';
 let partsSort = { col: 'name', dir: 'asc' };
+let partsShowLabor = false;
 let currentVehicleDetailId = null;
 
 const PAGE_SIZE = 25;
@@ -3422,7 +3613,7 @@ function renderPeriodBar(pageKey) {
 // Aktif olan sayfayı yeniden render eder
 function refreshCurrentPage() {
   Object.keys(pageState).forEach(k => pageState[k] = 1);
-  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue', 'invoices', 'parts', 'stock'];
+  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue', 'invoices', 'parts', 'stock', 'suppliers', 'supplier-detail', 'supplier-invoices'];
   for (const p of pages) {
     const el = document.getElementById('page-' + p);
     if (el && !el.classList.contains('hidden')) {
@@ -3435,6 +3626,9 @@ function refreshCurrentPage() {
       else if (p === 'invoices') renderInvoices();
       else if (p === 'parts') renderParts();
       else if (p === 'stock') renderStock();
+      else if (p === 'suppliers') renderSuppliers();
+      else if (p === 'supplier-detail') renderSupplierDetail();
+      else if (p === 'supplier-invoices') renderSupplierInvoices();
       return;
     }
   }
@@ -3499,6 +3693,10 @@ async function loadState() {
       teachers: s.teachers || [],
       invoices: s.invoices || [],
       parts: s.parts || [],
+      stockTransactions: s.stockTransactions || [],
+      stockInvoices: s.stockInvoices || [],
+      suppliers: s.suppliers || [],
+      supplierInvoices: s.supplierInvoices || [],
       settings: Object.assign({
         workshopName: 'Atölye',
         defaultLabor: 0,
@@ -3675,11 +3873,26 @@ function getUpcomingMaintenances() {
 // ============ NAVIGATION ============
 function goto(page) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
-  if (navItem) navItem.classList.add('active');
+  document.querySelectorAll('.nav-sub-item').forEach(el => el.classList.remove('active'));
+
+  if (page === 'stock-main' || page === 'stock-status' || page === 'parts') {
+    document.getElementById('nav-group-stock').classList.add('open');
+    const subItem = document.querySelector(`.nav-sub-item[data-page="${page}"]`);
+    if (subItem) subItem.classList.add('active');
+  } else if (page === 'suppliers' || page === 'supplier-invoices' || page === 'supplier-detail' || page === 'invoice-detail') {
+    document.getElementById('nav-group-purchasing').classList.add('open');
+    const subItem = document.querySelector(`.nav-sub-item[data-page="${page}"]`);
+    if (subItem) subItem.classList.add('active');
+  } else {
+    const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
+    if (navItem) navItem.classList.add('active');
+  }
+
   document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
-  const pageEl = document.getElementById('page-' + page);
+  const actualPage = (page === 'stock-main' || page === 'stock-status') ? 'stock' : page;
+  const pageEl = document.getElementById('page-' + actualPage);
   if (pageEl) pageEl.classList.remove('hidden');
+
   if (page === 'dashboard') renderDashboard();
   if (page === 'vehicles') renderVehicles();
   if (page === 'services') renderServices();
@@ -3688,9 +3901,16 @@ function goto(page) {
   if (page === 'revenue') renderRevenue();
   if (page === 'invoices') renderInvoices();
   if (page === 'parts') renderParts();
-  if (page === 'stock') renderStock();
+  if (page === 'stock-main' || page === 'stock-status') {
+    stockTab = (page === 'stock-status') ? 'status' : 'main';
+    renderStock();
+  }
   if (page === 'settings') renderSettings();
   if (page === 'raporlar') renderRaporlar();
+  if (page === 'suppliers') renderSuppliers();
+  if (page === 'supplier-detail') renderSupplierDetail();
+  if (page === 'supplier-invoices') renderSupplierInvoices();
+  if (page === 'invoice-detail') renderInvoiceDetail();
   localStorage.setItem('atolye_last_page', page);
   window.scrollTo(0, 0);
 }
@@ -4495,6 +4715,13 @@ function partsSortBy(col) {
   renderParts();
 }
 
+function togglePartsShowLabor() {
+  partsShowLabor = !partsShowLabor;
+  const btn = document.getElementById('parts-labor-toggle');
+  if (btn) btn.textContent = partsShowLabor ? 'İşçilikleri Gizle' : 'İşçilikleri Göster';
+  renderParts();
+}
+
 let _thInfoPopup = null;
 function showStudentPayInfo() {
   const info = window._dashStudentPayInfo;
@@ -4591,15 +4818,16 @@ function renderParts() {
   const catFilter = document.getElementById('parts-filter-category')?.value || '';
   const priceFilter = document.getElementById('parts-filter-price')?.value || '';
 
-  // Update category dropdown options
+  // Update category dropdown options (only non-labor parts when labor is hidden)
   const catEl = document.getElementById('parts-filter-category');
   if (catEl) {
-    const cats = [...new Set((state.parts || []).map(p => p.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr'));
+    const cats = [...new Set((state.parts || []).filter(p => partsShowLabor || !p.isLabor).map(p => p.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr'));
     const current = catEl.value;
     catEl.innerHTML = `<option value="">Tüm kategoriler</option>` + cats.map(c => `<option value="${escapeHtml(c)}" ${current === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('');
   }
 
   let parts = (state.parts || []).filter(p => {
+    if (!partsShowLabor && p.isLabor) return false;
     if (q && !p.name.toLowerCase().includes(q)) return false;
     if (catFilter && p.category !== catFilter) return false;
     if (priceFilter === 'with-price' && !(p.buyPrice > 0 || p.sellPrice > 0)) return false;
@@ -4634,17 +4862,20 @@ function renderParts() {
   const arrow = col => partsSort.col === col ? (partsSort.dir === 'asc' ? ' ↑' : ' ↓') : '';
   const th = (col, label, tip) => `<th style="cursor:pointer;user-select:none;" onclick="partsSortBy('${col}')"${tip ? ` title="${tip}"` : ''}>${label}${arrow(col)}${tip ? ` <span class="th-info" onclick="event.stopPropagation();showThInfoPopup(event,'${tip}')">i</span>` : ''}</th>`;
 
+  const hasLabor = parts.some(p => p.laborPrice > 0);
+
   const rows = parts.map(p => {
     const margin = p.sellPrice > 0 ? Math.round((p.sellPrice - p.buyPrice) / p.sellPrice * 100) : null;
     const usage = usageCounts[p.name.toLowerCase()] || 0;
-    return `<tr>
-      <td><strong>${escapeHtml(p.name)}</strong></td>
+    const laborBadge = p.isLabor ? ' <span class="badge" style="background:var(--primary-soft,#fef3c7);color:var(--warning,#d97706);font-size:10px;padding:1px 5px;border-radius:4px;vertical-align:middle;">İşçilik</span>' : '';
+    return `<tr${p.isLabor ? ' style="background:var(--surface-alt)"' : ''}>
+      <td><strong>${escapeHtml(p.name)}</strong>${laborBadge}</td>
       <td style="color:var(--text-muted)">${escapeHtml(p.brand || '—')}</td>
       <td style="color:var(--text-muted)">${escapeHtml(p.category || '—')}</td>
       <td style="color:var(--text-muted)">${escapeHtml(p.unit || '—')}</td>
       <td class="money">₺${fmtMoney(p.buyPrice)}</td>
       <td class="money">₺${fmtMoney(p.sellPrice)}</td>
-      <td class="money">${p.laborPrice > 0 ? '₺' + fmtMoney(p.laborPrice) : '—'}</td>
+      ${hasLabor ? `<td class="money">${p.laborPrice > 0 ? '₺' + fmtMoney(p.laborPrice) : '—'}</td>` : ''}
       <td>${margin !== null ? margin + '%' : '—'}</td>
       <td style="color:var(--text-muted)">${usage > 0 ? usage + ' adet' : '—'}</td>
       <td style="white-space:nowrap">
@@ -4662,7 +4893,7 @@ function renderParts() {
       ${th('unit','Birim')}
       ${th('buyPrice','Alış','KDV hariç fiyat')}
       ${th('sellPrice','Satış','KDV hariç fiyat')}
-      ${th('laborPrice','İşçilik','KDV hariç işçilik ücreti')}
+      ${hasLabor ? th('laborPrice','İşçilik','KDV hariç işçilik ücreti') : ''}
       ${th('margin','Marj')}
       ${th('usage','Toplam Kullanım')}
       <th></th>
@@ -4684,6 +4915,7 @@ function openPartModal(id) {
   document.getElementById('part-category').value = part?.category || '';
   document.getElementById('part-min-stock').value = part?.minStock != null ? part.minStock : '';
   document.getElementById('part-max-stock').value = part?.maxStock != null ? part.maxStock : '';
+  document.getElementById('part-is-labor').checked = part?.isLabor === true;
   openModal('part-modal');
 }
 
@@ -4703,6 +4935,7 @@ async function savePart() {
     category: document.getElementById('part-category').value.trim(),
     minStock: minStockVal !== '' ? Number(minStockVal) : 0,
     maxStock: maxStockVal !== '' ? Number(maxStockVal) : 0,
+    isLabor: document.getElementById('part-is-labor').checked,
   };
   if (editingPartId) {
     const idx = state.parts.findIndex(p => p.id === editingPartId);
@@ -4964,6 +5197,7 @@ function selectBrandSuggestion(event) {
 function updateStockInfoBadge(tr, part) {
   const badge = tr?.querySelector('.p-stock-info');
   if (!badge) return;
+  if (part.isLabor) { badge.style.display = 'none'; return; }
   const stock = part.currentStock || 0;
   const min = part.minStock || 0;
   badge.textContent = `Stok: ${stock}`;
@@ -8579,7 +8813,15 @@ window.addEventListener('unhandledrejection', e => {
 });
 
 // ============ INIT ============
-document.querySelectorAll('.nav-item').forEach(item => {
+document.querySelectorAll('.nav-item:not(.nav-group-header)').forEach(item => {
+  item.addEventListener('click', () => goto(item.dataset.page));
+});
+
+document.querySelectorAll('.nav-group-header').forEach(header => {
+  header.addEventListener('click', () => header.closest('.nav-group').classList.toggle('open'));
+});
+
+document.querySelectorAll('.nav-sub-item[data-page]').forEach(item => {
   item.addEventListener('click', () => goto(item.dataset.page));
 });
 
@@ -8619,9 +8861,11 @@ async function init() {
     migrateTeacherData();
     migrateServiceData();
     migrateStockData();
+    migrateSupplierData();
     updatePartsDatalist();
     document.getElementById('brand-name').textContent = (state.settings.workshopName || 'Atölye');
-    const lastPage = localStorage.getItem('atolye_last_page') || 'dashboard';
+    let lastPage = localStorage.getItem('atolye_last_page') || 'dashboard';
+    if (lastPage === 'stock') lastPage = 'stock-main';
     goto(lastPage);
   } catch (e) {
     showToast('Veritabanı açılamadı: ' + e.message, 'danger');
@@ -8965,17 +9209,62 @@ async function saveQuickStock() {
 
 // ---- Faturalı Stok Girişi ----
 
-function openStockInvoiceModal(invoiceId) {
+let _sinvFileData = null;
+let _sinvFileName = null;
+
+function handleSinvFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Dosya 5 MB\'dan büyük olamaz', 'danger');
+    input.value = '';
+    return;
+  }
+  _sinvFileName = file.name;
+  document.getElementById('sinv-file-name').textContent = file.name;
+  document.getElementById('sinv-file-clear').style.display = '';
+  const reader = new FileReader();
+  reader.onload = e => { _sinvFileData = e.target.result; };
+  reader.readAsDataURL(file);
+}
+
+function clearSinvFile() {
+  _sinvFileData = null;
+  _sinvFileName = null;
+  document.getElementById('sinv-file').value = '';
+  document.getElementById('sinv-file-name').textContent = 'Dosya seçilmedi';
+  document.getElementById('sinv-file-clear').style.display = 'none';
+}
+
+function openStockInvoiceModal(invoiceId, preselectSupplierId) {
   const editing = invoiceId ? (state.stockInvoices || []).find(i => i.id === invoiceId) : null;
-  document.getElementById('sinv-modal-title').textContent = editing ? 'Stok Faturası Düzenle' : 'Yeni Stok Faturası';
+  document.getElementById('sinv-modal-title').textContent = editing ? 'Fatura Düzenle' : 'Yeni Fatura';
   document.getElementById('sinv-id').value = invoiceId || '';
-  document.getElementById('sinv-supplier').value = editing?.supplier || '';
+
+  const supSel = document.getElementById('sinv-supplier-id');
+  supSel.innerHTML = '<option value="">— Tedarikçi seçin (opsiyonel) —</option>' +
+    (state.suppliers || [])
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr'))
+      .map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`)
+      .join('');
+  supSel.value = editing?.supplierId || preselectSupplierId || '';
+
+  document.getElementById('sinv-invoice-type').value = editing?.invoiceType || 'purchase';
   document.getElementById('sinv-invoice-no').value = editing?.invoiceNo || '';
   document.getElementById('sinv-date').value = editing?.date || todayStr();
+  document.getElementById('sinv-description').value = editing?.description || '';
   document.getElementById('sinv-notes').value = editing?.notes || '';
+  document.getElementById('sinv-invoice-discount').value = editing?.invoiceDiscount || 0;
 
-  const tbody = document.getElementById('sinv-items-tbody');
-  tbody.innerHTML = '';
+  // Dosya
+  _sinvFileData = editing?.attachmentData || null;
+  _sinvFileName = editing?.attachmentName || null;
+  document.getElementById('sinv-file').value = '';
+  document.getElementById('sinv-file-name').textContent = _sinvFileName || 'Dosya seçilmedi';
+  document.getElementById('sinv-file-clear').style.display = _sinvFileName ? '' : 'none';
+
+  const list = document.getElementById('sinv-items-list');
+  list.innerHTML = '';
   if (editing && editing.items?.length) {
     editing.items.forEach(item => addStockInvoiceRow(item));
   } else {
@@ -8987,117 +9276,258 @@ function openStockInvoiceModal(invoiceId) {
 }
 
 function addStockInvoiceRow(item) {
-  const tbody = document.getElementById('sinv-items-tbody');
-  const tr = document.createElement('tr');
-  const partName = item ? (() => {
-    const p = (state.parts || []).find(x => x.id === item.partId);
-    return p ? p.name + (p.brand ? ' (' + p.brand + ')' : '') : (item.partName || '');
-  })() : '';
-  tr.innerHTML = `
-    <td style="position:relative;">
-      <input type="hidden" class="sinv-part-id" value="${escapeHtml(item?.partId || '')}">
-      <input type="text" class="sinv-part-name" placeholder="Parça adı..." value="${escapeHtml(partName)}"
-        oninput="showSinvPartSuggestions(this)" onfocus="showSinvPartSuggestions(this)" onblur="hideSinvPartSuggestions(this)" autocomplete="off"
-        style="width:100%;">
-    </td>
-    <td><input type="number" class="sinv-qty" placeholder="1" value="${item?.qty || ''}" min="0" step="1" oninput="updateStockInvoiceTotal()" style="width:70px;"></td>
-    <td><input type="number" class="sinv-price" placeholder="0.00" value="${item?.unitPrice || ''}" min="0" step="0.01" oninput="updateStockInvoiceTotal()" style="width:90px;"></td>
-    <td class="money sinv-line-total" style="text-align:right;">₺0</td>
-    <td><button class="btn btn-icon btn-sm btn-danger" onclick="this.closest('tr').remove();updateStockInvoiceTotal()">×</button></td>
+  const list = document.getElementById('sinv-items-list');
+  const card = document.createElement('div');
+  card.className = 'sinv-item-card';
+  card.style.cssText = 'border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;background:var(--bg);';
+
+  const existingPart = item ? (state.parts || []).find(p => p.id === item.partId) : null;
+  const selPartId = existingPart?.id || '';
+  const selPartLabel = existingPart
+    ? existingPart.name + (existingPart.brand ? ' — ' + existingPart.brand : '')
+    : '';
+
+  const defaultKdv = state.settings?.kdvRate ?? 20;
+  const itemKdv = item?.kdvRate ?? defaultKdv;
+  const kdvOptions = [0,1,10,20].map(r => `<option value="${r}"${r === itemKdv ? ' selected' : ''}>${r}%</option>`).join('');
+
+  const inp = 'width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);font-size:13px;color:var(--text);box-sizing:border-box;';
+  const sel = inp + 'cursor:pointer;';
+  const lbl = 'display:block;font-size:11px;color:var(--text-muted);margin-bottom:3px;font-weight:500;';
+
+  card.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 72px 80px 32px;gap:8px;align-items:end;margin-bottom:8px;">
+      <div style="position:relative;">
+        <label style="${lbl}">Parça *</label>
+        <input type="hidden" class="sinv-part-id" value="${escapeHtml(selPartId)}">
+        <input type="text" class="sinv-part-search" value="${escapeHtml(selPartLabel)}"
+          placeholder="Parça adı yazın..."
+          oninput="showSinvPartSuggestions(this)"
+          onfocus="showSinvPartSuggestions(this)"
+          onblur="hideSinvPartSuggestions(this)"
+          onkeydown="navigateSinvSuggestions(event,this)"
+          autocomplete="off" style="${inp}">
+        <div class="part-suggestions sinv-suggestions" style="display:none;"></div>
+      </div>
+      <div><label style="${lbl}">Adet</label><input type="number" class="sinv-qty" value="${item?.qty || ''}" min="0.001" step="any" placeholder="1" oninput="sinvRowCalc(this)" style="${inp}"></div>
+      <div><label style="${lbl}">KDV Oranı</label><select class="sinv-kdv-rate" onchange="sinvRowCalc(this)" style="${sel}">${kdvOptions}</select></div>
+      <button type="button" onclick="this.closest('.sinv-item-card').remove();updateStockInvoiceTotal()" style="background:var(--danger);color:#fff;border:none;border-radius:var(--radius);width:32px;height:32px;cursor:pointer;font-size:18px;line-height:1;align-self:flex-end;">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;align-items:end;">
+      <div><label style="${lbl}">Birim Fiyat (KDV Hariç)</label><input type="number" class="sinv-price" value="${item?.unitPrice || ''}" min="0" step="any" placeholder="0.00" oninput="sinvRowCalc(this)" style="${inp}"></div>
+      <div><label style="${lbl}">İndirim Oranı %</label><input type="number" class="sinv-disc-rate" value="${item?.discountRate || ''}" min="0" max="100" step="any" placeholder="0" oninput="sinvSyncDiscount(this,'rate')" style="${inp}"></div>
+      <div><label style="${lbl}">İndirim Tutarı (TL)</label><input type="number" class="sinv-disc-amount" value="${item?.discountAmount || ''}" min="0" step="any" placeholder="0.00" oninput="sinvSyncDiscount(this,'amount')" style="${inp}"></div>
+      <div><label style="${lbl}">Net Toplam (KDV Hariç)</label><input type="text" class="sinv-line-net" readonly style="${inp}background:var(--bg);color:var(--text-muted);"></div>
+    </div>
   `;
-  tbody.appendChild(tr);
-  updateStockInvoiceTotal();
+  list.appendChild(card);
+  if (item) sinvRowCalc(card.querySelector('.sinv-qty'));
 }
 
 function showSinvPartSuggestions(input) {
+  const card = input.closest('.sinv-item-card');
+  const dd = card.querySelector('.sinv-suggestions');
+  if (!dd) return;
   const query = (input.value || '').trim().toLowerCase();
-  const wrap = input.parentElement;
-  let dd = wrap.querySelector('.sinv-part-dd');
-  if (!dd) {
-    dd = document.createElement('div');
-    dd.className = 'part-suggestions sinv-part-dd';
-    wrap.appendChild(dd);
+  const parts = (state.parts || []).filter(p => !p.isLabor);
+  const matches = query
+    ? parts.filter(p => p.name.toLowerCase().includes(query) || (p.brand || '').toLowerCase().includes(query)).slice(0, 10)
+    : parts.slice(0, 10);
+
+  const stockBadge = p => {
+    const s = p.currentStock || 0;
+    const color = s <= 0 ? 'var(--danger)' : s < 5 ? 'var(--warning)' : 'var(--success)';
+    return `<span style="font-size:11px;color:${color};margin-left:6px;">${s}</span>`;
+  };
+
+  let html = matches.map(p => `
+    <div class="part-suggest-item" onmousedown="selectSinvPart(event,'${p.id}',this)">
+      <span>${escapeHtml(p.name)}${p.brand ? `<span style="color:var(--text-muted);font-size:11px;"> — ${escapeHtml(p.brand)}</span>` : ''}</span>
+      <span style="display:flex;align-items:center;gap:4px;">
+        ${p.buyPrice ? `<span style="font-size:11px;color:var(--text-muted);">₺${fmtMoney(p.buyPrice)}</span>` : ''}
+        ${stockBadge(p)}
+      </span>
+    </div>`).join('');
+
+  if (query) {
+    html += `<div class="part-suggest-new" onmousedown="addNewSinvPart(event,this)">+ "${escapeHtml(query)}" — Yeni parça olarak ekle</div>`;
   }
-  dd._inputRef = input;
 
-  const parts = state.parts || [];
-  const matches = parts.filter(p =>
-    !query || p.name.toLowerCase().includes(query) || (p.brand || '').toLowerCase().includes(query)
-  ).slice(0, 10);
-
-  dd.innerHTML = matches.map(p => `
-    <div class="part-suggest-item" onmousedown="selectSinvPart(event,'${p.id}')">
-      <span>${escapeHtml(p.name)}${p.brand ? ' <em style="color:var(--text-muted);font-size:11px;font-style:normal;">' + escapeHtml(p.brand) + '</em>' : ''}</span>
-      <span style="color:var(--text-muted);font-size:11px;">Stok: ${p.currentStock || 0}</span>
-    </div>
-  `).join('');
-  dd.style.display = matches.length ? 'block' : 'none';
+  dd.innerHTML = html || (query ? `<div class="part-suggest-new" onmousedown="addNewSinvPart(event,this)">+ "${escapeHtml(query)}" — Yeni parça olarak ekle</div>` : '');
+  dd.style.display = dd.innerHTML ? 'block' : 'none';
 }
 
 function hideSinvPartSuggestions(input) {
-  setTimeout(() => {
-    const dd = input.parentElement?.querySelector('.sinv-part-dd');
-    if (dd) dd.style.display = 'none';
-  }, 150);
+  const card = input.closest('.sinv-item-card');
+  const dd = card?.querySelector('.sinv-suggestions');
+  setTimeout(() => { if (dd) dd.style.display = 'none'; }, 150);
 }
 
 function selectSinvPart(event, partId) {
   event.preventDefault();
-  const item = event.currentTarget;
-  const dd = item.closest('.sinv-part-dd');
-  const input = dd?._inputRef;
-  if (!input) return;
-
+  const el = event.currentTarget;
+  const card = el.closest('.sinv-item-card');
   const part = (state.parts || []).find(p => p.id === partId);
   if (!part) return;
-
-  const tr = input.closest('tr');
-  input.value = part.name + (part.brand ? ' (' + part.brand + ')' : '');
-  tr.querySelector('.sinv-part-id').value = partId;
-  if (part.buyPrice) tr.querySelector('.sinv-price').value = part.buyPrice;
+  card.querySelector('.sinv-part-id').value = partId;
+  delete card.dataset.newPart;
+  card.querySelector('.sinv-part-search').value = part.name + (part.brand ? ' — ' + part.brand : '');
+  if (part.buyPrice) card.querySelector('.sinv-price').value = part.buyPrice;
+  const dd = card.querySelector('.sinv-suggestions');
   if (dd) dd.style.display = 'none';
+  sinvRowCalc(card.querySelector('.sinv-qty'));
+}
+
+function addNewSinvPart(event) {
+  event.preventDefault();
+  const el = event.currentTarget;
+  const card = el.closest('.sinv-item-card');
+  const searchInput = card.querySelector('.sinv-part-search');
+  const query = searchInput.value.trim();
+  card.querySelector('.sinv-part-id').value = '';
+  card.dataset.newPart = query;
+  const dd = card.querySelector('.sinv-suggestions');
+  if (dd) dd.style.display = 'none';
+}
+
+function navigateSinvSuggestions(event, input) {
+  const card = input.closest('.sinv-item-card');
+  const dd = card?.querySelector('.sinv-suggestions');
+  if (!dd || dd.style.display === 'none') return;
+  const items = dd.querySelectorAll('.part-suggest-item, .part-suggest-new');
+  if (!items.length) return;
+  const active = dd.querySelector('.suggest-active');
+  let idx = active ? [...items].indexOf(active) : -1;
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (active) active.classList.remove('suggest-active');
+    items[Math.min(idx + 1, items.length - 1)].classList.add('suggest-active');
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (active) active.classList.remove('suggest-active');
+    if (idx > 0) items[idx - 1].classList.add('suggest-active');
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    if (active) active.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  } else if (event.key === 'Escape') {
+    dd.style.display = 'none';
+  }
+}
+
+function sinvSyncDiscount(input, mode) {
+  const card = input.closest('.sinv-item-card');
+  const qty = Number(card.querySelector('.sinv-qty').value) || 0;
+  const price = Number(card.querySelector('.sinv-price').value) || 0;
+  const gross = qty * price;
+  const rateEl = card.querySelector('.sinv-disc-rate');
+  const amtEl = card.querySelector('.sinv-disc-amount');
+  if (mode === 'rate') {
+    const rate = Number(rateEl.value) || 0;
+    if (gross > 0) amtEl.value = +(gross * rate / 100).toFixed(2);
+    else amtEl.value = '';
+  } else {
+    const amt = Number(amtEl.value) || 0;
+    if (gross > 0) rateEl.value = +(amt / gross * 100).toFixed(4);
+    else rateEl.value = '';
+  }
+  sinvRowCalc(input);
+}
+
+function sinvRowCalc(el) {
+  const card = el.closest ? el.closest('.sinv-item-card') : el;
+  if (!card) return;
+  const qty = Number(card.querySelector('.sinv-qty').value) || 0;
+  const price = Number(card.querySelector('.sinv-price').value) || 0;
+  const gross = qty * price;
+  const discAmt = Number(card.querySelector('.sinv-disc-amount').value) || 0;
+  const lineNet = Math.max(0, gross - discAmt);
+  const netEl = card.querySelector('.sinv-line-net');
+  if (netEl) netEl.value = lineNet > 0 ? '₺' + fmtMoney(lineNet) : '';
   updateStockInvoiceTotal();
 }
 
 function updateStockInvoiceTotal() {
-  const rows = document.querySelectorAll('#sinv-items-tbody tr');
-  let total = 0;
-  rows.forEach(tr => {
-    const qty = Number(tr.querySelector('.sinv-qty')?.value) || 0;
-    const price = Number(tr.querySelector('.sinv-price')?.value) || 0;
-    const lineTotal = qty * price;
-    total += lineTotal;
-    const lineTotalEl = tr.querySelector('.sinv-line-total');
-    if (lineTotalEl) lineTotalEl.textContent = '₺' + fmtMoney(lineTotal);
+  const cards = document.querySelectorAll('#sinv-items-list .sinv-item-card');
+  let totalNet = 0;
+  let totalKdv = 0;
+  cards.forEach(card => {
+    const qty = Number(card.querySelector('.sinv-qty')?.value) || 0;
+    const price = Number(card.querySelector('.sinv-price')?.value) || 0;
+    const gross = qty * price;
+    const discAmt = Number(card.querySelector('.sinv-disc-amount')?.value) || 0;
+    const lineNet = Math.max(0, gross - discAmt);
+    const kdvRate = Number(card.querySelector('.sinv-kdv-rate')?.value) || 0;
+    totalNet += lineNet;
+    totalKdv += lineNet * kdvRate / 100;
   });
-  const el = document.getElementById('sinv-total');
-  if (el) el.textContent = '₺' + fmtMoney(total);
+  let totalItemDiscount = 0;
+  cards.forEach(card => {
+    const qty = Number(card.querySelector('.sinv-qty')?.value) || 0;
+    const price = Number(card.querySelector('.sinv-price')?.value) || 0;
+    const discAmt = Number(card.querySelector('.sinv-disc-amount')?.value) || 0;
+    totalItemDiscount += Math.min(qty * price, discAmt);
+  });
+  const invoiceDiscount = Number(document.getElementById('sinv-invoice-discount')?.value) || 0;
+  const totalDiscount = totalItemDiscount + invoiceDiscount;
+  const netAfterDiscount = Math.max(0, totalNet - invoiceDiscount);
+  const grandTotal = netAfterDiscount + totalKdv;
+  const el = id => document.getElementById(id);
+  if (el('sinv-total-excl')) el('sinv-total-excl').textContent = '₺' + fmtMoney(totalNet + totalItemDiscount);
+  if (el('sinv-total-discount')) el('sinv-total-discount').textContent = totalDiscount > 0 ? '−₺' + fmtMoney(totalDiscount) : '₺0';
+  if (el('sinv-total-net')) el('sinv-total-net').textContent = '₺' + fmtMoney(netAfterDiscount);
+  if (el('sinv-total-vat')) el('sinv-total-vat').textContent = '₺' + fmtMoney(totalKdv);
+  if (el('sinv-total')) el('sinv-total').textContent = '₺' + fmtMoney(grandTotal);
 }
 
 async function saveStockInvoice() {
   const invoiceId = document.getElementById('sinv-id').value;
-  const supplier = document.getElementById('sinv-supplier').value.trim();
+  const supplierId = document.getElementById('sinv-supplier-id').value;
+  const supplier = supplierId ? ((state.suppliers || []).find(s => s.id === supplierId)?.name || '') : '';
+  const invoiceType = document.getElementById('sinv-invoice-type').value;
   const invoiceNo = document.getElementById('sinv-invoice-no').value.trim();
   const date = document.getElementById('sinv-date').value;
+  const description = document.getElementById('sinv-description').value.trim();
   const notes = document.getElementById('sinv-notes').value.trim();
+  const existingInv = invoiceId ? (state.stockInvoices || []).find(i => i.id === invoiceId) : null;
+  const isApproved = existingInv ? existingInv.isApproved : false;
+  const invoiceDiscount = Number(document.getElementById('sinv-invoice-discount').value) || 0;
 
   if (!date) { showToast('Tarih zorunlu', 'danger'); return; }
 
-  const rows = document.querySelectorAll('#sinv-items-tbody tr');
+  const cards = document.querySelectorAll('#sinv-items-list .sinv-item-card');
   const items = [];
-  rows.forEach(tr => {
-    const partId = tr.querySelector('.sinv-part-id')?.value || '';
-    const qty = Number(tr.querySelector('.sinv-qty')?.value) || 0;
-    const unitPrice = Number(tr.querySelector('.sinv-price')?.value) || 0;
-    if (!partId || qty <= 0) return;
-    const part = (state.parts || []).find(p => p.id === partId);
-    if (!part) return;
-    items.push({ partId, partName: part.name, partBrand: part.brand || '', qty, unitPrice });
+  cards.forEach(card => {
+    let partId = card.querySelector('.sinv-part-id')?.value || '';
+    const qty = Number(card.querySelector('.sinv-qty')?.value) || 0;
+    const unitPrice = Number(card.querySelector('.sinv-price')?.value) || 0;
+    if (qty <= 0) return;
+    let part = (state.parts || []).find(p => p.id === partId);
+    if (!part) {
+      const newName = (card.dataset.newPart || card.querySelector('.sinv-part-search')?.value || '').trim();
+      if (!newName) return;
+      part = { id: uid(), name: newName, brand: '', category: '', unit: 'Adet',
+               buyPrice: unitPrice, sellPrice: 0, laborPrice: 0,
+               currentStock: 0, createdAt: new Date().toISOString() };
+      if (!state.parts) state.parts = [];
+      state.parts.push(part);
+      card.querySelector('.sinv-part-id').value = part.id;
+      partId = part.id;
+    }
+    const discountRate = Number(card.querySelector('.sinv-disc-rate')?.value) || 0;
+    const discountAmount = Number(card.querySelector('.sinv-disc-amount')?.value) || 0;
+    const kdvRate = Number(card.querySelector('.sinv-kdv-rate')?.value) || 0;
+    const gross = qty * unitPrice;
+    const lineNet = Math.max(0, gross - discountAmount);
+    const lineKdv = lineNet * kdvRate / 100;
+    items.push({ partId, partName: part.name, partBrand: part.brand || '', qty, unitPrice, discountRate, discountAmount, kdvRate, lineNet, lineKdv });
   });
 
   if (items.length === 0) { showToast('En az bir geçerli kalem ekleyin', 'danger'); return; }
 
-  const totalAmount = items.reduce((a, i) => a + i.qty * i.unitPrice, 0);
+  const totalNetExcl = items.reduce((a, i) => a + i.lineNet, 0);
+  const totalKdv = items.reduce((a, i) => a + i.lineKdv, 0);
+  const netAfterDiscount = Math.max(0, totalNetExcl - invoiceDiscount);
+  const totalAmount = netAfterDiscount + totalKdv;
 
   // Düzenleme: eski stok girişlerini geri al
   if (invoiceId) {
@@ -9138,17 +9568,49 @@ async function saveStockInvoice() {
     id: newInvId,
     date,
     createdAt: new Date().toISOString(),
+    invoiceType,
     invoiceNo,
+    supplierId,
     supplier,
+    isApproved,
+    description,
     notes,
-    items,
-    totalAmount
+    invoiceDiscount,
+    totalNetExcl,
+    totalKdv,
+    totalAmount,
+    attachmentName: _sinvFileName || null,
+    attachmentData: _sinvFileData || null,
+    items
   });
 
   await saveState();
   closeModal('stock-invoice-modal');
-  showToast('Stok faturası kaydedildi', 'success');
+  showToast('Fatura kaydedildi', 'success');
   if (!document.getElementById('page-stock').classList.contains('hidden')) renderStock();
+  if (!document.getElementById('page-supplier-detail').classList.contains('hidden')) renderSupplierDetail();
+  if (!document.getElementById('page-supplier-invoices').classList.contains('hidden')) renderSupplierInvoices();
+  if (!document.getElementById('page-invoice-detail').classList.contains('hidden')) renderInvoiceDetail();
+}
+
+async function deleteStockInvoice(id) {
+  showConfirm('Bu faturayı silmek istediğinize emin misiniz? İlgili stok girişleri de geri alınacaktır.', async () => {
+    const inv = (state.stockInvoices || []).find(i => i.id === id);
+    if (inv) {
+      (inv.items || []).forEach(item => {
+        const part = (state.parts || []).find(p => p.id === item.partId);
+        if (part) part.currentStock = (part.currentStock || 0) - item.qty;
+      });
+      state.stockTransactions = (state.stockTransactions || []).filter(t => t.stockInvoiceId !== id);
+      state.stockInvoices = state.stockInvoices.filter(i => i.id !== id);
+    }
+    await saveState();
+    showToast('Fatura silindi', 'success');
+    if (!document.getElementById('page-stock').classList.contains('hidden')) renderStock();
+    if (!document.getElementById('page-supplier-detail').classList.contains('hidden')) renderSupplierDetail();
+    if (!document.getElementById('page-supplier-invoices').classList.contains('hidden')) renderSupplierInvoices();
+    if (!document.getElementById('page-invoice-detail').classList.contains('hidden')) goto(invoiceDetailReturnPage);
+  });
 }
 
 // ---- Stok Geçmişi Modalı ----
@@ -9225,20 +9687,8 @@ function showStockHistory(partId) {
 
 // ---- Ana Stok Sayfası — Sekme Yönetimi ----
 
-function switchStockTab(tab) {
-  stockTab = tab;
-  stockEditMode = false;
-  renderStock();
-}
-
 function renderStock() {
-  document.getElementById('stock-content').innerHTML = `
-    <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--border);">
-      <button onclick="switchStockTab('main')" class="tab-btn ${stockTab === 'main' ? 'active' : ''}">Stok Girişleri</button>
-      <button onclick="switchStockTab('status')" class="tab-btn ${stockTab === 'status' ? 'active' : ''}">Stok Durumu</button>
-    </div>
-    <div id="stock-tab-content"></div>
-  `;
+  document.getElementById('stock-content').innerHTML = '<div id="stock-tab-content"></div>';
   if (stockTab === 'main') renderStockMain();
   else renderStockStatus();
 }
@@ -9246,7 +9696,7 @@ function renderStock() {
 // ---- Sekme 1: Stok Girişleri ----
 
 function renderStockMain() {
-  const parts = state.parts || [];
+  const parts = (state.parts || []).filter(p => !p.isLabor);
   const transactions = state.stockTransactions || [];
 
   const negativeCount = parts.filter(p => stockStatusOf(p) === 'negative').length;
@@ -9329,14 +9779,18 @@ function renderStockMain() {
         <table class="table"><thead><tr>
           <th>Tarih</th><th>Tedarikçi</th><th>Fatura No</th><th style="text-align:right">Tutar</th><th>Kalem</th><th></th>
         </tr></thead><tbody>
-          ${invoices.map(inv => `<tr>
+          ${invoices.map(inv => {
+            const supName = inv.supplierId
+              ? ((state.suppliers || []).find(s => s.id === inv.supplierId)?.name || inv.supplier || '—')
+              : (inv.supplier || '—');
+            return `<tr>
             <td>${fmtDate(inv.date)}</td>
-            <td>${escapeHtml(inv.supplier || '—')}</td>
+            <td>${escapeHtml(supName)}</td>
             <td>${escapeHtml(inv.invoiceNo || '—')}</td>
             <td class="money" style="text-align:right">₺${fmtMoney(inv.totalAmount || 0)}</td>
             <td style="color:var(--text-muted)">${inv.items?.length || 0} kalem</td>
             <td><button class="btn btn-sm" onclick="openStockInvoiceModal('${inv.id}')">Düzenle</button></td>
-          </tr>`).join('')}
+          </tr>`;}).join('')}
         </tbody></table>
       </div>`;
   }
@@ -9397,7 +9851,7 @@ function renderStockMain() {
 // ---- Sekme 2: Stok Durumu ----
 
 function renderStockStatus() {
-  const parts = [...(state.parts || [])].sort((a, b) => (a.currentStock || 0) - (b.currentStock || 0));
+  const parts = (state.parts || []).filter(p => !p.isLabor).sort((a, b) => (a.currentStock || 0) - (b.currentStock || 0));
 
   const statusBadge = (part) => {
     const st = stockStatusOf(part);
@@ -9650,6 +10104,498 @@ function exportStockPDF() {
   win.document.close();
   win.focus();
   win.print();
+}
+
+// ============ TEDARİKÇİLER & FATURALAR ============
+
+function migrateSupplierData() {
+  if (!state.suppliers) state.suppliers = [];
+  if (!state.supplierInvoices) state.supplierInvoices = []; // backward compat
+}
+
+// --- Helpers ---
+
+function supplierDebt(supplierId) {
+  return (state.stockInvoices || [])
+    .filter(inv => inv.supplierId === supplierId && inv.isApproved === false)
+    .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+}
+
+function supplierTotal(supplierId) {
+  return (state.stockInvoices || [])
+    .filter(inv => inv.supplierId === supplierId)
+    .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+}
+
+function supplierApprovedTotal(supplierId) {
+  return (state.stockInvoices || [])
+    .filter(inv => inv.supplierId === supplierId && inv.isApproved === true)
+    .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+}
+
+// --- Render: Tedarikçiler Listesi ---
+
+function renderSuppliers() {
+  const q = (document.getElementById('supplier-search')?.value || '').toLowerCase().trim();
+  let list = (state.suppliers || []).filter(s => {
+    if (!q) return true;
+    return (s.name || '').toLowerCase().includes(q)
+      || (s.contactName || '').toLowerCase().includes(q)
+      || (s.tag || '').toLowerCase().includes(q);
+  }).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr'));
+
+  const host = document.getElementById('suppliers-list');
+  if (!host) return;
+
+  if (list.length === 0) {
+    host.innerHTML = `<div class="empty"><h3>Tedarikçi bulunamadı</h3><p>Yeni tedarikçi eklemek için "Yeni Tedarikçi" butonunu kullanın.</p></div>`;
+    return;
+  }
+
+  let html = `<table class="table">
+    <thead><tr>
+      <th>Firma Adı</th>
+      <th>Telefon</th>
+      <th>Yetkili</th>
+      <th style="text-align:right;">Güncel Borç</th>
+      <th style="text-align:right;">İşlemler</th>
+    </tr></thead>
+    <tbody>`;
+
+  list.forEach(s => {
+    const debt = supplierDebt(s.id);
+    const debtHtml = debt > 0
+      ? `<span style="color:var(--danger);font-weight:600;">₺${fmtMoney(debt)}</span>`
+      : `<span style="color:var(--text-muted);">₺0</span>`;
+    html += `<tr>
+      <td><a href="#" onclick="showSupplierDetail('${s.id}');return false;" style="font-weight:600;color:var(--primary);text-decoration:none;">${escapeHtml(s.name)}</a>${s.tag ? `<br><small style="color:var(--text-muted);">${escapeHtml(s.tag)}</small>` : ''}</td>
+      <td>${escapeHtml(s.phone || '—')}</td>
+      <td>${escapeHtml(s.contactName || '—')}</td>
+      <td style="text-align:right;">${debtHtml}</td>
+      <td style="text-align:right;">
+        <button class="btn btn-sm" title="Detay" onclick="showSupplierDetail('${s.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="btn btn-sm" title="Düzenle" onclick="openSupplierModal('${s.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-sm btn-danger" title="Sil" onclick="deleteSupplier('${s.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  host.innerHTML = html;
+}
+
+// --- Render: Tedarikçi Detay ---
+
+function showSupplierDetail(id) {
+  currentSupplierId = id;
+  goto('supplier-detail');
+}
+
+function renderSupplierDetail() {
+  const host = document.getElementById('supplier-detail-content');
+  if (!host) return;
+
+  const s = (state.suppliers || []).find(x => x.id === currentSupplierId);
+  if (!s) {
+    host.innerHTML = `<div class="empty"><h3>Tedarikçi bulunamadı</h3></div>`;
+    return;
+  }
+
+  const invoices = (state.stockInvoices || [])
+    .filter(inv => inv.supplierId === s.id)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const total = supplierTotal(s.id);
+  const approved = supplierApprovedTotal(s.id);
+  const debt = supplierDebt(s.id);
+
+  let invRows = '';
+  invoices.forEach(inv => {
+    const approvalBadge = inv.isApproved
+      ? `<span class="badge badge-success">Ödendi</span>`
+      : `<span class="badge badge-warning">Bekliyor</span>`;
+    const itemsSummary = (inv.items || []).length > 0
+      ? `${inv.items.length} kalem`
+      : '—';
+    invRows += `<tr style="cursor:pointer;" onclick="showStockInvoiceDetail('${inv.id}','supplier-detail')">
+      <td>${fmtDate(inv.date)}</td>
+      <td style="font-weight:500;color:var(--primary);">${escapeHtml(inv.invoiceNo || '—')}</td>
+      <td style="color:var(--text-muted);font-size:12px;">${itemsSummary}</td>
+      <td style="text-align:right;font-weight:600;">₺${fmtMoney(inv.totalAmount || 0)}</td>
+      <td style="text-align:center;">${approvalBadge}</td>
+      <td style="text-align:right;" onclick="event.stopPropagation()">
+        ${!inv.isApproved && (inv.items || []).length > 0 ? `<button class="btn btn-sm btn-success" onclick="approveStockInvoice('${inv.id}')" title="Onayla">✓ Onayla</button>` : ''}
+        <button class="btn btn-sm" onclick="openStockInvoiceModal('${inv.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-sm btn-danger" onclick="deleteStockInvoice('${inv.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  });
+
+  host.innerHTML = `
+    <div class="page-header">
+      <div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">
+          <a href="#" onclick="goto('suppliers');return false;" style="color:var(--primary);text-decoration:none;">Tedarikçiler</a>
+          <span style="margin:0 6px;">›</span>
+          <span>${escapeHtml(s.name)}</span>
+        </div>
+        <h2 class="page-title">${escapeHtml(s.name)}</h2>
+        <p class="page-subtitle">${[s.contactName, s.phone, s.city].filter(Boolean).map(escapeHtml).join(' · ') || 'Tedarikçi detayı'}</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" onclick="openSupplierModal('${s.id}')">Düzenle</button>
+        <button class="btn btn-primary" onclick="openStockInvoiceModal(null, '${s.id}')">+ Yeni Fatura</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+      <div class="section" style="flex:1;min-width:140px;padding:16px 20px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Toplam Fatura</div>
+        <div style="font-size:20px;font-weight:700;">₺${fmtMoney(total)}</div>
+      </div>
+      <div class="section" style="flex:1;min-width:140px;padding:16px 20px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Ödenen</div>
+        <div style="font-size:20px;font-weight:700;color:var(--success);">₺${fmtMoney(approved)}</div>
+      </div>
+      <div class="section" style="flex:1;min-width:140px;padding:16px 20px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Güncel Borç</div>
+        <div style="font-size:20px;font-weight:700;color:${debt > 0 ? 'var(--danger)' : 'var(--text-muted)'};">₺${fmtMoney(debt)}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      ${invoices.length === 0
+        ? `<div class="empty"><h3>Fatura yok</h3><p>Bu tedarikçiye ait henüz fatura eklenmemiş.</p></div>`
+        : `<table class="table">
+          <thead><tr>
+            <th>Tarih</th><th>Fatura No</th><th>İçerik</th>
+            <th style="text-align:right;">Tutar (KDV Dahil)</th>
+            <th style="text-align:center;">Durum</th>
+            <th style="text-align:right;">İşlemler</th>
+          </tr></thead>
+          <tbody>${invRows}</tbody>
+        </table>`
+      }
+    </div>`;
+}
+
+// --- Render: Tüm Faturalar ---
+
+function renderSupplierInvoices() {
+  const q = (document.getElementById('sinvoice-search')?.value || '').toLowerCase().trim();
+  const filterSup = document.getElementById('sinvoice-filter-supplier')?.value || '';
+  const filterApproval = document.getElementById('sinvoice-filter-approval')?.value || '';
+
+  const supSel = document.getElementById('sinvoice-filter-supplier');
+  if (supSel) {
+    const current = supSel.value;
+    supSel.innerHTML = '<option value="">Tüm Tedarikçiler</option>' +
+      (state.suppliers || [])
+        .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+        .map(s => `<option value="${s.id}" ${s.id === current ? 'selected' : ''}>${escapeHtml(s.name)}</option>`)
+        .join('');
+  }
+
+  let list = (state.stockInvoices || []).filter(inv => {
+    if (filterSup && inv.supplierId !== filterSup) return false;
+    if (filterApproval === 'approved' && !inv.isApproved) return false;
+    if (filterApproval === 'pending' && inv.isApproved) return false;
+    if (q && !((inv.invoiceNo || '').toLowerCase().includes(q) || (inv.notes || '').toLowerCase().includes(q))) return false;
+    return true;
+  }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const host = document.getElementById('supplier-invoices-list');
+  if (!host) return;
+
+  if (list.length === 0) {
+    host.innerHTML = `<div class="empty"><h3>Fatura bulunamadı</h3></div>`;
+    return;
+  }
+
+  const supplierMap = Object.fromEntries((state.suppliers || []).map(s => [s.id, s.name]));
+
+  let html = `<table class="table">
+    <thead><tr>
+      <th>Tarih</th><th>Fatura No</th><th>Tedarikçi</th>
+      <th style="text-align:right;">Tutar (KDV Dahil)</th>
+      <th>İçerik</th>
+      <th style="text-align:center;">Durum</th>
+      <th style="text-align:right;">İşlemler</th>
+    </tr></thead><tbody>`;
+
+  list.forEach(inv => {
+    const supName = inv.supplierId ? (supplierMap[inv.supplierId] || inv.supplier || '—') : (inv.supplier || '—');
+    const approvalBadge = inv.isApproved
+      ? `<span class="badge badge-success">Ödendi</span>`
+      : `<span class="badge badge-warning">Bekliyor</span>`;
+    const itemsSummary = (inv.items || []).length > 0 ? `${inv.items.length} kalem` : '—';
+    html += `<tr style="cursor:pointer;" onclick="showStockInvoiceDetail('${inv.id}','supplier-invoices')">
+      <td>${fmtDate(inv.date)}</td>
+      <td style="font-weight:500;color:var(--primary);">${escapeHtml(inv.invoiceNo || '—')}</td>
+      <td>${inv.supplierId
+        ? `<a href="#" onclick="showSupplierDetail('${inv.supplierId}');return false;event.stopPropagation();" style="color:var(--primary);text-decoration:none;">${escapeHtml(supName)}</a>`
+        : escapeHtml(supName)}</td>
+      <td style="text-align:right;font-weight:600;">₺${fmtMoney(inv.totalAmount || 0)}</td>
+      <td style="color:var(--text-muted);font-size:12px;">${itemsSummary}</td>
+      <td style="text-align:center;">${approvalBadge}</td>
+      <td style="text-align:right;" onclick="event.stopPropagation()">
+        ${!inv.isApproved && (inv.items || []).length > 0 ? `<button class="btn btn-sm btn-success" onclick="approveStockInvoice('${inv.id}')" title="Onayla">✓ Onayla</button>` : ''}
+        <button class="btn btn-sm" onclick="openStockInvoiceModal('${inv.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-sm btn-danger" onclick="deleteStockInvoice('${inv.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  host.innerHTML = html;
+}
+
+// --- Fatura Detay ---
+
+function showStockInvoiceDetail(id, returnPage) {
+  currentInvoiceDetailId = id;
+  invoiceDetailReturnPage = returnPage || 'supplier-invoices';
+  goto('invoice-detail');
+}
+
+function renderInvoiceDetail() {
+  const host = document.getElementById('invoice-detail-content');
+  if (!host) return;
+
+  const inv = (state.stockInvoices || []).find(i => i.id === currentInvoiceDetailId);
+  if (!inv) {
+    host.innerHTML = `<div class="empty"><h3>Fatura bulunamadı</h3></div>`;
+    return;
+  }
+
+  const sup = inv.supplierId ? (state.suppliers || []).find(s => s.id === inv.supplierId) : null;
+  const supName = sup?.name || inv.supplier || '—';
+
+  const netTotal = inv.totalNetExcl ?? inv.totalAmount ?? 0;
+  const kdvAmount = inv.totalKdv ?? Math.round(netTotal * ((state.settings.kdvRate ?? 20) / 100) * 100) / 100;
+  const invoiceDiscount = inv.invoiceDiscount || 0;
+  const grandTotal = inv.totalAmount ?? Math.round((netTotal + kdvAmount) * 100) / 100;
+
+  const invoiceTypeLabel = inv.invoiceType === 'expense' ? 'Gider Faturası' : 'Alış Faturası';
+  const returnLabel = invoiceDetailReturnPage === 'supplier-detail' ? supName : 'Faturalar';
+  const returnOnclick = invoiceDetailReturnPage === 'supplier-detail'
+    ? `showSupplierDetail('${inv.supplierId}')`
+    : `goto('supplier-invoices')`;
+
+  const statusBadge = inv.isApproved
+    ? `<span class="badge badge-success" style="font-size:13px;padding:4px 12px;">Ödendi</span>`
+    : `<span class="badge badge-warning" style="font-size:13px;padding:4px 12px;">Bekliyor</span>`;
+
+  let itemsHtml = '';
+  if ((inv.items || []).length > 0) {
+    inv.items.forEach(item => {
+      const part = (state.parts || []).find(p => p.id === item.partId);
+      const name = item.partName || part?.name || '—';
+      const brand = item.partBrand || part?.brand || '—';
+      const category = part?.category || '—';
+      const lineTotal = (item.qty || 0) * (item.unitPrice || 0);
+      itemsHtml += `<tr>
+        <td style="color:var(--text-muted);font-size:13px;">${escapeHtml(category)}</td>
+        <td style="color:var(--text-muted);font-size:13px;">${escapeHtml(brand)}</td>
+        <td style="font-weight:500;">${escapeHtml(name)}</td>
+        <td style="text-align:right;">${item.qty || 0}</td>
+        <td style="text-align:right;">₺${fmtMoney(item.unitPrice || 0)}</td>
+        <td style="text-align:right;font-weight:600;">₺${fmtMoney(lineTotal)}</td>
+      </tr>`;
+    });
+  }
+
+  host.innerHTML = `
+    <div class="page-header">
+      <div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">
+          <a href="#" onclick="${returnOnclick};return false;" style="color:var(--primary);text-decoration:none;">${escapeHtml(returnLabel)}</a>
+          <span style="margin:0 6px;">›</span>
+          <span>${escapeHtml(inv.invoiceNo || 'Fatura Detayı')}</span>
+        </div>
+        <h2 class="page-title">${escapeHtml(inv.invoiceNo || 'Fatura Detayı')}</h2>
+        <p class="page-subtitle">${escapeHtml(supName)} · ${fmtDate(inv.date)}</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        ${statusBadge}
+        ${!inv.isApproved && (inv.items || []).length > 0
+          ? `<button class="btn btn-success" onclick="approveStockInvoice('${inv.id}')">✓ Faturayı Onayla</button>`
+          : ''}
+        <button class="btn" onclick="openStockInvoiceModal('${inv.id}')">Düzenle</button>
+        <button class="btn btn-danger" onclick="deleteStockInvoice('${inv.id}')">Sil</button>
+      </div>
+    </div>
+
+    <div class="section" style="padding:32px 40px;max-width:860px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;">
+        <div>
+          <h3 style="font-size:22px;font-weight:700;margin:0 0 8px;">${escapeHtml(supName)}</h3>
+          ${sup?.contactName ? `<div style="color:var(--text-muted);font-size:13px;">${escapeHtml(sup.contactName)}</div>` : ''}
+          ${sup?.phone ? `<div style="color:var(--text-muted);font-size:13px;">${escapeHtml(sup.phone)}</div>` : ''}
+          ${sup?.address ? `<div style="color:var(--text-muted);font-size:13px;">${escapeHtml(sup.address)}</div>` : ''}
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">${escapeHtml(invoiceTypeLabel)}</div>
+          <div style="margin-top:24px;">
+            <div style="font-size:11px;color:var(--text-muted);">Fatura No</div>
+            <div style="font-size:16px;font-weight:700;">${escapeHtml(inv.invoiceNo || '—')}</div>
+          </div>
+          <div style="margin-top:12px;">
+            <div style="font-size:11px;color:var(--text-muted);">Tarih</div>
+            <div style="font-size:14px;font-weight:600;">${fmtDate(inv.date)}</div>
+          </div>
+        </div>
+      </div>
+
+      ${itemsHtml ? `
+        <table class="table" style="margin-bottom:0;">
+          <thead><tr>
+            <th>Kategori</th><th>Marka</th><th>Parça / Ürün</th>
+            <th style="text-align:right;">Adet</th>
+            <th style="text-align:right;">Birim Fiyat<br><span style="font-weight:400;font-size:10px;">KDV Hariç</span></th>
+            <th style="text-align:right;">Toplam</th>
+          </tr></thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+          <div style="min-width:240px;">
+            <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);font-size:13px;">
+              <span>Mal Tutarı (KDV Hariç)</span><span>₺${fmtMoney(netTotal)}</span>
+            </div>
+            ${invoiceDiscount > 0 ? `
+            <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);font-size:13px;">
+              <span>İskonto</span><span>−₺${fmtMoney(invoiceDiscount)}</span>
+            </div>` : ''}
+            <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-muted);font-size:13px;">
+              <span>KDV Tutarı</span><span>₺${fmtMoney(kdvAmount)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:16px;font-weight:700;border-top:2px solid var(--border);margin-top:4px;">
+              <span>Vergiler Dahil Toplam</span><span>₺${fmtMoney(grandTotal)}</span>
+            </div>
+          </div>
+        </div>
+      ` : `<div style="color:var(--text-muted);font-style:italic;padding:16px 0;">Fatura kalemi eklenmemiş.</div>`}
+
+      ${(inv.description || inv.paymentDate || inv.notes) ? `
+        <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:32px;flex-wrap:wrap;">
+          ${inv.description ? `<div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Açıklama</div><div style="font-size:14px;">${escapeHtml(inv.description)}</div></div>` : ''}
+          ${inv.paymentDate ? `<div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Ödeme Tarihi</div><div style="font-size:14px;">${fmtDate(inv.paymentDate)}</div></div>` : ''}
+          ${inv.notes ? `<div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Not</div><div style="font-size:14px;">${escapeHtml(inv.notes)}</div></div>` : ''}
+        </div>
+      ` : ''}
+      ${inv.attachmentName ? `
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Fatura Belgesi</div>
+          ${inv.attachmentData?.startsWith('data:image') ? `<img src="${inv.attachmentData}" style="max-width:100%;max-height:600px;border-radius:var(--radius);border:1px solid var(--border);">` : ''}
+          ${inv.attachmentData?.startsWith('data:application/pdf') ? `<iframe src="${inv.attachmentData}" style="width:100%;height:600px;border:1px solid var(--border);border-radius:var(--radius);"></iframe>` : ''}
+          <div style="margin-top:8px;">
+            <a href="${inv.attachmentData}" download="${escapeHtml(inv.attachmentName)}" class="btn btn-sm">
+              ↓ ${escapeHtml(inv.attachmentName)} İndir
+            </a>
+          </div>
+        </div>
+      ` : ''}
+    </div>`;
+}
+
+// --- Fatura Onaylama ---
+
+async function approveStockInvoice(id) {
+  const inv = (state.stockInvoices || []).find(i => i.id === id);
+  if (!inv) return;
+  inv.isApproved = true;
+  await saveState();
+  showToast('Fatura onaylandı', 'success');
+  if (!document.getElementById('page-supplier-detail').classList.contains('hidden')) renderSupplierDetail();
+  if (!document.getElementById('page-supplier-invoices').classList.contains('hidden')) renderSupplierInvoices();
+  if (!document.getElementById('page-invoice-detail').classList.contains('hidden')) renderInvoiceDetail();
+}
+
+// --- Modal: Tedarikçi ---
+
+function openSupplierModal(id) {
+  const s = id ? (state.suppliers || []).find(x => x.id === id) : null;
+  editingSupplierId = id || null;
+  document.getElementById('supplier-modal-title').textContent = s ? 'Tedarikçi Düzenle' : 'Yeni Tedarikçi';
+  document.getElementById('sup-name').value = s?.name || '';
+  document.getElementById('sup-contact').value = s?.contactName || '';
+  document.getElementById('sup-email').value = s?.email || '';
+  document.getElementById('sup-phone').value = s?.phone || '';
+  document.getElementById('sup-address').value = s?.address || '';
+  document.getElementById('sup-city').value = s?.city || '';
+  document.getElementById('sup-tax-id').value = s?.taxId || '';
+  document.getElementById('sup-tax-office').value = s?.taxOffice || '';
+  document.getElementById('sup-tag').value = s?.tag || '';
+  openModal('supplier-modal');
+  setTimeout(() => document.getElementById('sup-name').focus(), 50);
+}
+
+async function saveSupplier() {
+  const name = document.getElementById('sup-name').value.trim();
+  if (!name) { showToast('Firma adı zorunlu', 'danger'); return; }
+
+  const data = {
+    name,
+    contactName: document.getElementById('sup-contact').value.trim(),
+    email: document.getElementById('sup-email').value.trim(),
+    phone: document.getElementById('sup-phone').value.trim(),
+    address: document.getElementById('sup-address').value.trim(),
+    city: document.getElementById('sup-city').value.trim(),
+    taxId: document.getElementById('sup-tax-id').value.trim(),
+    taxOffice: document.getElementById('sup-tax-office').value.trim(),
+    tag: document.getElementById('sup-tag').value.trim(),
+  };
+
+  if (!state.suppliers) state.suppliers = [];
+
+  if (editingSupplierId) {
+    const idx = state.suppliers.findIndex(s => s.id === editingSupplierId);
+    if (idx !== -1) state.suppliers[idx] = { ...state.suppliers[idx], ...data };
+  } else {
+    state.suppliers.push({ id: uid(), createdAt: new Date().toISOString(), ...data });
+  }
+
+  await saveState();
+  closeModal('supplier-modal');
+  showToast('Tedarikçi kaydedildi', 'success');
+  if (!document.getElementById('page-suppliers').classList.contains('hidden')) renderSuppliers();
+  if (!document.getElementById('page-supplier-detail').classList.contains('hidden')) renderSupplierDetail();
+}
+
+async function deleteSupplier(id) {
+  const s = (state.suppliers || []).find(x => x.id === id);
+  if (!s) return;
+  const invoiceCount = (state.stockInvoices || []).filter(inv => inv.supplierId === id).length;
+  const msg = invoiceCount > 0
+    ? `"${s.name}" tedarikçisini silmek istediğinize emin misiniz? ${invoiceCount} adet fatura kaydı bu tedarikçiye bağlı (faturalar silinmez, tedarikçi bağlantısı kaldırılır).`
+    : `"${s.name}" tedarikçisini silmek istediğinize emin misiniz?`;
+  showConfirm(msg, async () => {
+    state.suppliers = (state.suppliers || []).filter(x => x.id !== id);
+    // Fatura kayıtlarını silmiyoruz, sadece supplierId bağlantısını koparıyoruz
+    (state.stockInvoices || []).forEach(inv => {
+      if (inv.supplierId === id) {
+        inv.supplierId = '';
+        // supplier (metin) alanı kalır — geçmiş için
+      }
+    });
+    await saveState();
+    showToast('Tedarikçi silindi', 'success');
+    goto('suppliers');
+  });
 }
 </script>
 
