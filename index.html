@@ -2949,6 +2949,69 @@
   </div>
 </div>
 
+<!-- Approve Invoice Modal -->
+<div class="modal-backdrop" id="approve-inv-modal" onclick="if(event.target===this)closeModal('approve-inv-modal')">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title">Faturayı Onayla</div>
+      <button class="modal-close" onclick="closeModal('approve-inv-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="approve-inv-id">
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:14px;">Fatura onaylanınca tutarı tedarikçi borcuna yansıyacak.</p>
+      <div id="approve-inv-info" style="background:var(--surface-alt);padding:12px 14px;border-radius:var(--radius);"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('approve-inv-modal')">İptal</button>
+      <button class="btn btn-success" onclick="doApproveInvoice()">✓ Sadece Onayla</button>
+      <button class="btn btn-primary" onclick="doApproveAndPay()">✓ Onayla ve Ödeme Yap</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supplier Payment Modal -->
+<div class="modal-backdrop" id="supplier-payment-modal" onclick="if(event.target===this)closeModal('supplier-payment-modal')">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Ödeme Ekle</div>
+      <button class="modal-close" onclick="closeModal('supplier-payment-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pay-id">
+      <input type="hidden" id="pay-supplier-id">
+      <input type="hidden" id="pay-invoice-id">
+      <div class="form-row form-row-2">
+        <div class="form-field">
+          <label>Tarih</label>
+          <input type="date" id="pay-date">
+        </div>
+        <div class="form-field">
+          <label>Tutar (₺)</label>
+          <input type="number" id="pay-amount" min="0" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Ödeme Yöntemi</label>
+        <select id="pay-method">
+          <option>Nakit</option>
+          <option>Havale / EFT</option>
+          <option>Kredi Kartı</option>
+          <option>Çek</option>
+          <option>Diğer</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Not</label>
+        <input type="text" id="pay-note" placeholder="İsteğe bağlı">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('supplier-payment-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="saveSupplierPayment()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
 <!-- Stock History Modal -->
 <div class="modal-backdrop" id="stock-history-modal">
   <div class="modal" style="max-width:700px;">
@@ -2966,7 +3029,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.05.1712';
+const APP_VERSION = '2026.05.05.1731';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -3404,6 +3467,7 @@ let state = {
   stockInvoices: [],
   suppliers: [],
   supplierInvoices: [],
+  supplierPayments: [],
   settings: {
     workshopName: 'Atölye',
     defaultLabor: 0,
@@ -10182,25 +10246,30 @@ function exportStockPDF() {
 function migrateSupplierData() {
   if (!state.suppliers) state.suppliers = [];
   if (!state.supplierInvoices) state.supplierInvoices = []; // backward compat
+  if (!state.supplierPayments) state.supplierPayments = [];
 }
 
 // --- Helpers ---
 
-function supplierDebt(supplierId) {
+function supplierApprovedTotal(supplierId) {
   return (state.stockInvoices || [])
-    .filter(inv => inv.supplierId === supplierId && inv.isApproved === false)
+    .filter(inv => inv.supplierId === supplierId && inv.isApproved === true)
     .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+}
+
+function supplierPaymentsTotal(supplierId) {
+  return (state.supplierPayments || [])
+    .filter(p => p.supplierId === supplierId)
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
+}
+
+function supplierDebt(supplierId) {
+  return Math.max(0, supplierApprovedTotal(supplierId) - supplierPaymentsTotal(supplierId));
 }
 
 function supplierTotal(supplierId) {
   return (state.stockInvoices || [])
     .filter(inv => inv.supplierId === supplierId)
-    .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
-}
-
-function supplierApprovedTotal(supplierId) {
-  return (state.stockInvoices || [])
-    .filter(inv => inv.supplierId === supplierId && inv.isApproved === true)
     .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
 }
 
@@ -10278,38 +10347,68 @@ function renderSupplierDetail() {
     return;
   }
 
-  const invoices = (state.stockInvoices || [])
-    .filter(inv => inv.supplierId === s.id)
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
-  const total = supplierTotal(s.id);
-  const approved = supplierApprovedTotal(s.id);
+  const approvedTotal = supplierApprovedTotal(s.id);
+  const paymentsTotal = supplierPaymentsTotal(s.id);
   const debt = supplierDebt(s.id);
 
-  let invRows = '';
-  invoices.forEach(inv => {
-    const approvalBadge = inv.isApproved
-      ? `<span class="badge badge-success">Ödendi</span>`
-      : `<span class="badge badge-warning">Bekliyor</span>`;
-    const itemsSummary = (inv.items || []).length > 0
-      ? `${inv.items.length} kalem`
-      : '—';
-    invRows += `<tr style="cursor:pointer;" onclick="showStockInvoiceDetail('${inv.id}','supplier-detail')">
-      <td>${fmtDate(inv.date)}</td>
-      <td style="font-weight:500;color:var(--primary);">${escapeHtml(inv.invoiceNo || '—')}</td>
-      <td style="color:var(--text-muted);font-size:12px;">${itemsSummary}</td>
-      <td style="text-align:right;font-weight:600;">₺${fmtMoney(inv.totalAmount || 0)}</td>
-      <td style="text-align:center;">${approvalBadge}</td>
-      <td style="text-align:right;" onclick="event.stopPropagation()">
-        ${!inv.isApproved && (inv.items || []).length > 0 ? `<button class="btn btn-sm btn-success" onclick="approveStockInvoice('${inv.id}')" title="Onayla">✓ Onayla</button>` : ''}
-        <button class="btn btn-sm" onclick="openStockInvoiceModal('${inv.id}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-        <button class="btn btn-sm btn-danger" onclick="deleteStockInvoice('${inv.id}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-        </button>
-      </td>
-    </tr>`;
+  const invoiceRows = (state.stockInvoices || [])
+    .filter(inv => inv.supplierId === s.id)
+    .map(inv => ({ _type: 'invoice', date: inv.date || '', data: inv }));
+
+  const paymentRows = (state.supplierPayments || [])
+    .filter(p => p.supplierId === s.id)
+    .map(p => ({ _type: 'payment', date: p.date || '', data: p }));
+
+  const allRows = [...invoiceRows, ...paymentRows]
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  const editSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+  const delSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>`;
+
+  let rowsHtml = '';
+  allRows.forEach(row => {
+    if (row._type === 'invoice') {
+      const inv = row.data;
+      const isDraft = !inv.isApproved;
+      const itemsText = (inv.items || []).length > 0
+        ? ` <span style="color:var(--text-muted);font-size:12px;">${inv.items.length} kalem</span>` : '';
+      const typeBadge = isDraft
+        ? `<span style="background:var(--surface-alt);color:var(--text-muted);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;border:1px solid var(--border);">TASLAK</span>`
+        : `<span style="background:#fef2f2;color:#ef4444;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">FATURA</span>`;
+      const rowStyle = isDraft
+        ? `background:var(--surface-alt);opacity:0.75;cursor:pointer;`
+        : `background:rgba(239,68,68,0.04);cursor:pointer;`;
+      const amountHtml = isDraft
+        ? `<span style="color:var(--text-muted);">₺${fmtMoney(inv.totalAmount || 0)}</span>`
+        : `<span style="font-weight:600;color:var(--danger);">₺${fmtMoney(inv.totalAmount || 0)}</span>`;
+      rowsHtml += `<tr style="${rowStyle}" onclick="showStockInvoiceDetail('${inv.id}','supplier-detail')">
+        <td>${fmtDate(inv.date)}</td>
+        <td>${typeBadge}</td>
+        <td style="font-weight:500;">${escapeHtml(inv.invoiceNo || '—')}${itemsText}</td>
+        <td style="text-align:right;">${amountHtml}</td>
+        <td></td>
+        <td style="text-align:right;" onclick="event.stopPropagation()">
+          ${isDraft && (inv.items || []).length > 0
+            ? `<button class="btn btn-sm btn-success" onclick="openApproveInvModal('${inv.id}')">✓ Onayla</button>`
+            : isDraft ? '' : `<button class="btn btn-sm btn-success" onclick="unapproveStockInvoice('${inv.id}')" title="Onayı kaldır" style="opacity:0.7;">Onaylı ✓</button>`}
+          <button class="btn btn-sm" onclick="openStockInvoiceModal('${inv.id}')">${editSvg}</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteStockInvoice('${inv.id}')">${delSvg}</button>
+        </td>
+      </tr>`;
+    } else {
+      const p = row.data;
+      const detay = escapeHtml(p.method) + (p.note ? ` · ${escapeHtml(p.note)}` : '');
+      rowsHtml += `<tr style="background:rgba(59,130,246,0.05);">
+        <td>${fmtDate(p.date)}</td>
+        <td><span style="background:#eff6ff;color:#3b82f6;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">ÖDEME</span></td>
+        <td style="color:var(--text-muted);">${detay}</td>
+        <td></td>
+        <td style="text-align:right;font-weight:600;color:var(--success);">₺${fmtMoney(p.amount)}</td>
+        <td style="text-align:right;">
+          <button class="btn btn-sm btn-danger" onclick="deleteSupplierPayment('${p.id}')">${delSvg}</button>
+        </td>
+      </tr>`;
+    }
   });
 
   host.innerHTML = `
@@ -10325,18 +10424,19 @@ function renderSupplierDetail() {
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn" onclick="openSupplierModal('${s.id}')">Düzenle</button>
+        <button class="btn" onclick="openPaymentModal('${s.id}', '', 0)">+ Ödeme Ekle</button>
         <button class="btn btn-primary" onclick="openStockInvoiceModal(null, '${s.id}')">+ Yeni Fatura</button>
       </div>
     </div>
 
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
       <div class="section" style="flex:1;min-width:140px;padding:16px 20px;">
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Toplam Fatura</div>
-        <div style="font-size:20px;font-weight:700;">₺${fmtMoney(total)}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Onaylı Fatura</div>
+        <div style="font-size:20px;font-weight:700;">₺${fmtMoney(approvedTotal)}</div>
       </div>
       <div class="section" style="flex:1;min-width:140px;padding:16px 20px;">
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Ödenen</div>
-        <div style="font-size:20px;font-weight:700;color:var(--success);">₺${fmtMoney(approved)}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Toplam Ödeme</div>
+        <div style="font-size:20px;font-weight:700;color:var(--success);">₺${fmtMoney(paymentsTotal)}</div>
       </div>
       <div class="section" style="flex:1;min-width:140px;padding:16px 20px;">
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Güncel Borç</div>
@@ -10345,16 +10445,16 @@ function renderSupplierDetail() {
     </div>
 
     <div class="section">
-      ${invoices.length === 0
-        ? `<div class="empty"><h3>Fatura yok</h3><p>Bu tedarikçiye ait henüz fatura eklenmemiş.</p></div>`
+      ${allRows.length === 0
+        ? `<div class="empty"><h3>Kayıt yok</h3><p>Bu tedarikçiye ait fatura veya ödeme eklenmemiş.</p></div>`
         : `<table class="table">
           <thead><tr>
-            <th>Tarih</th><th>Fatura No</th><th>İçerik</th>
-            <th style="text-align:right;">Tutar (KDV Dahil)</th>
-            <th style="text-align:center;">Durum</th>
+            <th>Tarih</th><th>Tür</th><th>Detay</th>
+            <th style="text-align:right;">Borç</th>
+            <th style="text-align:right;">Ödeme</th>
             <th style="text-align:right;">İşlemler</th>
           </tr></thead>
-          <tbody>${invRows}</tbody>
+          <tbody>${rowsHtml}</tbody>
         </table>`
       }
     </div>`;
@@ -10407,7 +10507,7 @@ function renderSupplierInvoices() {
   list.forEach(inv => {
     const supName = inv.supplierId ? (supplierMap[inv.supplierId] || inv.supplier || '—') : (inv.supplier || '—');
     const approvalBadge = inv.isApproved
-      ? `<span class="badge badge-success">Ödendi</span>`
+      ? `<button class="btn btn-sm btn-success" onclick="event.stopPropagation();unapproveStockInvoice('${inv.id}')" title="Onayı kaldır">Ödendi ✓</button>`
       : `<span class="badge badge-warning">Bekliyor</span>`;
     const itemsSummary = (inv.items || []).length > 0 ? `${inv.items.length} kalem` : '—';
     html += `<tr style="cursor:pointer;" onclick="showStockInvoiceDetail('${inv.id}','supplier-invoices')">
@@ -10420,7 +10520,7 @@ function renderSupplierInvoices() {
       <td style="color:var(--text-muted);font-size:12px;">${itemsSummary}</td>
       <td style="text-align:center;">${approvalBadge}</td>
       <td style="text-align:right;" onclick="event.stopPropagation()">
-        ${!inv.isApproved && (inv.items || []).length > 0 ? `<button class="btn btn-sm btn-success" onclick="approveStockInvoice('${inv.id}')" title="Onayla">✓ Onayla</button>` : ''}
+        ${!inv.isApproved && (inv.items || []).length > 0 ? `<button class="btn btn-sm btn-success" onclick="openApproveInvModal('${inv.id}')" title="Onayla">✓ Onayla</button>` : ''}
         <button class="btn btn-sm" onclick="openStockInvoiceModal('${inv.id}')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
@@ -10474,8 +10574,8 @@ function renderInvoiceDetail() {
     : `goto('supplier-invoices')`;
 
   const statusBadge = inv.isApproved
-    ? `<span class="badge badge-success" style="font-size:13px;padding:4px 12px;">Ödendi</span>`
-    : `<span class="badge badge-warning" style="font-size:13px;padding:4px 12px;">Bekliyor</span>`;
+    ? `<button class="btn btn-success" onclick="unapproveStockInvoice('${inv.id}')" title="Onayı kaldırmak için tıkla" style="opacity:0.85;">Onaylı ✓</button>`
+    : `<span class="badge badge-warning" style="font-size:13px;padding:4px 12px;">Taslak</span>`;
 
   let itemsHtml = '';
   if ((inv.items || []).length > 0) {
@@ -10510,7 +10610,7 @@ function renderInvoiceDetail() {
       <div style="display:flex;gap:8px;align-items:center;">
         ${statusBadge}
         ${!inv.isApproved && (inv.items || []).length > 0
-          ? `<button class="btn btn-success" onclick="approveStockInvoice('${inv.id}')">✓ Faturayı Onayla</button>`
+          ? `<button class="btn btn-success" onclick="openApproveInvModal('${inv.id}')">✓ Faturayı Onayla</button>`
           : ''}
         <button class="btn" onclick="openStockInvoiceModal('${inv.id}')">Düzenle</button>
         <button class="btn btn-danger" onclick="deleteStockInvoice('${inv.id}')">Sil</button>
@@ -10592,6 +10692,15 @@ function renderInvoiceDetail() {
     </div>`;
 }
 
+// --- Helpers ---
+
+function refreshSupplierPages() {
+  if (!document.getElementById('page-supplier-detail').classList.contains('hidden')) renderSupplierDetail();
+  if (!document.getElementById('page-supplier-invoices').classList.contains('hidden')) renderSupplierInvoices();
+  if (!document.getElementById('page-invoice-detail').classList.contains('hidden')) renderInvoiceDetail();
+  if (!document.getElementById('page-suppliers').classList.contains('hidden')) renderSuppliers();
+}
+
 // --- Fatura Onaylama ---
 
 async function approveStockInvoice(id) {
@@ -10600,9 +10709,110 @@ async function approveStockInvoice(id) {
   inv.isApproved = true;
   await saveState();
   showToast('Fatura onaylandı', 'success');
-  if (!document.getElementById('page-supplier-detail').classList.contains('hidden')) renderSupplierDetail();
-  if (!document.getElementById('page-supplier-invoices').classList.contains('hidden')) renderSupplierInvoices();
-  if (!document.getElementById('page-invoice-detail').classList.contains('hidden')) renderInvoiceDetail();
+  refreshSupplierPages();
+}
+
+async function unapproveStockInvoice(id) {
+  const inv = (state.stockInvoices || []).find(i => i.id === id);
+  if (!inv) return;
+  inv.isApproved = false;
+  await saveState();
+  showToast('Fatura onayı kaldırıldı', 'warning');
+  refreshSupplierPages();
+}
+
+// --- Onaylama Modal ---
+
+function openApproveInvModal(invId) {
+  const inv = (state.stockInvoices || []).find(i => i.id === invId);
+  if (!inv) return;
+  document.getElementById('approve-inv-id').value = invId;
+  const sup = inv.supplierId ? (state.suppliers || []).find(s => s.id === inv.supplierId) : null;
+  document.getElementById('approve-inv-info').innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+      <span style="color:var(--text-muted);font-size:13px;">Fatura No</span>
+      <span style="font-weight:600;">${escapeHtml(inv.invoiceNo || '—')}</span>
+    </div>
+    ${sup ? `<div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+      <span style="color:var(--text-muted);font-size:13px;">Tedarikçi</span>
+      <span>${escapeHtml(sup.name)}</span>
+    </div>` : ''}
+    <div style="display:flex;justify-content:space-between;">
+      <span style="color:var(--text-muted);font-size:13px;">Tutar</span>
+      <span style="font-weight:700;color:var(--danger);font-size:15px;">₺${fmtMoney(inv.totalAmount || 0)}</span>
+    </div>
+  `;
+  openModal('approve-inv-modal');
+}
+
+async function doApproveInvoice() {
+  const id = document.getElementById('approve-inv-id').value;
+  await approveStockInvoice(id);
+  closeModal('approve-inv-modal');
+}
+
+async function doApproveAndPay() {
+  const id = document.getElementById('approve-inv-id').value;
+  const inv = (state.stockInvoices || []).find(i => i.id === id);
+  if (!inv) return;
+  closeModal('approve-inv-modal');
+  inv.isApproved = true;
+  await saveState();
+  showToast('Fatura onaylandı', 'success');
+  refreshSupplierPages();
+  openPaymentModal(inv.supplierId, inv.id, inv.totalAmount || 0);
+}
+
+// --- Ödeme Modal ---
+
+function openPaymentModal(supplierId, invId, amount) {
+  document.getElementById('pay-id').value = '';
+  document.getElementById('pay-supplier-id').value = supplierId || '';
+  document.getElementById('pay-invoice-id').value = invId || '';
+  document.getElementById('pay-date').value = todayStr();
+  document.getElementById('pay-amount').value = amount > 0 ? amount : '';
+  document.getElementById('pay-method').value = 'Nakit';
+  document.getElementById('pay-note').value = '';
+  openModal('supplier-payment-modal');
+  setTimeout(() => document.getElementById('pay-amount').focus(), 50);
+}
+
+async function saveSupplierPayment() {
+  const supplierId = document.getElementById('pay-supplier-id').value;
+  const invId = document.getElementById('pay-invoice-id').value;
+  const dateVal = document.getElementById('pay-date').value;
+  const amount = parseFloat(document.getElementById('pay-amount').value.replace(',', '.'));
+  const method = document.getElementById('pay-method').value;
+  const note = document.getElementById('pay-note').value.trim();
+  const editId = document.getElementById('pay-id').value;
+
+  if (!dateVal) { showToast('Tarih zorunlu', 'danger'); return; }
+  if (!amount || amount <= 0) { showToast('Geçerli bir tutar girin', 'danger'); return; }
+
+  if (!state.supplierPayments) state.supplierPayments = [];
+  const data = { supplierId, invoiceId: invId || '', date: dateVal, amount, method, note,
+                 updatedAt: new Date().toISOString() };
+
+  if (editId) {
+    const idx = state.supplierPayments.findIndex(p => p.id === editId);
+    if (idx !== -1) state.supplierPayments[idx] = { ...state.supplierPayments[idx], ...data };
+  } else {
+    state.supplierPayments.push({ id: uid(), createdAt: new Date().toISOString(), ...data });
+  }
+
+  await saveState();
+  closeModal('supplier-payment-modal');
+  showToast('Ödeme kaydedildi', 'success');
+  refreshSupplierPages();
+}
+
+async function deleteSupplierPayment(id) {
+  showConfirm('Bu ödeme kaydını silmek istediğinize emin misiniz?', async () => {
+    state.supplierPayments = (state.supplierPayments || []).filter(p => p.id !== id);
+    await saveState();
+    showToast('Ödeme silindi', 'success');
+    refreshSupplierPages();
+  });
 }
 
 // --- Modal: Tedarikçi ---
@@ -10665,13 +10875,10 @@ async function deleteSupplier(id) {
     : `"${s.name}" tedarikçisini silmek istediğinize emin misiniz?`;
   showConfirm(msg, async () => {
     state.suppliers = (state.suppliers || []).filter(x => x.id !== id);
-    // Fatura kayıtlarını silmiyoruz, sadece supplierId bağlantısını koparıyoruz
     (state.stockInvoices || []).forEach(inv => {
-      if (inv.supplierId === id) {
-        inv.supplierId = '';
-        // supplier (metin) alanı kalır — geçmiş için
-      }
+      if (inv.supplierId === id) inv.supplierId = '';
     });
+    state.supplierPayments = (state.supplierPayments || []).filter(p => p.supplierId !== id);
     await saveState();
     showToast('Tedarikçi silindi', 'success');
     goto('suppliers');
