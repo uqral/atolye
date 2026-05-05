@@ -2966,7 +2966,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.05.1702';
+const APP_VERSION = '2026.05.05.1705';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -9283,9 +9283,9 @@ function addStockInvoiceRow(item) {
 
   const existingPart = item ? (state.parts || []).find(p => p.id === item.partId) : null;
   const selPartId = existingPart?.id || '';
-  const selPartLabel = existingPart
-    ? existingPart.name + (existingPart.brand ? ' — ' + existingPart.brand : '')
-    : '';
+  const selPartName = existingPart?.name || '';
+  const selBrand = existingPart?.brand || '';
+  const selCategory = existingPart?.category || '';
 
   const defaultKdv = state.settings?.kdvRate ?? 20;
   const itemKdv = item?.kdvRate ?? defaultKdv;
@@ -9296,11 +9296,13 @@ function addStockInvoiceRow(item) {
   const lbl = 'display:block;font-size:11px;color:var(--text-muted);margin-bottom:3px;font-weight:500;';
 
   card.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 72px 80px 32px;gap:8px;align-items:end;margin-bottom:8px;">
+    <div style="display:grid;grid-template-columns:130px 150px 1fr 72px 80px 32px;gap:8px;align-items:end;margin-bottom:8px;">
+      <div><label style="${lbl}">Kategori</label><input type="text" class="sinv-part-category" value="${escapeHtml(selCategory)}" placeholder="Kategori..." autocomplete="off" style="${inp}"></div>
+      <div><label style="${lbl}">Marka</label><input type="text" class="sinv-part-brand" value="${escapeHtml(selBrand)}" placeholder="Marka..." autocomplete="off" style="${inp}"></div>
       <div style="position:relative;">
         <label style="${lbl}">Parça *</label>
         <input type="hidden" class="sinv-part-id" value="${escapeHtml(selPartId)}">
-        <input type="text" class="sinv-part-search" value="${escapeHtml(selPartLabel)}"
+        <input type="text" class="sinv-part-search" value="${escapeHtml(selPartName)}"
           placeholder="Parça adı yazın..."
           oninput="showSinvPartSuggestions(this)"
           onfocus="showSinvPartSuggestions(this)"
@@ -9371,7 +9373,11 @@ function selectSinvPart(event, partId) {
   if (!part) return;
   card.querySelector('.sinv-part-id').value = partId;
   delete card.dataset.newPart;
-  card.querySelector('.sinv-part-search').value = part.name + (part.brand ? ' — ' + part.brand : '');
+  card.querySelector('.sinv-part-search').value = part.name;
+  const brandEl = card.querySelector('.sinv-part-brand');
+  if (brandEl) brandEl.value = part.brand || '';
+  const catEl = card.querySelector('.sinv-part-category');
+  if (catEl) catEl.value = part.category || '';
   if (part.buyPrice) card.querySelector('.sinv-price').value = part.buyPrice;
   const dd = card.querySelector('.sinv-suggestions');
   if (dd) dd.style.display = 'none';
@@ -9505,7 +9511,9 @@ async function saveStockInvoice() {
     if (!part) {
       const newName = (card.dataset.newPart || card.querySelector('.sinv-part-search')?.value || '').trim();
       if (!newName) return;
-      part = { id: uid(), name: newName, brand: '', category: '', unit: 'Adet',
+      const newBrand = (card.querySelector('.sinv-part-brand')?.value || '').trim();
+      const newCat = (card.querySelector('.sinv-part-category')?.value || '').trim();
+      part = { id: uid(), name: newName, brand: newBrand, category: newCat, unit: 'Adet',
                buyPrice: unitPrice, sellPrice: 0, laborPrice: 0,
                currentStock: 0, createdAt: new Date().toISOString() };
       if (!state.parts) state.parts = [];
