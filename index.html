@@ -3029,7 +3029,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.05.1731';
+const APP_VERSION = '2026.05.05.1734';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -10405,6 +10405,7 @@ function renderSupplierDetail() {
         <td></td>
         <td style="text-align:right;font-weight:600;color:var(--success);">₺${fmtMoney(p.amount)}</td>
         <td style="text-align:right;">
+          <button class="btn btn-sm" onclick="editSupplierPayment('${p.id}')">${editSvg}</button>
           <button class="btn btn-sm btn-danger" onclick="deleteSupplierPayment('${p.id}')">${delSvg}</button>
         </td>
       </tr>`;
@@ -10773,6 +10774,20 @@ function openPaymentModal(supplierId, invId, amount) {
   document.getElementById('pay-amount').value = amount > 0 ? amount : '';
   document.getElementById('pay-method').value = 'Nakit';
   document.getElementById('pay-note').value = '';
+  openModal('supplier-payment-modal');
+  setTimeout(() => document.getElementById('pay-amount').focus(), 50);
+}
+
+function editSupplierPayment(id) {
+  const p = (state.supplierPayments || []).find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('pay-id').value = p.id;
+  document.getElementById('pay-supplier-id').value = p.supplierId || '';
+  document.getElementById('pay-invoice-id').value = p.invoiceId || '';
+  document.getElementById('pay-date').value = p.date || '';
+  document.getElementById('pay-amount').value = p.amount || '';
+  document.getElementById('pay-method').value = p.method || 'Nakit';
+  document.getElementById('pay-note').value = p.note || '';
   openModal('supplier-payment-modal');
   setTimeout(() => document.getElementById('pay-amount').focus(), 50);
 }
