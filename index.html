@@ -2025,6 +2025,24 @@
         <button class="btn btn-primary" onclick="openStockInvoiceModal()">+ Yeni Fatura</button>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+        <div class="drp-wrap" id="sinv-drp" style="position:relative;">
+          <div class="drp-trigger" onclick="toggleSinvDrp()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <span class="drp-label" id="sinv-drp-label">Tarih seçin</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:auto"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="drp-panel" id="sinv-drp-panel">
+            <div class="drp-presets">
+              <button class="drp-preset-btn" onclick="sinvDrpPreset('today')">Bugün</button>
+              <button class="drp-preset-btn" onclick="sinvDrpPreset('7d')">Son 7 Gün</button>
+              <button class="drp-preset-btn" onclick="sinvDrpPreset('30d')">Son 30 Gün</button>
+              <button class="drp-preset-btn active" onclick="sinvDrpPreset('this_month')">Bu Ay</button>
+              <button class="drp-preset-btn" onclick="sinvDrpPreset('last_month')">Geçen Ay</button>
+              <button class="drp-preset-btn" onclick="sinvDrpPreset('all')">Tüm Zamanlar</button>
+            </div>
+            <div class="drp-cals" id="sinv-drp-cals"></div>
+          </div>
+        </div>
         <input type="text" id="sinvoice-search" placeholder="Fatura no veya açıklama ara..." oninput="renderSupplierInvoices()" style="flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);">
         <select id="sinvoice-filter-supplier" onchange="renderSupplierInvoices()" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);">
           <option value="">Tüm Tedarikçiler</option>
@@ -3094,7 +3112,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.08.1759';
+const APP_VERSION = '2026.05.08.1929';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -3566,6 +3584,13 @@ let _drpStep = 'from';
 let _drpHover = null;
 let _drpLY = new Date().getFullYear();
 let _drpLM = new Date().getMonth();
+
+// Supplier Invoices DRP state
+let _sinvDrpFrom = null, _sinvDrpTo = null;
+let _sinvDrpStep = 'from';
+let _sinvDrpHover = null;
+let _sinvDrpLY = new Date().getFullYear();
+let _sinvDrpLM = new Date().getMonth();
 let editingServiceId = null;
 let editingStudentId = null;
 let editingTeacherId = null;
@@ -10826,7 +10851,188 @@ function renderSupplierPayments() {
 
 // --- Render: Tüm Faturalar ---
 
+// ============ SINV DATE RANGE PICKER ============
+function sinvDrpUpdateTrigger() {
+  const lbl = document.getElementById('sinv-drp-label');
+  if (!lbl) return;
+  if (_sinvDrpFrom && _sinvDrpTo) {
+    lbl.textContent = `${drpFmtDisplay(_sinvDrpFrom)}  –  ${drpFmtDisplay(_sinvDrpTo)}`;
+  } else if (_sinvDrpFrom) {
+    lbl.textContent = `${drpFmtDisplay(_sinvDrpFrom)}  –  ...`;
+  } else {
+    lbl.textContent = 'Tüm Zamanlar';
+  }
+}
+function sinvDrpInit() {
+  if (_sinvDrpFrom && _sinvDrpTo) { sinvDrpUpdateTrigger(); return; }
+  const now = new Date();
+  _sinvDrpLY = now.getFullYear();
+  _sinvDrpLM = now.getMonth();
+  _sinvDrpFrom = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  _sinvDrpTo = drpDateStr(now);
+  _sinvDrpStep = 'from';
+  sinvDrpUpdateTrigger();
+}
+function toggleSinvDrp() {
+  const panel = document.getElementById('sinv-drp-panel');
+  if (!panel) return;
+  if (panel.classList.contains('open')) { closeSinvDrp(); return; }
+  sinvDrpRenderCals();
+  panel.classList.add('open');
+}
+function closeSinvDrp() {
+  const panel = document.getElementById('sinv-drp-panel');
+  if (panel) panel.classList.remove('open');
+  _sinvDrpHover = null;
+}
+function sinvDrpGetDayClasses(ds) {
+  const classes = ['drp-day'];
+  if (ds === drpDateStr(new Date())) classes.push('drp-day--today');
+  const f = _sinvDrpFrom;
+  const t = (_sinvDrpStep === 'to' && _sinvDrpHover) ? _sinvDrpHover : _sinvDrpTo;
+  if (f && t) {
+    const lo = f <= t ? f : t, hi = f <= t ? t : f;
+    if (ds === lo && ds === hi) classes.push('drp-day--start','drp-day--end');
+    else if (ds === lo) classes.push('drp-day--start');
+    else if (ds === hi) classes.push('drp-day--end');
+    else if (ds > lo && ds < hi) classes.push('drp-day--in-range');
+  } else if (f && ds === f) {
+    classes.push('drp-day--start');
+  }
+  return classes.join(' ');
+}
+function sinvDrpUpdateDayClasses() {
+  document.querySelectorAll('#sinv-drp-cals .drp-day[data-d]').forEach(el => {
+    el.className = sinvDrpGetDayClasses(el.dataset.d);
+  });
+}
+function sinvDrpRenderCal(year, month, side) {
+  const MN = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const DN = ['Pt','Sa','Çr','Pe','Cu','Ct','Pz'];
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month + 1, 0);
+  const startDow = (firstDay.getDay() + 6) % 7;
+  const endDow   = (lastDay.getDay() + 6) % 7;
+  const curY = new Date().getFullYear();
+  const yearOpts = Array.from({length: curY - 2014 + 3}, (_,i) => 2015+i)
+    .map(y => `<option value="${y}"${y===year?' selected':''}>${y}</option>`).join('');
+  const monthOpts = MN.map((m,i) => `<option value="${i}"${i===month?' selected':''}>${m}</option>`).join('');
+  const prevBtn = side==='left'
+    ? `<button class="drp-nav" onclick="sinvDrpNav(-1)">&#8249;</button>`
+    : `<span class="drp-nav-ph"></span>`;
+  const nextBtn = side==='right'
+    ? `<button class="drp-nav" onclick="sinvDrpNav(1)">&#8250;</button>`
+    : `<span class="drp-nav-ph"></span>`;
+  let grid = '';
+  for (let i=0; i<startDow; i++) {
+    const d = new Date(year, month, i-startDow+1);
+    const ds = drpDateStr(d);
+    grid += `<div class="drp-day drp-day--other" data-d="${ds}" onmouseenter="sinvDrpHover('${ds}')" onmouseleave="sinvDrpHoverEnd()" onclick="sinvDrpClick('${ds}')">${d.getDate()}</div>`;
+  }
+  for (let d=1; d<=lastDay.getDate(); d++) {
+    const ds = drpDateStr(new Date(year, month, d));
+    grid += `<div class="${sinvDrpGetDayClasses(ds)}" data-d="${ds}" onmouseenter="sinvDrpHover('${ds}')" onmouseleave="sinvDrpHoverEnd()" onclick="sinvDrpClick('${ds}')">${d}</div>`;
+  }
+  if (endDow < 6) {
+    for (let i=1; i<=6-endDow; i++) {
+      const d = new Date(year, month+1, i);
+      const ds = drpDateStr(d);
+      grid += `<div class="drp-day drp-day--other" data-d="${ds}" onmouseenter="sinvDrpHover('${ds}')" onmouseleave="sinvDrpHoverEnd()" onclick="sinvDrpClick('${ds}')">${i}</div>`;
+    }
+  }
+  return `<div class="drp-cal">
+    <div class="drp-cal-hd">
+      ${prevBtn}
+      <select class="drp-sel" onchange="sinvDrpSetCalMonth('${side}',+this.value)">${monthOpts}</select>
+      <select class="drp-sel" onchange="sinvDrpSetCalYear('${side}',+this.value)">${yearOpts}</select>
+      ${nextBtn}
+    </div>
+    <div class="drp-dow-row">${DN.map(d=>`<div class="drp-dow">${d}</div>`).join('')}</div>
+    <div class="drp-cal-grid">${grid}</div>
+  </div>`;
+}
+function sinvDrpRenderCals() {
+  const cals = document.getElementById('sinv-drp-cals');
+  if (!cals) return;
+  let ry = _sinvDrpLY, rm = _sinvDrpLM + 1;
+  if (rm > 11) { rm = 0; ry++; }
+  cals.innerHTML = sinvDrpRenderCal(_sinvDrpLY, _sinvDrpLM, 'left') + sinvDrpRenderCal(ry, rm, 'right');
+}
+function sinvDrpNav(dir) {
+  _sinvDrpLM += dir;
+  if (_sinvDrpLM < 0)  { _sinvDrpLM = 11; _sinvDrpLY--; }
+  if (_sinvDrpLM > 11) { _sinvDrpLM = 0;  _sinvDrpLY++; }
+  sinvDrpRenderCals();
+}
+function sinvDrpSetCalMonth(side, month) {
+  if (side === 'left') {
+    _sinvDrpLM = month;
+  } else {
+    _sinvDrpLM = month - 1;
+    if (_sinvDrpLM < 0) { _sinvDrpLM = 11; _sinvDrpLY--; }
+  }
+  sinvDrpRenderCals();
+}
+function sinvDrpSetCalYear(side, year) {
+  if (side === 'left') {
+    _sinvDrpLY = year;
+  } else {
+    _sinvDrpLY = (_sinvDrpLM === 11) ? year - 1 : year;
+  }
+  sinvDrpRenderCals();
+}
+function sinvDrpHover(ds) {
+  _sinvDrpHover = ds;
+  if (_sinvDrpStep === 'to') sinvDrpUpdateDayClasses();
+}
+function sinvDrpHoverEnd() {
+  _sinvDrpHover = null;
+  if (_sinvDrpStep === 'to') sinvDrpUpdateDayClasses();
+}
+function sinvDrpClick(ds) {
+  if (_sinvDrpStep === 'from') {
+    _sinvDrpFrom = ds; _sinvDrpTo = null; _sinvDrpStep = 'to';
+    sinvDrpUpdateDayClasses(); sinvDrpUpdateTrigger();
+  } else {
+    if (ds < _sinvDrpFrom) { _sinvDrpTo = _sinvDrpFrom; _sinvDrpFrom = ds; }
+    else { _sinvDrpTo = ds; }
+    _sinvDrpStep = 'from';
+    sinvDrpUpdateDayClasses(); sinvDrpUpdateTrigger(); closeSinvDrp();
+    renderSupplierInvoices();
+  }
+}
+function sinvDrpPreset(type) {
+  const now = new Date(), today = drpDateStr(now);
+  if (type === 'today') {
+    _sinvDrpFrom = _sinvDrpTo = today;
+  } else if (type === '7d') {
+    const s = new Date(now); s.setDate(s.getDate()-6);
+    _sinvDrpFrom = drpDateStr(s); _sinvDrpTo = today;
+  } else if (type === '30d') {
+    const s = new Date(now); s.setDate(s.getDate()-29);
+    _sinvDrpFrom = drpDateStr(s); _sinvDrpTo = today;
+  } else if (type === 'this_month') {
+    _sinvDrpFrom = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+    _sinvDrpTo = today;
+  } else if (type === 'last_month') {
+    const s = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    const e = new Date(now.getFullYear(), now.getMonth(), 0);
+    _sinvDrpFrom = drpDateStr(s); _sinvDrpTo = drpDateStr(e);
+  } else if (type === 'all') {
+    _sinvDrpFrom = null; _sinvDrpTo = null;
+  }
+  _sinvDrpStep = 'from';
+  if (_sinvDrpFrom) { const p=_sinvDrpFrom.split('-'); _sinvDrpLY=+p[0]; _sinvDrpLM=+p[1]-1; }
+  sinvDrpUpdateTrigger();
+  document.querySelectorAll('#sinv-drp-panel .drp-preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  sinvDrpRenderCals();
+  closeSinvDrp();
+  renderSupplierInvoices();
+}
+
 function renderSupplierInvoices() {
+  sinvDrpInit();
   const q = (document.getElementById('sinvoice-search')?.value || '').toLowerCase().trim();
   const filterSup = document.getElementById('sinvoice-filter-supplier')?.value || '';
   const filterApproval = document.getElementById('sinvoice-filter-approval')?.value || '';
@@ -10846,6 +11052,8 @@ function renderSupplierInvoices() {
     if (filterApproval === 'approved' && !inv.isApproved) return false;
     if (filterApproval === 'pending' && inv.isApproved) return false;
     if (q && !((inv.invoiceNo || '').toLowerCase().includes(q) || (inv.notes || '').toLowerCase().includes(q))) return false;
+    if (_sinvDrpFrom && (inv.date || '') < _sinvDrpFrom) return false;
+    if (_sinvDrpTo && (inv.date || '') > _sinvDrpTo) return false;
     return true;
   }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
