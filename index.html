@@ -2077,7 +2077,7 @@
               <button class="drp-preset-btn" onclick="spayDrpPreset('today')">Bugün</button>
               <button class="drp-preset-btn" onclick="spayDrpPreset('7d')">Son 7 Gün</button>
               <button class="drp-preset-btn" onclick="spayDrpPreset('30d')">Son 30 Gün</button>
-              <button class="drp-preset-btn active" onclick="spayDrpPreset('this_month')">Bu Ay</button>
+              <button class="drp-preset-btn" onclick="spayDrpPreset('this_month')">Bu Ay</button>
               <button class="drp-preset-btn" onclick="spayDrpPreset('last_month')">Geçen Ay</button>
               <button class="drp-preset-btn" onclick="spayDrpPreset('all')">Tüm Zamanlar</button>
             </div>
@@ -3130,7 +3130,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.08.1931';
+const APP_VERSION = '2026.05.08.1944';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -9217,6 +9217,8 @@ document.addEventListener('click', (e) => {
     document.querySelectorAll('.rapor-ms-panel.open').forEach(p => p.classList.remove('open'));
   }
   if (!e.target.closest('#rapor-drp')) closeDrp();
+  if (!e.target.closest('#sinv-drp')) closeSinvDrp();
+  if (!e.target.closest('#spay-drp')) closeSpayDrp();
 });
 
 document.addEventListener('keydown', (e) => {
@@ -10819,13 +10821,9 @@ function spayDrpUpdateTrigger() {
   }
 }
 function spayDrpInit() {
-  if (_spayDrpFrom && _spayDrpTo) { spayDrpUpdateTrigger(); return; }
   const now = new Date();
   _spayDrpLY = now.getFullYear();
   _spayDrpLM = now.getMonth();
-  _spayDrpFrom = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-  _spayDrpTo = drpDateStr(now);
-  _spayDrpStep = 'from';
   spayDrpUpdateTrigger();
 }
 function toggleSpayDrp() {
