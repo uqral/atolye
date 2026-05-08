@@ -1682,6 +1682,7 @@
         <div class="nav-sub-items">
           <div class="nav-sub-item" data-page="suppliers">Tedarikçiler</div>
           <div class="nav-sub-item" data-page="supplier-invoices">Faturalar</div>
+          <div class="nav-sub-item" data-page="supplier-payments">Ödemeler</div>
         </div>
       </div>
       <div class="nav-item" data-page="invoices">
@@ -1969,6 +1970,11 @@
       </div>
     </section>
 
+    <!-- Parça Detay -->
+    <section id="page-part-detail" class="page hidden">
+      <div id="part-detail-content"></div>
+    </section>
+
     <!-- Stok Takibi -->
     <section id="page-stock" class="page hidden">
       <div class="page-header">
@@ -2030,6 +2036,36 @@
         </select>
       </div>
       <div class="section"><div id="supplier-invoices-list"></div></div>
+    </section>
+
+    <!-- Tedarikçi Ödemeleri -->
+    <section id="page-supplier-payments" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Ödemeler</h2>
+          <p class="page-subtitle">Tedarikçilere yapılan tüm ödemeler</p>
+        </div>
+        <button class="btn btn-primary" onclick="openPaymentModal('','',0)">+ Yeni Ödeme</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+        <input type="text" id="spay-search" placeholder="Tedarikçi adı veya not ara..."
+               oninput="renderSupplierPayments()"
+               style="flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);">
+        <select id="spay-filter-supplier" onchange="renderSupplierPayments()"
+                style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);">
+          <option value="">Tüm Tedarikçiler</option>
+        </select>
+        <select id="spay-filter-method" onchange="renderSupplierPayments()"
+                style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);">
+          <option value="">Tüm Yöntemler</option>
+          <option>Nakit</option>
+          <option>Havale / EFT</option>
+          <option>Kredi Kartı</option>
+          <option>Çek</option>
+          <option>Diğer</option>
+        </select>
+      </div>
+      <div class="section"><div id="supplier-payments-list"></div></div>
     </section>
 
     <!-- Raporlar -->
@@ -2427,6 +2463,35 @@
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('part-modal')">İptal</button>
       <button class="btn btn-primary" onclick="savePart()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Maliyet Ekle Modal -->
+<div class="modal-backdrop" id="add-cost-modal" onclick="if(event.target===this)closeModal('add-cost-modal')">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3 class="modal-title">Maliyet Kaydı Ekle</h3>
+      <button class="modal-close" onclick="closeModal('add-cost-modal')">×</button>
+    </div>
+    <input type="hidden" id="cost-part-id">
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Tarih</label>
+        <input type="date" id="cost-date">
+      </div>
+      <div class="form-field">
+        <label>Birim Maliyet (₺, KDV Hariç)</label>
+        <input type="number" id="cost-price" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div class="form-field">
+        <label>Not <span style="color:var(--text-muted);font-weight:400">(isteğe bağlı)</span></label>
+        <input type="text" id="cost-note" placeholder="Fatura no, tedarikçi, vb.">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('add-cost-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="savePartCost()">Kaydet</button>
     </div>
   </div>
 </div>
@@ -3029,7 +3094,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '2026.05.05.1734';
+const APP_VERSION = '2026.05.08.1759';
 // ============ CAR DATA ============
 const CAR_DATA = {
   'Audi': ['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q5','Q7','Q8','TT','e-tron'],
@@ -3505,6 +3570,7 @@ let editingServiceId = null;
 let editingStudentId = null;
 let editingTeacherId = null;
 let editingPartId = null;
+let currentPartDetailId = null;
 let _pendingPartRow = null;
 let editingSupplierId = null;
 let editingSupplierInvoiceId = null;
@@ -3677,7 +3743,7 @@ function renderPeriodBar(pageKey) {
 // Aktif olan sayfayı yeniden render eder
 function refreshCurrentPage() {
   Object.keys(pageState).forEach(k => pageState[k] = 1);
-  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue', 'invoices', 'parts', 'stock', 'suppliers', 'supplier-detail', 'supplier-invoices'];
+  const pages = ['dashboard', 'vehicles', 'services', 'students', 'teachers', 'revenue', 'invoices', 'parts', 'part-detail', 'stock', 'suppliers', 'supplier-detail', 'supplier-invoices', 'supplier-payments'];
   for (const p of pages) {
     const el = document.getElementById('page-' + p);
     if (el && !el.classList.contains('hidden')) {
@@ -3689,10 +3755,12 @@ function refreshCurrentPage() {
       else if (p === 'revenue') renderRevenue();
       else if (p === 'invoices') renderInvoices();
       else if (p === 'parts') renderParts();
+      else if (p === 'part-detail') renderPartDetail();
       else if (p === 'stock') renderStock();
       else if (p === 'suppliers') renderSuppliers();
       else if (p === 'supplier-detail') renderSupplierDetail();
       else if (p === 'supplier-invoices') renderSupplierInvoices();
+      else if (p === 'supplier-payments') renderSupplierPayments();
       return;
     }
   }
@@ -3761,6 +3829,7 @@ async function loadState() {
       stockInvoices: s.stockInvoices || [],
       suppliers: s.suppliers || [],
       supplierInvoices: s.supplierInvoices || [],
+      supplierPayments: s.supplierPayments || [],
       settings: Object.assign({
         workshopName: 'Atölye',
         defaultLabor: 0,
@@ -3939,11 +4008,11 @@ function goto(page) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-sub-item').forEach(el => el.classList.remove('active'));
 
-  if (page === 'stock-main' || page === 'stock-status' || page === 'parts') {
+  if (page === 'stock-main' || page === 'stock-status' || page === 'parts' || page === 'part-detail') {
     document.getElementById('nav-group-stock').classList.add('open');
-    const subItem = document.querySelector(`.nav-sub-item[data-page="${page}"]`);
+    const subItem = document.querySelector(`.nav-sub-item[data-page="${page === 'part-detail' ? 'parts' : page}"]`);
     if (subItem) subItem.classList.add('active');
-  } else if (page === 'suppliers' || page === 'supplier-invoices' || page === 'supplier-detail' || page === 'invoice-detail') {
+  } else if (page === 'suppliers' || page === 'supplier-invoices' || page === 'supplier-payments' || page === 'supplier-detail' || page === 'invoice-detail') {
     document.getElementById('nav-group-purchasing').classList.add('open');
     const subItem = document.querySelector(`.nav-sub-item[data-page="${page}"]`);
     if (subItem) subItem.classList.add('active');
@@ -3965,6 +4034,7 @@ function goto(page) {
   if (page === 'revenue') renderRevenue();
   if (page === 'invoices') renderInvoices();
   if (page === 'parts') renderParts();
+  if (page === 'part-detail') renderPartDetail();
   if (page === 'stock-main' || page === 'stock-status') {
     stockTab = (page === 'stock-status') ? 'status' : 'main';
     renderStock();
@@ -3975,6 +4045,7 @@ function goto(page) {
   if (page === 'supplier-detail') renderSupplierDetail();
   if (page === 'supplier-invoices') renderSupplierInvoices();
   if (page === 'invoice-detail') renderInvoiceDetail();
+  if (page === 'supplier-payments') renderSupplierPayments();
   localStorage.setItem('atolye_last_page', page);
   window.scrollTo(0, 0);
 }
@@ -4933,7 +5004,7 @@ function renderParts() {
     const usage = usageCounts[p.name.toLowerCase()] || 0;
     const laborBadge = p.isLabor ? ' <span class="badge" style="background:var(--primary-soft,#fef3c7);color:var(--warning,#d97706);font-size:10px;padding:1px 5px;border-radius:4px;vertical-align:middle;">İşçilik</span>' : '';
     return `<tr${p.isLabor ? ' style="background:var(--surface-alt)"' : ''}>
-      <td><strong>${escapeHtml(p.name)}</strong>${laborBadge}</td>
+      <td><a href="#" onclick="event.preventDefault();openPartDetail('${p.id}')" style="color:var(--text);font-weight:700;text-decoration:none;">${escapeHtml(p.name)}</a>${laborBadge}</td>
       <td style="color:var(--text-muted)">${escapeHtml(p.brand || '—')}</td>
       <td style="color:var(--text-muted)">${escapeHtml(p.category || '—')}</td>
       <td style="color:var(--text-muted)">${escapeHtml(p.unit || '—')}</td>
@@ -5002,10 +5073,18 @@ async function savePart() {
     isLabor: document.getElementById('part-is-labor').checked,
   };
   if (editingPartId) {
+    const existing = state.parts.find(p => p.id === editingPartId);
+    const prevHistory = existing?.priceHistory || [];
+    if (existing && existing.buyPrice !== data.buyPrice && data.buyPrice > 0) {
+      data.priceHistory = [...prevHistory, { date: todayStr(), price: data.buyPrice, source: 'manual' }];
+    } else {
+      data.priceHistory = prevHistory;
+    }
     const idx = state.parts.findIndex(p => p.id === editingPartId);
     if (idx !== -1) state.parts[idx] = { ...state.parts[idx], ...data };
   } else {
-    state.parts.push({ id: uid(), currentStock: 0, ...data });
+    const initHistory = data.buyPrice > 0 ? [{ date: todayStr(), price: data.buyPrice, source: 'manual' }] : [];
+    state.parts.push({ id: uid(), currentStock: 0, priceHistory: initHistory, ...data });
   }
   await saveState();
   closeModal('part-modal');
@@ -5038,6 +5117,196 @@ function deletePart(id) {
     renderParts();
     updatePartsDatalist();
   });
+}
+
+// ============ PARÇA DETAY ============
+
+function openPartDetail(id) {
+  currentPartDetailId = id;
+  goto('part-detail');
+}
+
+function openAddCostModal(partId) {
+  document.getElementById('cost-part-id').value = partId;
+  document.getElementById('cost-date').value = todayStr();
+  document.getElementById('cost-price').value = '';
+  document.getElementById('cost-note').value = '';
+  openModal('add-cost-modal');
+  setTimeout(() => document.getElementById('cost-price').focus(), 50);
+}
+
+async function savePartCost() {
+  const partId = document.getElementById('cost-part-id').value;
+  const date = document.getElementById('cost-date').value;
+  const price = parseFloat(document.getElementById('cost-price').value.replace(',', '.'));
+  const note = document.getElementById('cost-note').value.trim();
+  if (!date) { showToast('Tarih zorunlu', 'danger'); return; }
+  if (!price || price <= 0) { showToast('Geçerli bir maliyet girin', 'danger'); return; }
+  const part = (state.parts || []).find(p => p.id === partId);
+  if (!part) return;
+  if (!part.priceHistory) part.priceHistory = [];
+  part.priceHistory.push({ date, price, source: 'manual', note: note || '' });
+  part.buyPrice = price;
+  await saveState();
+  closeModal('add-cost-modal');
+  showToast('Maliyet kaydedildi, alış fiyatı güncellendi', 'success');
+  renderPartDetail();
+}
+
+async function deletePartCostEntry(partId, idx) {
+  const part = (state.parts || []).find(p => p.id === partId);
+  if (!part || !part.priceHistory) return;
+  part.priceHistory.splice(idx, 1);
+  if (part.priceHistory.length > 0) {
+    const latest = [...part.priceHistory].sort((a, b) => b.date.localeCompare(a.date))[0];
+    part.buyPrice = latest.price;
+  }
+  await saveState();
+  showToast('Kayıt silindi', 'success');
+  renderPartDetail();
+}
+
+function renderPartDetail() {
+  const host = document.getElementById('part-detail-content');
+  if (!host) return;
+  const part = (state.parts || []).find(p => p.id === currentPartDetailId);
+  if (!part) {
+    host.innerHTML = `<div class="empty"><h3>Parça bulunamadı</h3></div>`;
+    return;
+  }
+
+  const margin = part.sellPrice > 0 ? Math.round((part.sellPrice - part.buyPrice) / part.sellPrice * 100) : null;
+  const usageCount = (state.services || []).reduce((n, s) => n + (s.parts || []).filter(p => p.name?.toLowerCase() === part.name?.toLowerCase()).reduce((a, p) => a + (Number(p.qty) || 1), 0), 0);
+
+  // --- Maliyet geçmişi ---
+  const history = [...(part.priceHistory || [])].sort((a, b) => b.date.localeCompare(a.date));
+  const historyAsc = [...history].reverse();
+
+  const costRows = history.map((entry, revIdx) => {
+    const origIdx = (part.priceHistory || []).findIndex(e => e === history[revIdx]);
+    const prevEntry = historyAsc[historyAsc.indexOf(entry) - 1] || null;
+    const changePct = prevEntry ? ((entry.price - prevEntry.price) / prevEntry.price * 100) : null;
+    const changeHtml = changePct !== null
+      ? `<span style="font-weight:600;color:${changePct > 0 ? 'var(--danger)' : 'var(--success)'}">
+           ${changePct > 0 ? '▲' : '▼'} %${Math.abs(changePct).toFixed(1)}
+         </span>`
+      : `<span style="color:var(--text-muted)">—</span>`;
+    const srcBadge = entry.source === 'invoice'
+      ? `<span style="background:#eff6ff;color:#3b82f6;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;">Fatura</span>`
+      : `<span style="background:var(--surface-alt);color:var(--text-muted);padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;border:1px solid var(--border);">Manuel</span>`;
+    return `<tr>
+      <td>${fmtDate(entry.date)}</td>
+      <td style="font-weight:600;">₺${fmtMoney(entry.price)}</td>
+      <td>${srcBadge}${entry.note ? `<span style="font-size:11px;color:var(--text-muted);margin-left:4px;">${escapeHtml(entry.note)}</span>` : ''}</td>
+      <td>${changeHtml}</td>
+      <td style="text-align:right">
+        <button class="btn btn-sm btn-icon btn-danger" onclick="deletePartCostEntry('${part.id}',${origIdx})" title="Sil">×</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // --- Stok hareketleri ---
+  const txAsc = (state.stockTransactions || [])
+    .filter(t => t.partId === part.id)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  let runStock = 0;
+  txAsc.forEach(t => { t._balance = (runStock += (t.qty || 0)); });
+  const txDesc = [...txAsc].reverse();
+
+  const typeBadge = t => {
+    if (t.type === 'in_invoice') return `<span style="background:#f0fdf4;color:#16a34a;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;">Giriş/Fatura</span>`;
+    if (t.type === 'in_manual') return `<span style="background:#f0fdf4;color:#16a34a;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;">Manuel Giriş</span>`;
+    if (t.type === 'out_service') return `<span style="background:#fef2f2;color:#ef4444;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;">Çıkış/Servis</span>`;
+    return `<span style="background:var(--surface-alt);color:var(--text-muted);padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;border:1px solid var(--border);">${t.type}</span>`;
+  };
+
+  const txRows = txDesc.map(t => {
+    let refHtml = '—';
+    if (t.stockInvoiceId) {
+      const inv = (state.stockInvoices || []).find(i => i.id === t.stockInvoiceId);
+      refHtml = inv?.invoiceNo ? escapeHtml(inv.invoiceNo) : 'Fatura';
+    } else if (t.serviceId) {
+      const svc = (state.services || []).find(s => s.id === t.serviceId);
+      const veh = svc ? (state.vehicles || []).find(v => v.id === svc.vehicleId) : null;
+      refHtml = veh ? escapeHtml(veh.plate) : 'Servis';
+    }
+    const qtyColor = t.qty > 0 ? 'var(--success)' : 'var(--danger)';
+    return `<tr>
+      <td>${fmtDate(t.date)}</td>
+      <td>${typeBadge(t)}</td>
+      <td style="font-weight:600;color:${qtyColor}">${t.qty > 0 ? '+' : ''}${t.qty}</td>
+      <td class="money" style="color:var(--text-muted)">${t.unitPrice > 0 ? '₺' + fmtMoney(t.unitPrice) : '—'}</td>
+      <td style="color:var(--text-muted);font-size:12px">${refHtml}</td>
+      <td style="font-weight:600">${t._balance}</td>
+    </tr>`;
+  }).join('');
+
+  host.innerHTML = `
+    <div class="page-header">
+      <div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">
+          <a href="#" onclick="goto('parts');return false;" style="color:var(--primary);text-decoration:none;">Parçalar</a>
+          <span style="margin:0 6px;">›</span>
+          <span>${escapeHtml(part.name)}</span>
+        </div>
+        <h2 class="page-title">${escapeHtml(part.name)}</h2>
+        <p class="page-subtitle">${[part.brand, part.category, part.unit ? part.unit + ' birimi' : ''].filter(Boolean).map(escapeHtml).join(' · ') || 'Parça detayı'}</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" onclick="openPartModal('${part.id}')">Düzenle</button>
+        <button class="btn btn-primary" onclick="openAddCostModal('${part.id}')">+ Maliyet Ekle</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;">
+      <div class="section" style="flex:1;min-width:150px;padding:20px 24px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Güncel Alış</div>
+        <div style="font-size:22px;font-weight:700;">₺${fmtMoney(part.buyPrice)}</div>
+      </div>
+      <div class="section" style="flex:1;min-width:150px;padding:20px 24px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Satış Fiyatı</div>
+        <div style="font-size:22px;font-weight:700;color:var(--success);">₺${fmtMoney(part.sellPrice)}</div>
+      </div>
+      <div class="section" style="flex:1;min-width:150px;padding:20px 24px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Mevcut Stok</div>
+        <div style="font-size:22px;font-weight:700;color:${(part.currentStock || 0) > 0 ? 'var(--text)' : 'var(--text-muted)'};">${part.currentStock || 0}</div>
+      </div>
+      <div class="section" style="flex:1;min-width:150px;padding:20px 24px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Marj</div>
+        <div style="font-size:22px;font-weight:700;">${margin !== null ? margin + '%' : '—'}</div>
+      </div>
+      <div class="section" style="flex:1;min-width:150px;padding:20px 24px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Toplam Kullanım</div>
+        <div style="font-size:22px;font-weight:700;">${usageCount > 0 ? usageCount + ' adet' : '—'}</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+      <div class="section" style="padding:24px;">
+        <div style="font-weight:600;font-size:15px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);">Maliyet Değişimi</div>
+        ${history.length === 0
+          ? `<div class="empty" style="padding:32px 0;"><p>Henüz maliyet kaydı yok.<br>Fatura onaylayarak veya manuel giriş yaparak ekleyin.</p></div>`
+          : `<div style="overflow-x:auto;"><table class="table" style="font-size:13px;min-width:400px;">
+              <thead><tr>
+                <th>Tarih</th><th>Maliyet</th><th>Kaynak</th><th>Değişim</th><th></th>
+              </tr></thead>
+              <tbody>${costRows}</tbody>
+            </table></div>`
+        }
+      </div>
+      <div class="section" style="padding:24px;">
+        <div style="font-weight:600;font-size:15px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);">Stok Hareketleri</div>
+        ${txDesc.length === 0
+          ? `<div class="empty" style="padding:24px 0;"><p>Bu parçaya ait stok hareketi yok.</p></div>`
+          : `<div style="overflow-x:auto;"><table class="table" style="font-size:13px;min-width:520px;">
+              <thead><tr>
+                <th>Tarih</th><th>Tür</th><th>Miktar</th><th>Fiyat</th><th>Referans</th><th>Bakiye</th>
+              </tr></thead>
+              <tbody>${txRows}</tbody>
+            </table></div>`
+        }
+      </div>
+    </div>`;
 }
 
 function updatePartsDatalist() {
@@ -10359,8 +10628,20 @@ function renderSupplierDetail() {
     .filter(p => p.supplierId === s.id)
     .map(p => ({ _type: 'payment', date: p.date || '', data: p }));
 
+  // Önce eskiden-yeniye sırala → kümülatif bakiye hesapla
   const allRows = [...invoiceRows, ...paymentRows]
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => a.date.localeCompare(b.date));
+  let runningBalance = 0;
+  allRows.forEach(row => {
+    if (row._type === 'invoice' && row.data.isApproved) {
+      runningBalance += (row.data.totalAmount || 0);
+    } else if (row._type === 'payment') {
+      runningBalance -= (row.data.amount || 0);
+    }
+    row._balance = runningBalance;
+  });
+  // Görüntülemede yeniden-eskiye
+  allRows.sort((a, b) => b.date.localeCompare(a.date));
 
   const editSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
   const delSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>`;
@@ -10381,16 +10662,24 @@ function renderSupplierDetail() {
       const amountHtml = isDraft
         ? `<span style="color:var(--text-muted);">₺${fmtMoney(inv.totalAmount || 0)}</span>`
         : `<span style="font-weight:600;color:var(--danger);">₺${fmtMoney(inv.totalAmount || 0)}</span>`;
+      const balanceHtml = isDraft
+        ? `<span style="color:var(--text-muted);">—</span>`
+        : (() => {
+            const b = row._balance || 0;
+            const col = b > 0 ? 'var(--danger)' : b < 0 ? 'var(--success)' : 'var(--text-muted)';
+            return `<span style="font-weight:600;color:${col};">₺${fmtMoney(b)}</span>`;
+          })();
       rowsHtml += `<tr style="${rowStyle}" onclick="showStockInvoiceDetail('${inv.id}','supplier-detail')">
         <td>${fmtDate(inv.date)}</td>
         <td>${typeBadge}</td>
         <td style="font-weight:500;">${escapeHtml(inv.invoiceNo || '—')}${itemsText}</td>
         <td style="text-align:right;">${amountHtml}</td>
         <td></td>
+        <td style="text-align:right;">${balanceHtml}</td>
         <td style="text-align:right;" onclick="event.stopPropagation()">
           ${isDraft && (inv.items || []).length > 0
             ? `<button class="btn btn-sm btn-success" onclick="openApproveInvModal('${inv.id}')">✓ Onayla</button>`
-            : isDraft ? '' : `<button class="btn btn-sm btn-success" onclick="unapproveStockInvoice('${inv.id}')" title="Onayı kaldır" style="opacity:0.7;">Onaylı ✓</button>`}
+            : isDraft ? '' : `<button class="btn btn-sm" onclick="unapproveStockInvoice('${inv.id}')" title="Onayı kaldır" style="background:#fef2f2;color:#ef4444;border-color:#fca5a5;">Onayı Kaldır</button>`}
           <button class="btn btn-sm" onclick="openStockInvoiceModal('${inv.id}')">${editSvg}</button>
           <button class="btn btn-sm btn-danger" onclick="deleteStockInvoice('${inv.id}')">${delSvg}</button>
         </td>
@@ -10398,12 +10687,15 @@ function renderSupplierDetail() {
     } else {
       const p = row.data;
       const detay = escapeHtml(p.method) + (p.note ? ` · ${escapeHtml(p.note)}` : '');
+      const payBalance = row._balance || 0;
+      const payBalCol = payBalance > 0 ? 'var(--danger)' : payBalance < 0 ? 'var(--success)' : 'var(--text-muted)';
       rowsHtml += `<tr style="background:rgba(59,130,246,0.05);">
         <td>${fmtDate(p.date)}</td>
         <td><span style="background:#eff6ff;color:#3b82f6;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">ÖDEME</span></td>
         <td style="color:var(--text-muted);">${detay}</td>
         <td></td>
         <td style="text-align:right;font-weight:600;color:var(--success);">₺${fmtMoney(p.amount)}</td>
+        <td style="text-align:right;"><span style="font-weight:600;color:${payBalCol};">₺${fmtMoney(payBalance)}</span></td>
         <td style="text-align:right;">
           <button class="btn btn-sm" onclick="editSupplierPayment('${p.id}')">${editSvg}</button>
           <button class="btn btn-sm btn-danger" onclick="deleteSupplierPayment('${p.id}')">${delSvg}</button>
@@ -10453,12 +10745,83 @@ function renderSupplierDetail() {
             <th>Tarih</th><th>Tür</th><th>Detay</th>
             <th style="text-align:right;">Borç</th>
             <th style="text-align:right;">Ödeme</th>
+            <th style="text-align:right;">Bakiye</th>
             <th style="text-align:right;">İşlemler</th>
           </tr></thead>
           <tbody>${rowsHtml}</tbody>
         </table>`
       }
     </div>`;
+}
+
+// --- Render: Tüm Ödemeler ---
+
+function renderSupplierPayments() {
+  const supplierSel = document.getElementById('spay-filter-supplier');
+  if (supplierSel) {
+    const cur = supplierSel.value;
+    supplierSel.innerHTML = '<option value="">Tüm Tedarikçiler</option>' +
+      (state.suppliers || []).map(s => `<option value="${s.id}"${cur === s.id ? ' selected' : ''}>${s.name}</option>`).join('');
+  }
+
+  const q = (document.getElementById('spay-search')?.value || '').toLowerCase();
+  const filterSupplier = document.getElementById('spay-filter-supplier')?.value || '';
+  const filterMethod = document.getElementById('spay-filter-method')?.value || '';
+
+  let payments = [...(state.supplierPayments || [])];
+  if (filterSupplier) payments = payments.filter(p => p.supplierId === filterSupplier);
+  if (filterMethod)   payments = payments.filter(p => p.method === filterMethod);
+  if (q) {
+    payments = payments.filter(p => {
+      const sup = (state.suppliers || []).find(s => s.id === p.supplierId);
+      return (sup?.name || '').toLowerCase().includes(q) || (p.note || '').toLowerCase().includes(q);
+    });
+  }
+  payments.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const el = document.getElementById('supplier-payments-list');
+  if (!el) return;
+
+  if (!payments.length) {
+    el.innerHTML = '<p style="padding:24px;text-align:center;color:var(--text-muted)">Kayıt bulunamadı.</p>';
+    return;
+  }
+
+  const total = payments.reduce((s, p) => s + (p.amount || 0), 0);
+
+  el.innerHTML = `
+    <table class="data-table" style="width:100%">
+      <thead><tr>
+        <th>Tarih</th><th>Tedarikçi</th><th>Fatura No</th>
+        <th style="text-align:right">Tutar</th><th>Yöntem</th><th>Not</th><th></th>
+      </tr></thead>
+      <tbody>
+        ${payments.map(p => {
+          const sup = (state.suppliers || []).find(s => s.id === p.supplierId);
+          const inv = p.invoiceId ? (state.stockInvoices || []).find(i => i.id === p.invoiceId) : null;
+          const invNo = inv
+            ? (inv.invoiceNo || '—')
+            : (p.invoiceId ? '—' : `<span style="color:var(--text-muted);font-size:11px">Faturasız</span>`);
+          return `<tr>
+            <td>${fmtDate(p.date)}</td>
+            <td><a href="#" onclick="event.preventDefault();currentSupplierId='${p.supplierId}';goto('supplier-detail')" style="color:var(--accent)">${sup?.name || '?'}</a></td>
+            <td>${invNo}</td>
+            <td style="text-align:right;font-weight:600">${fmtMoney(p.amount)}</td>
+            <td><span class="badge">${p.method || '—'}</span></td>
+            <td style="color:var(--text-muted);font-size:12px">${p.note || ''}</td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-sm" onclick="editSupplierPayment('${p.id}')">${editSvg}</button>
+              <button class="btn btn-sm btn-danger-soft" onclick="deleteSupplierPayment('${p.id}')">${trashSvg}</button>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+      <tfoot><tr style="border-top:2px solid var(--border)">
+        <td colspan="3" style="font-weight:600;padding:8px 10px">Toplam (${payments.length} ödeme)</td>
+        <td style="text-align:right;font-weight:700;color:var(--accent);padding:8px 10px">${fmtMoney(total)}</td>
+        <td colspan="3"></td>
+      </tr></tfoot>
+    </table>`;
 }
 
 // --- Render: Tüm Faturalar ---
@@ -10508,7 +10871,7 @@ function renderSupplierInvoices() {
   list.forEach(inv => {
     const supName = inv.supplierId ? (supplierMap[inv.supplierId] || inv.supplier || '—') : (inv.supplier || '—');
     const approvalBadge = inv.isApproved
-      ? `<button class="btn btn-sm btn-success" onclick="event.stopPropagation();unapproveStockInvoice('${inv.id}')" title="Onayı kaldır">Ödendi ✓</button>`
+      ? `<button class="btn btn-sm" onclick="event.stopPropagation();unapproveStockInvoice('${inv.id}')" title="Onayı kaldır" style="background:#fef2f2;color:#ef4444;border-color:#fca5a5;">Onayı Kaldır</button>`
       : `<span class="badge badge-warning">Bekliyor</span>`;
     const itemsSummary = (inv.items || []).length > 0 ? `${inv.items.length} kalem` : '—';
     html += `<tr style="cursor:pointer;" onclick="showStockInvoiceDetail('${inv.id}','supplier-invoices')">
@@ -10575,7 +10938,7 @@ function renderInvoiceDetail() {
     : `goto('supplier-invoices')`;
 
   const statusBadge = inv.isApproved
-    ? `<button class="btn btn-success" onclick="unapproveStockInvoice('${inv.id}')" title="Onayı kaldırmak için tıkla" style="opacity:0.85;">Onaylı ✓</button>`
+    ? `<button class="btn" onclick="unapproveStockInvoice('${inv.id}')" title="Onayı kaldır" style="background:#fef2f2;color:#ef4444;border-color:#fca5a5;">Onayı Kaldır</button>`
     : `<span class="badge badge-warning" style="font-size:13px;padding:4px 12px;">Taslak</span>`;
 
   let itemsHtml = '';
@@ -10696,10 +11059,11 @@ function renderInvoiceDetail() {
 // --- Helpers ---
 
 function refreshSupplierPages() {
+  if (!document.getElementById('page-suppliers').classList.contains('hidden')) renderSuppliers();
   if (!document.getElementById('page-supplier-detail').classList.contains('hidden')) renderSupplierDetail();
   if (!document.getElementById('page-supplier-invoices').classList.contains('hidden')) renderSupplierInvoices();
   if (!document.getElementById('page-invoice-detail').classList.contains('hidden')) renderInvoiceDetail();
-  if (!document.getElementById('page-suppliers').classList.contains('hidden')) renderSuppliers();
+  if (!document.getElementById('page-supplier-payments').classList.contains('hidden')) renderSupplierPayments();
 }
 
 // --- Fatura Onaylama ---
@@ -10708,8 +11072,30 @@ async function approveStockInvoice(id) {
   const inv = (state.stockInvoices || []).find(i => i.id === id);
   if (!inv) return;
   inv.isApproved = true;
+
+  // Fatura kalemlerindeki birim fiyatları katalog alış fiyatına yaz + priceHistory'e kaydet
+  let updatedCount = 0;
+  (inv.items || []).forEach(item => {
+    if (!item.partId || !(item.unitPrice > 0)) return;
+    const part = (state.parts || []).find(p => p.id === item.partId);
+    if (part) {
+      part.buyPrice = item.unitPrice;
+      if (!part.priceHistory) part.priceHistory = [];
+      part.priceHistory.push({
+        date: inv.date || todayStr(),
+        price: item.unitPrice,
+        source: 'invoice',
+        invoiceId: id,
+        invoiceNo: inv.invoiceNo || ''
+      });
+      updatedCount++;
+    }
+  });
+
   await saveState();
-  showToast('Fatura onaylandı', 'success');
+  showToast(updatedCount > 0
+    ? `Fatura onaylandı — ${updatedCount} parçanın alış fiyatı güncellendi`
+    : 'Fatura onaylandı', 'success');
   refreshSupplierPages();
 }
 
@@ -10757,10 +11143,7 @@ async function doApproveAndPay() {
   const inv = (state.stockInvoices || []).find(i => i.id === id);
   if (!inv) return;
   closeModal('approve-inv-modal');
-  inv.isApproved = true;
-  await saveState();
-  showToast('Fatura onaylandı', 'success');
-  refreshSupplierPages();
+  await approveStockInvoice(id);
   openPaymentModal(inv.supplierId, inv.id, inv.totalAmount || 0);
 }
 
